@@ -1,0 +1,54 @@
+@font-face {
+  font-family: 'Shabnam';
+  src: url('../assets/fonts/Shabnam/Shabnam.woff2') format('woff2'),
+       url('../assets/fonts/Shabnam/Shabnam.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Shabnam';
+  src: url('../assets/fonts/Shabnam/Shabnam-Bold.woff2') format('woff2'),
+       url('../assets/fonts/Shabnam/Shabnam-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Shabnam';
+  src: url('../assets/fonts/Shabnam/Shabnam-Light.woff2') format('woff2'),
+       url('../assets/fonts/Shabnam/Shabnam-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Shabnam';
+  src: url('../assets/fonts/Shabnam/Shabnam-Medium.woff2') format('woff2'),
+       url('../assets/fonts/Shabnam/Shabnam-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Shabnam';
+  src: url('../assets/fonts/Shabnam/Shabnam-Thin.woff2') format('woff2'),
+       url('../assets/fonts/Shabnam/Shabnam-Thin.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Aboreto';
+  src: url('../assets/fonts/Aboreto/Aboreto-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Shabnam', sans-serif;
+}
+
+.english-text {
+  font-family: 'Aboreto', sans-serif;
+}
