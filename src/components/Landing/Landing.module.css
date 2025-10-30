@@ -41,6 +41,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-right: 2.5rem;
+  padding-left: 2.5rem;
 }
 
 .logo {
@@ -52,15 +54,58 @@
   color: var(--primary);
 }
 
-.logoIcon {
+/* .logoIcon {
   font-size: 2rem;
   animation: pulse 2s infinite;
+} */
+
+.logoImage {
+  width: 110px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  margin-left: 15px;
+}
+
+.logo:hover .logoImage {
+  transform: scale(1.1);
+}
+
+.logoPulse {
+  position: absolute;
+  top: 20px;
+  left: -10px;
+  right: 60px;
+  bottom: -10px;
+  width: 70px;
+  height: 40px;
+  background: #3b625572;
+  /* background: rgba(37, 100, 235, 0.216); */
+  /* color: var(--primary); */
+  border-radius: 50%;
+  z-index: 1;
+  animation: pulse 3s infinite;
 }
 
 @keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}
+
+
+/* @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.1); }
-}
+} */
 
 .navLinks {
   display: flex;
@@ -994,6 +1039,15 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  /* .logoImage {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .logo {
+    font-size: 1.4rem;
+  } */
 
   .heroTitle {
     font-size: 2.8rem;

@@ -20,7 +20,7 @@ import {
   FiYoutube,
   FiSend,
   // FiArrowLeft,
-  FiHeart,
+  // FiHeart,
   FiShield,
   // FiLeaf,
   FiGitBranch,
@@ -28,6 +28,8 @@ import {
 } from 'react-icons/fi';
 import styles from './Landing.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+import Logo from '../../assets/images/Logo.svg';
 
 const Landing = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -68,11 +70,25 @@ const Landing = () => {
     <div className={styles.landing}>
       {/* هدر */}
       <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
-        <nav className={`container ${styles.nav}`}>
-          <div className={styles.logo}>
+        <nav className={`${styles.nav}`}>
+          
+          {/* <div className={styles.logo}>
             <FiHeart className={styles.logoIcon} />
+            
+            <span>اسپا اکسیر</span>
+          </div> */}
+
+          <div className={styles.logo}>
+            <img 
+                src={Logo} 
+                alt="اسپا اکسیر" 
+                className={styles.logoImage}
+              />
+            <div className={styles.logoPulse}></div>
             <span>اسپا اکسیر</span>
           </div>
+
+
           <ul className={styles.navLinks}>
             {[
               { id: 'home', label: 'خانه', icon: <FiHome /> },
@@ -449,10 +465,21 @@ const Landing = () => {
         <div className="container">
           <div className="row">
             <div className="col-lg-4 mb-4">
-              <div className={styles.footerLogo}>
+              
+              {/* <div className={styles.footerLogo}>
                 <FiHeart className={styles.logoIcon} />
                 <span>اسپا اکسیر</span>
+              </div> */}
+
+              <div className={styles.footerLogo}>
+                <img 
+                  src="/images/logo.png" 
+                  alt="اسپا اکسیر" 
+                  className={styles.logoImage}
+                />
+                <span>اسپا اکسیر</span>
               </div>
+
               <p className={styles.footerDescription}>
                 مرکز تخصصی ماساژ و اسپا با ارائه بهترین خدمات در محیطی آرام و لوکس
               </p>
