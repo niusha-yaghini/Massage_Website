@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  FiHome, 
-  FiUser, 
-  FiStar, 
-  FiUsers, 
-  FiPhone, 
-  FiLogIn, 
+import React, { useState, useEffect } from "react";
+import {
+  FiHome,
+  FiUser,
+  FiStar,
+  FiUsers,
+  FiPhone,
+  FiLogIn,
   FiUserPlus,
   FiCalendar,
   FiVideo,
@@ -24,23 +24,90 @@ import {
   FiShield,
   // FiLeaf,
   FiGitBranch,
-  FiActivity
-} from 'react-icons/fi';
-import styles from './Landing.module.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+  FiActivity,
+} from "react-icons/fi";
+import styles from "./Landing.module.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-import Logo from '../../assets/images/Logo.svg';
+// import Logo from '../../assets/images/Logo.svg';
+import Logo from "../../assets/images/Logo_white.png";
+
+import Logobackback from "../../assets/images/back7-2.jpg";
 
 const Landing = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState("home");
+
+  const services = [
+    {
+      icon: <FiUser />,
+      title: "ماساژ سوئدی",
+      description: "ماساژ کلاسیک برای ریلکس شدن عضلات",
+      price: "۱,۸۰۰,۰۰۰ تومان",
+    },
+    {
+      icon: <FiActivity />,
+      title: "ماساژ تایلندی",
+      description: "کشش یوگا و تکنیک‌های انرژی‌بخش",
+      price: "۲,۲۰۰,۰۰۰ تومان",
+    },
+    {
+      icon: <FiActivity />,
+      title: "ماساژ ورزشی",
+      description: "مخصوص ورزشکاران حرفه‌ای",
+      price: "۲,۰۰۰,۰۰۰ تومان",
+    },
+    {
+      icon: <FiUser />,
+      title: "ماساژ آرام‌سازی",
+      description: "ریلکسیشن عمیق با روغن‌های ارگانیک",
+      price: "۱,۹۰۰,۰۰۰ تومان",
+    },
+    {
+      icon: <FiStar />,
+      title: "ماساژ درمانی",
+      description: "درمان دردهای عضلانی و گرفتگی‌ها",
+      price: "۲,۴۰۰,۰۰۰ تومان",
+    },
+    {
+      icon: <FiShield />,
+      title: "ماساژ VIP",
+      description: "لوکس‌ترین پکیج همراه با رایحه‌درمانی",
+      price: "۳,۰۰۰,۰۰۰ تومان",
+    },
+  ];
+
+  // const [currentService, setCurrentService] = useState(0);
+
+  // const handleNextService = () => {
+  //   setCurrentService((prev) => (prev + 1) % services.length);
+  // };
+
+  // const handlePrevService = () => {
+  //   setCurrentService((prev) => (prev - 1 + services.length) % services.length);
+  // };
+
+  const [currentService, setCurrentService] = useState(0);
+  const [expandedIndex, setExpandedIndex] = useState(null);
+
+  const handleNextService = () => {
+    setCurrentService((prev) => (prev + 1) % services.length);
+  };
+
+  const handlePrevService = () => {
+    setCurrentService((prev) => (prev - 1 + services.length) % services.length);
+  };
+
+  const toggleExpand = (index) => {
+    setExpandedIndex((prev) => (prev === index ? null : index));
+  };
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      
-      const sections = ['home', 'services', 'about', 'therapists', 'contact'];
-      const current = sections.find(section => {
+
+      const sections = ["home", "services", "about", "therapists", "contact"];
+      const current = sections.find((section) => {
         const element = document.getElementById(section);
         if (element) {
           const rect = element.getBoundingClientRect();
@@ -48,20 +115,20 @@ const Landing = () => {
         }
         return false;
       });
-      
+
       if (current) {
         setActiveSection(current);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
       setActiveSection(sectionId);
     }
   };
@@ -69,38 +136,28 @@ const Landing = () => {
   return (
     <div className={styles.landing}>
       {/* هدر */}
-      <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
+      <header
+        className={`${styles.header} ${isScrolled ? styles.scrolled : ""}`}
+      >
         <nav className={`${styles.nav}`}>
-          
-          {/* <div className={styles.logo}>
-            <FiHeart className={styles.logoIcon} />
-            
-            <span>اسپا اکسیر</span>
-          </div> */}
-
           <div className={styles.logo}>
-            <img 
-                src={Logo} 
-                alt="اسپا اکسیر" 
-                className={styles.logoImage}
-              />
+            <img src={Logo} alt="اسپا اکسیر" className={styles.logoImage} />
             <div className={styles.logoPulse}></div>
-            <span>اسپا اکسیر</span>
+            <span className={styles.logospa}>اسپا اکسیر</span>
           </div>
-
 
           <ul className={styles.navLinks}>
             {[
-              { id: 'home', label: 'خانه', icon: <FiHome /> },
-              { id: 'services', label: 'خدمات', icon: <FiUser /> },
-              { id: 'about', label: 'درباره ما', icon: <FiStar /> },
-              { id: 'therapists', label: 'متخصصان', icon: <FiUsers /> },
-              { id: 'contact', label: 'تماس', icon: <FiPhone /> }
-            ].map(item => (
+              { id: "home", label: "خانه", icon: <FiHome /> },
+              { id: "services", label: "خدمات", icon: <FiUser /> },
+              { id: "about", label: "درباره ما", icon: <FiStar /> },
+              { id: "therapists", label: "متخصصان", icon: <FiUsers /> },
+              { id: "contact", label: "تماس", icon: <FiPhone /> },
+            ].map((item) => (
               <li key={item.id}>
-                <a 
-                  href={`#${item.id}`} 
-                  className={activeSection === item.id ? styles.active : ''}
+                <a
+                  href={`#${item.id}`}
+                  className={activeSection === item.id ? styles.active : ""}
                   onClick={(e) => {
                     e.preventDefault();
                     scrollToSection(item.id);
@@ -113,11 +170,11 @@ const Landing = () => {
             ))}
           </ul>
           <div className={styles.headerButtons}>
-            <button className={`btn ${styles.loginBtn}`}>
+            <button className={` ${styles.loginBtn}`}>
               <FiLogIn className={styles.btnIcon} />
               ورود
             </button>
-            <button className={`btn ${styles.signupBtn}`}>
+            <button className={` ${styles.signupBtn}`}>
               <FiUserPlus className={styles.btnIcon} />
               ثبت‌نام
             </button>
@@ -132,80 +189,78 @@ const Landing = () => {
             <div className="col-lg-6">
               <div className={styles.heroBadge}>
                 <FiAward className={styles.badgeIcon} />
-                بهترین مرکز ماساژ سال ۲۰۲۴
+                با بیش از 3 سال تجربه
               </div>
               <h1 className={styles.heroTitle}>
-                آرامش <span className={styles.highlight}>اصیل</span> در 
+                آرامش <span className={styles.highlight}>اصیل</span> در
                 <span className={styles.highlight}> محیطی لوکس</span>
               </h1>
               <p className={styles.heroSubtitle}>
-                در اسپا اکسیر، با ترکیبی از هنر ماساژ سنتی و تکنیک‌های مدرن، 
+                در اسپا اکسیر، با ترکیبی از هنر ماساژ سنتی و تکنیک‌های مدرن،
                 سفری به دنیای آرامش و تندرستی را تجربه کنید
               </p>
               <div className={styles.ctaButtons}>
-                <button className={`btn ${styles.primaryBtn}`}>
+                <button className={` ${styles.primaryBtn}`}>
                   <FiCalendar className={styles.btnIcon} />
                   رزرو نوبت آنلاین
                 </button>
-                <button className={`btn ${styles.secondaryBtn}`}>
+                <button className={` ${styles.secondaryBtn}`}>
                   <FiVideo className={styles.btnIcon} />
                   ویدیو معرفی
                 </button>
-              </div>
-              <div className={styles.heroStats}>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>۱,۲۵۰+</span>
-                  <span className={styles.statLabel}>مشتری راضی</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>۱۸+</span>
-                  <span className={styles.statLabel}>متخصص مجرب</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>۹۹%</span>
-                  <span className={styles.statLabel}>رضایت‌مندی</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>۵<FiStar className={styles.starIcon} /></span>
-                  <span className={styles.statLabel}>امتیاز گوگل</span>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6">
-              <div className={styles.heroVisual}>
-                <div className={styles.floatingCard}>
-                  <FiUser className={styles.cardIcon} />
-                  <span>ماساژ تخصصی</span>
-                </div>
-                <div className={styles.floatingCard}>
-                  <FiGitBranch className={styles.cardIcon} />
-                  <span>روغن‌های طبیعی</span>
-                </div>
-                <div className={styles.floatingCard}>
-                  <FiAward className={styles.cardIcon} />
-                  <span>کیفیت عالی</span>
-                </div>
-                <div className={styles.mainHeroImage}>
-                  <div className={styles.imageContent}>
-                    <div className={styles.rating}>
-                      <span>۵.۰</span>
-                      <div className={styles.stars}>
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                      </div>
-                    </div>
-                    <h4>تجربه‌ای فراموش‌نشدنی</h4>
-                    <p>در محیطی آرام و لوکس</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* خدمات */}
+      {/* <section id="services" className={`${styles.services} ${styles.section}`}>
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>خدمات اختصاصی ما</h2>
+            <p className={styles.sectionSubtitle}>
+              با متنوع‌ترین و تخصصی‌ترین خدمات ماساژ در خدمت شما هستیم
+            </p>
+          </div>
+
+          <div className={styles.sliderWrapper}>
+            <button className={styles.navBtn} onClick={handlePrevService}>
+              ‹
+            </button>
+
+            <div className={styles.slider}>
+              <div
+                className={styles.sliderInner}
+                style={{ transform: `translateX(-${currentService * 100}%)` }}
+              >
+                {services.map((service, index) => (
+                  <div key={index} className={styles.slide}>
+                    <div className={styles.serviceCardMinimal}>
+                      <div className={styles.serviceIconMinimal}>
+                        {service.icon}
+                      </div>
+                      <h3>{service.title}</h3>
+                      <p>{service.description}</p>
+                      <span className={styles.priceMinimal}>
+                        {service.price}
+                      </span>
+                      <button className={styles.bookBtnMinimal}>
+                        <FiCalendar className={styles.btnIcon} />
+                        رزرو نوبت
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button className={styles.navBtn} onClick={handleNextService}>
+              ›
+            </button>
+          </div>
+        </div>
+      </section> */}
 
       {/* خدمات */}
       <section id="services" className={`${styles.services} ${styles.section}`}>
@@ -216,64 +271,175 @@ const Landing = () => {
               با متنوع‌ترین و تخصصی‌ترین خدمات ماساژ در خدمت شما هستیم
             </p>
           </div>
-          <div className="row">
-            {[
-              {
-                icon: <FiUser />,
-                title: 'ماساژ سوئدی',
-                description: 'ماساژ کلاسیک برای ریلکس شدن عضلات، بهبود گردش خون و کاهش استرس روزانه',
-                price: '۱۸۰,۰۰۰ تومان',
-                duration: '۶۰ دقیقه',
-                features: ['رفع خستگی عضلات', ' بهبود گردش خون', 'کاهش استرس']
-              },
-              {
-                icon: <FiActivity />,
-                title: 'ماساژ تایلندی',
-                description: 'ترکیبی منحصربه‌فرد از کشش یوگا و فشار برای انعطاف‌پذیری و انرژی بیشتر',
-                price: '۲۲۰,۰۰۰ تومان',
-                duration: '۷۵ دقیقه',
-                features: ['انعطاف‌پذیری بیشتر', 'انرژی‌بخشی', 'کشش عضلات']
-              },
-              {
-                icon: <FiActivity />,
-                title: 'ماساژ ورزشی',
-                description: 'مخصوص ورزشکاران حرفه‌ای برای بهبود عملکرد، ریکاوری و جلوگیری از آسیب',
-                price: '۲۰۰,۰۰۰ تومان',
-                duration: '۶۰ دقیقه',
-                features: ['ریکاوری سریع', 'جلوگیری از آسیب', 'بهبود عملکرد']
-              }
-            ].map((service, index) => (
-              <div key={index} className="col-lg-4 col-md-6 mb-4">
-                <div className={`${styles.serviceCard} ${styles[`card${index + 1}`]}`}>
-                  <div className={styles.serviceHeader}>
-                    <div className={styles.serviceIcon}>{service.icon}</div>
-                    <div className={styles.serviceInfo}>
-                      <h3>{service.title}</h3>
-                      <span className={styles.duration}>
-                        <FiClock className={styles.clockIcon} />
-                        {service.duration}
-                      </span>
+
+          <div className={styles.sliderWrapper}>
+            <button className={styles.navBtn} onClick={handlePrevService}>
+              ‹
+            </button>
+
+            <div className={styles.slider}>
+              <div className={styles.sliderInner}>
+                {/* {services.map((service, index) => {
+                  const offset = index - currentService;
+                  const isActive = offset === 0;
+                  const isSide = Math.abs(offset) === 1;
+                  const isFar = Math.abs(offset) > 1;
+                  const isExpanded = expandedIndex === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`
+                  ${styles.slide}
+                  ${isActive ? styles.activeSlide : ""}
+                  ${isSide ? styles.sideSlide : ""}
+                  ${isFar ? styles.farSlide : ""}
+                `}
+                      style={{
+                        // کارت‌ها حول مرکز می‌چرخن
+                        transform: `translate(calc(-50% + ${
+                          offset * 35
+                        }%), -50%) scale(${isActive ? 1 : 0.9})`,
+                        zIndex: 10 - Math.abs(offset),
+                      }}
+                    >
+                      <div
+                        className={`
+                    ${styles.serviceCardMinimal}
+                    ${isActive ? styles.activeCard : ""}
+                    ${isExpanded ? styles.expandedCard : ""}
+                  `}
+                      >
+                        <div className={styles.serviceIconMinimal}>
+                          {service.icon}
+                        </div>
+                        <h3>{service.title}</h3>
+                        <p>{service.description}</p>
+                        <span className={styles.priceMinimal}>
+                          {service.price}
+                        </span>
+
+                        {isExpanded && (
+                          <div className={styles.moreContent}>
+                            <p>
+                              این ماساژ شامل مدت‌زمان بیشتر، استفاده از روغن‌های
+                              ویژه و تمرکز روی نواحی حساس بدن است تا حداکثر
+                              آرامش را برای شما فراهم کند.
+                            </p>
+                            <ul className={styles.moreList}>
+                              <li>مدت‌زمان تقریبی: ۶۰ تا ۹۰ دقیقه</li>
+                              <li>استفاده از روغن‌های ۱۰۰٪ گیاهی</li>
+                              <li>مشاوره کوتاه قبل از شروع ماساژ</li>
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className={styles.cardActionsRow}>
+                          <button className={styles.bookBtnMinimal}>
+                            <FiCalendar className={styles.btnIcon} />
+                            رزرو نوبت
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleExpand(index)}
+                            className={styles.moreBtn}
+                          >
+                            {isExpanded ? "بستن توضیحات" : "توضیحات بیشتر"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <p className={styles.serviceDescription}>{service.description}</p>
-                  <div className={styles.serviceFeatures}>
-                    {service.features.map((feature, idx) => (
-                      <span key={idx} className={styles.featureTag}>
-                        <FiCheckCircle className={styles.checkIcon} />
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                  <div className={styles.serviceFooter}>
-                    <span className={styles.price}>{service.price}</span>
-                    <button className={styles.bookBtn}>
-                      <FiCalendar className={styles.btnIcon} />
-                      رزرو نوبت
-                    </button>
-                  </div>
-                </div>
+                  );
+                })} */}
+
+                {services.map((service, index) => {
+                  const total = services.length;
+
+                  // اختلاف اولیه
+                  let offset = index - currentService;
+
+                  // تبدیل به فاصله‌ی حلقه‌ای (دایره‌ای)
+                  if (offset > total / 2) {
+                    offset -= total;
+                  } else if (offset < -total / 2) {
+                    offset += total;
+                  }
+
+                  const isActive = offset === 0;
+                  const isSide = Math.abs(offset) === 1;
+                  const isFar = Math.abs(offset) > 1;
+                  const isExpanded = expandedIndex === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`
+        ${styles.slide}
+        ${isActive ? styles.activeSlide : ""}
+        ${isSide ? styles.sideSlide : ""}
+        ${isFar ? styles.farSlide : ""}
+      `}
+                      style={{
+                        transform: `translate(calc(-50% + ${
+                          offset * 35
+                        }%), -50%) scale(${isActive ? 1 : 0.9})`,
+                        zIndex: 10 - Math.abs(offset),
+                      }}
+                    >
+                      <div
+                        className={`
+          ${styles.serviceCardMinimal}
+          ${isActive ? styles.activeCard : ""}
+          ${isExpanded ? styles.expandedCard : ""}
+        `}
+                      >
+                        <div className={styles.serviceIconMinimal}>
+                          {service.icon}
+                        </div>
+                        <h3>{service.title}</h3>
+                        <p>{service.description}</p>
+                        <span className={styles.priceMinimal}>
+                          {service.price}
+                        </span>
+
+                        {isExpanded && (
+                          <div className={styles.moreContent}>
+                            <p>
+                              این ماساژ شامل مدت‌زمان بیشتر، استفاده از روغن‌های
+                              ویژه و تمرکز روی نواحی حساس بدن است تا حداکثر
+                              آرامش را برای شما فراهم کند.
+                            </p>
+                            <ul className={styles.moreList}>
+                              <li>مدت‌زمان تقریبی: ۶۰ تا ۹۰ دقیقه</li>
+                              <li>استفاده از روغن‌های ۱۰۰٪ گیاهی</li>
+                              <li>مشاوره کوتاه قبل از شروع ماساژ</li>
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className={styles.cardActionsRow}>
+                          <button className={styles.bookBtnMinimal}>
+                            <FiCalendar className={styles.btnIcon} />
+                            رزرو نوبت
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleExpand(index)}
+                            className={styles.moreBtn}
+                          >
+                            {isExpanded ? "بستن توضیحات" : "توضیحات بیشتر"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
+
+            <button className={styles.navBtn} onClick={handleNextService}>
+              ›
+            </button>
           </div>
         </div>
       </section>
@@ -309,19 +475,37 @@ const Landing = () => {
                   چرا اسپا اکسیر؟
                 </div>
                 <h2 className={styles.sectionTitle}>
-                  تجربه‌ای <span className={styles.highlight}>منحصربه‌فرد</span> از آرامش
+                  تجربه‌ای <span className={styles.highlight}>منحصربه‌فرد</span>{" "}
+                  از آرامش
                 </h2>
                 <p className={styles.aboutText}>
-                  با <strong>۱۰ سال تجربه درخشان</strong> در زمینه ماساژ درمانی، محیطی آرام، 
-                  لوکس و کاملاً حرفه‌ای برای شما عزیزان فراهم کرده‌ایم. استفاده از بهترین 
-                  روغن‌های طبیعی و متدهای روز دنیا از ویژگی‌های متمایز ماست.
+                  با <strong>۱۰ سال تجربه درخشان</strong> در زمینه ماساژ درمانی،
+                  محیطی آرام، لوکس و کاملاً حرفه‌ای برای شما عزیزان فراهم
+                  کرده‌ایم. استفاده از بهترین روغن‌های طبیعی و متدهای روز دنیا
+                  از ویژگی‌های متمایز ماست.
                 </p>
                 <div className={styles.featuresGrid}>
                   {[
-                    { icon: <FiAward />, title: 'متخصصان certified', desc: 'دارای گواهینامه‌های بین‌المللی' },
-                    { icon: <FiShield />, title: 'محیط استریل', desc: 'رعایت کامل پروتکل‌های بهداشتی' },
-                    { icon: <FiActivity />, title: 'تجهیزات مدرن', desc: 'استفاده از جدیدترین متدها' },
-                    { icon: <FiGitBranch />, title: 'روغن‌های طبیعی', desc: '۱۰۰% گیاهی و ارگانیک' }
+                    {
+                      icon: <FiAward />,
+                      title: "متخصصان certified",
+                      desc: "دارای گواهینامه‌های بین‌المللی",
+                    },
+                    {
+                      icon: <FiShield />,
+                      title: "محیط استریل",
+                      desc: "رعایت کامل پروتکل‌های بهداشتی",
+                    },
+                    {
+                      icon: <FiActivity />,
+                      title: "تجهیزات مدرن",
+                      desc: "استفاده از جدیدترین متدها",
+                    },
+                    {
+                      icon: <FiGitBranch />,
+                      title: "روغن‌های طبیعی",
+                      desc: "۱۰۰% گیاهی و ارگانیک",
+                    },
                   ].map((feature, index) => (
                     <div key={index} className={styles.featureItem}>
                       <div className={styles.featureIcon}>{feature.icon}</div>
@@ -339,7 +523,10 @@ const Landing = () => {
       </section>
 
       {/* متخصصان */}
-      <section id="therapists" className={`${styles.therapists} ${styles.section}`}>
+      <section
+        id="therapists"
+        className={`${styles.therapists} ${styles.section}`}
+      >
         <div className="container">
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>با متخصصان ما آشنا شوید</h2>
@@ -349,10 +536,30 @@ const Landing = () => {
           </div>
           <div className="row">
             {[
-              { name: 'دکتر مریم احمدی', specialty: 'ماساژ سوئدی', exp: '۸ سال', bio: 'متخصص ماساژ درمانی با ۸ سال سابقه درخشان' },
-              { name: 'دکتر علی رضایی', specialty: 'ماساژ ورزشی', exp: '۶ سال', bio: 'مختصص ماساژ ورزشی و ریکاوری' },
-              { name: 'دکتر سارا محمدی', specialty: 'ماساژ تایلندی', exp: '۱۰ سال', bio: 'استاد ماساژ تایلندی و انرژی درمانی' },
-              { name: 'دکتر محسن کریمی', specialty: 'ماساژ درمانی', exp: '۱۲ سال', bio: 'پیشگوت در زمینه ماساژ درمانی تخصصی' }
+              {
+                name: "دکتر مریم احمدی",
+                specialty: "ماساژ سوئدی",
+                exp: "۸ سال",
+                bio: "متخصص ماساژ درمانی با ۸ سال سابقه درخشان",
+              },
+              {
+                name: "دکتر علی رضایی",
+                specialty: "ماساژ ورزشی",
+                exp: "۶ سال",
+                bio: "مختصص ماساژ ورزشی و ریکاوری",
+              },
+              {
+                name: "دکتر سارا محمدی",
+                specialty: "ماساژ تایلندی",
+                exp: "۱۰ سال",
+                bio: "استاد ماساژ تایلندی و انرژی درمانی",
+              },
+              {
+                name: "دکتر محسن کریمی",
+                specialty: "ماساژ درمانی",
+                exp: "۱۲ سال",
+                bio: "پیشگوت در زمینه ماساژ درمانی تخصصی",
+              },
             ].map((therapist, index) => (
               <div key={index} className="col-lg-3 col-md-6 mb-4">
                 <div className={styles.therapistCard}>
@@ -439,14 +646,30 @@ const Landing = () => {
                       </h3>
                       <div className="row">
                         <div className="col-md-6">
-                          <input type="text" placeholder="نام شما" className={styles.formInput} />
+                          <input
+                            type="text"
+                            placeholder="نام شما"
+                            className={styles.formInput}
+                          />
                         </div>
                         <div className="col-md-6">
-                          <input type="tel" placeholder="شماره تماس" className={styles.formInput} />
+                          <input
+                            type="tel"
+                            placeholder="شماره تماس"
+                            className={styles.formInput}
+                          />
                         </div>
                       </div>
-                      <input type="email" placeholder="ایمیل (اختیاری)" className={styles.formInput} />
-                      <textarea placeholder="پیام شما..." rows="4" className={styles.formTextarea}></textarea>
+                      <input
+                        type="email"
+                        placeholder="ایمیل (اختیاری)"
+                        className={styles.formInput}
+                      />
+                      <textarea
+                        placeholder="پیام شما..."
+                        rows="4"
+                        className={styles.formTextarea}
+                      ></textarea>
                       <button className={`btn ${styles.primaryBtn}`}>
                         <FiSend className={styles.btnIcon} />
                         ارسال پیام
@@ -465,32 +688,37 @@ const Landing = () => {
         <div className="container">
           <div className="row">
             <div className="col-lg-4 mb-4">
-              
               {/* <div className={styles.footerLogo}>
                 <FiHeart className={styles.logoIcon} />
                 <span>اسپا اکسیر</span>
               </div> */}
 
               <div className={styles.footerLogo}>
-                <img 
-                  src="/images/logo.png" 
-                  alt="اسپا اکسیر" 
+                <img
+                  src="/images/logo.png"
+                  alt="اسپا اکسیر"
                   className={styles.logoImage}
                 />
                 <span>اسپا اکسیر</span>
               </div>
 
               <p className={styles.footerDescription}>
-                مرکز تخصصی ماساژ و اسپا با ارائه بهترین خدمات در محیطی آرام و لوکس
+                مرکز تخصصی ماساژ و اسپا با ارائه بهترین خدمات در محیطی آرام و
+                لوکس
               </p>
               <div className={styles.socialLinks}>
                 {[
-                  { icon: <FiFacebook />, name: 'Facebook' },
-                  { icon: <FiInstagram />, name: 'Instagram' },
-                  { icon: <FiTwitter />, name: 'Twitter' },
-                  { icon: <FiYoutube />, name: 'YouTube' }
+                  { icon: <FiFacebook />, name: "Facebook" },
+                  { icon: <FiInstagram />, name: "Instagram" },
+                  { icon: <FiTwitter />, name: "Twitter" },
+                  { icon: <FiYoutube />, name: "YouTube" },
                 ].map((social, index) => (
-                  <a key={index} href="#" className={styles.socialLink} title={social.name}>
+                  <a
+                    key={index}
+                    href="#"
+                    className={styles.socialLink}
+                    title={social.name}
+                  >
                     {social.icon}
                   </a>
                 ))}
@@ -499,26 +727,46 @@ const Landing = () => {
             <div className="col-lg-2 col-md-4 mb-4">
               <h4>لینک‌های سریع</h4>
               <ul className={styles.footerLinks}>
-                <li><a href="#home">خانه</a></li>
-                <li><a href="#services">خدمات</a></li>
-                <li><a href="#about">درباره ما</a></li>
-                <li><a href="#therapists">متخصصان</a></li>
+                <li>
+                  <a href="#home">خانه</a>
+                </li>
+                <li>
+                  <a href="#services">خدمات</a>
+                </li>
+                <li>
+                  <a href="#about">درباره ما</a>
+                </li>
+                <li>
+                  <a href="#therapists">متخصصان</a>
+                </li>
               </ul>
             </div>
             <div className="col-lg-3 col-md-4 mb-4">
               <h4>خدمات</h4>
               <ul className={styles.footerLinks}>
-                <li><a href="#">ماساژ سوئدی</a></li>
-                <li><a href="#">ماساژ تایلندی</a></li>
-                <li><a href="#">ماساژ ورزشی</a></li>
-                <li><a href="#">ماساژ درمانی</a></li>
+                <li>
+                  <a href="#">ماساژ سوئدی</a>
+                </li>
+                <li>
+                  <a href="#">ماساژ تایلندی</a>
+                </li>
+                <li>
+                  <a href="#">ماساژ ورزشی</a>
+                </li>
+                <li>
+                  <a href="#">ماساژ درمانی</a>
+                </li>
               </ul>
             </div>
             <div className="col-lg-3 col-md-4 mb-4">
               <h4>خبرنامه</h4>
               <p>برای دریافت تخفیف‌های ویژه در خبرنامه عضو شوید</p>
               <div className={styles.newsletter}>
-                <input type="email" placeholder="ایمیل شما" className={styles.newsletterInput} />
+                <input
+                  type="email"
+                  placeholder="ایمیل شما"
+                  className={styles.newsletterInput}
+                />
                 <button className={styles.newsletterBtn}>
                   <FiSend className={styles.btnIcon} />
                 </button>
