@@ -5,7 +5,6 @@ import {
   FiStar,
   FiUsers,
   FiPhone,
-  FiMail,
   FiLogIn,
   FiUserPlus,
   FiCalendar,
@@ -13,6 +12,7 @@ import {
   FiAward,
   FiClock,
   FiCheckCircle,
+  FiMail,
   FiMapPin,
   FiInstagram,
   FiFacebook,
@@ -22,9 +22,6 @@ import {
   FiShield,
   FiGitBranch,
   FiActivity,
-  FiChevronLeft,
-  FiChevronRight,
-  FiChevronUp,
 } from "react-icons/fi";
 import styles from "./Landing.module.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -75,88 +72,6 @@ const Landing = () => {
     },
   ];
 
-  const reviews = [
-    {
-      name: "علی احمدی",
-      text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "حسین رحمانی",
-      text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "رضا رحیمی",
-      text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "سهیل کریمی",
-      text: "خدمات عالی و حرفه‌ای! به شدت توصیه می‌کنم. ماساژ درمانی فوق‌العاده‌ای بود.",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-    {
-      name: "علی احمدی",
-      text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "خسن سلطانی",
-      text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "رضا رحیمی",
-      text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "پدرام کریمی",
-      text: "خدمات عالی و حرفه‌ای! به شدت توصیه می‌کنم. ماساژ درمانی فوق‌العاده‌ای بود.",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-    {
-      name: "علی احمدی",
-      text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "پوریا سلطانی",
-      text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "رضا رحیمی",
-      text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "صدرا کریمی",
-      text: "خدمات عالی و حرفه‌ای! به شدت توصیه می‌کنم. ماساژ درمانی فوق‌العاده‌ای بود.",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-  ];
-
-  const [currentReview, setCurrentReview] = useState(0);
-
-  const [direction, setDirection] = useState("next");
-
-  const handleNext = () => {
-    setDirection("next");
-    setCurrentReview((prev) => (prev + 1) % reviews.length);
-  };
-
-  const handlePrev = () => {
-    setDirection("prev");
-    setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
-  };
-
-  useEffect(() => {
-    const interval = setInterval(handleNext, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   const [currentService, setCurrentService] = useState(0);
   const [expandedIndex, setExpandedIndex] = useState(null);
 
@@ -168,6 +83,114 @@ const Landing = () => {
     setCurrentService((prev) => (prev - 1 + services.length) % services.length);
   };
 
+  const testimonials = [
+    {
+      name: "امیر رضایی",
+      avatar: <FiUser />,
+      text: "یکی از بهترین تجربه‌های اسپا که داشتم. محیط فوق‌العاده آرام، عطر عالی و رفتار بسیار محترمانه پرسنل.",
+    },
+    {
+      name: "مهدی احمدپور",
+      avatar: <FiUser />,
+      text: "بعد از یک هفته کاری شلوغ، اینجا دقیقاً همان جایی است که برای ریلکس شدن نیاز دارم.",
+    },
+    {
+      name: "محمد طاهری",
+      avatar: <FiUser />,
+      text: "ماساژ درمانی واقعاً درد کمرم رو کاهش داد. حس کردم بدنم دوباره جان گرفت.",
+    },
+    {
+      name: "حسین سلطانی",
+      avatar: <FiUser />,
+      text: "فضا لاکچری، موسیقی آرام، و ماساژ حرفه‌ای. حتماً به دوستانم پیشنهاد می‌دم.",
+    },
+    {
+      name: "علی محمدی",
+      avatar: <FiUser />,
+      text: "رزرو آنلاین خیلی راحت بود و سر زمان تعیین‌شده بدون معطلی پذیرش شدم. تجربه‌ی فوق‌العاده‌ای بود.",
+    },
+    {
+      name: "رضا کرمانی",
+      avatar: <FiUser />,
+      text: "کیفیت ماساژ و برخورد پرسنل باعث شد اینجا رو به‌عنوان محل ثابت استراحتم انتخاب کنم.",
+    },
+    {
+      name: "سعید کریمی",
+      avatar: <FiUser />,
+      text: "بهترین ماساژی که تجربه کردم! پرسنل بسیار حرفه‌ای و محیط فوق‌العاده آرام.",
+    },
+    {
+      name: "عباس موسوی",
+      avatar: <FiUser />,
+      text: "برای هدیه تولد همسرم آوردمش اینجا، خیلی خوشش اومد. ممنون از خدمات عالیتون.",
+    },
+    {
+      name: "ناصر رضوانی",
+      avatar: <FiUser />,
+      text: "بعد از یک ماه کار سخت، این ماساژ واقعاً معجزه کرد. انرژی گرفتم برای هفته جدید.",
+    },
+    {
+      name: "علی احمدی",
+      avatar: <FiUser />,
+      text: "روغن‌های طبیعی و بوی خوبش واقعاً آرامش‌بخش بود. حتماً دوباره می‌آیم.",
+    },
+    {
+      name: "محسن جعفری",
+      avatar: <FiUser />,
+      text: "توصیه دکترم بود برای کمردرد، واقعاً مؤثر بود. سه جلسه رفتم درد خیلی بهتر شد.",
+    },
+    {
+      name: "حسین سلیمانی",
+      avatar: <FiUser />,
+      text: "برخورد پرسنل خیلی محترمانه بود. احساس امنیت و آرامش کامل داشتم.",
+    },
+    {
+      name: "کامران نوروزی",
+      avatar: <FiUser />,
+      text: "قیمت مناسبی داره نسبت به کیفیت خدمات. جای دیگه رو توصیه نمی‌کنم.",
+    },
+    {
+      name: "خسن حیدری",
+      avatar: <FiUser />,
+      text: "ماساژ سوئدی عالی بود. متخصص واقعاً حرفه‌ای کار کرد. ممنونم.",
+    },
+    {
+      name: "پویا مرادی",
+      avatar: <FiUser />,
+      text: "امکانات سالن خیلی خوبه. دوش آب گرم بعد ماساژ واقعاً لذت‌بخش بود.",
+    },
+  ];
+
+  // State برای کاروسل نظرات
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true);
+
+  // تنظیمات کاروسل
+  const visibleTestimonials = 5;
+  const infiniteTestimonials = [
+    ...testimonials,
+    ...testimonials,
+    ...testimonials,
+  ];
+  const trackWidth = (100 / visibleTestimonials) * testimonials.length * 3;
+
+  // useEffect برای auto-play کاروسل
+  useEffect(() => {
+    let interval;
+
+    if (!isHovered) {
+      interval = setInterval(() => {
+        setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+      }, 3000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isHovered, testimonials.length]);
+
+  // useEffect برای تشخیص اسکرول و active section
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -191,12 +214,45 @@ const Landing = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // توابع navigation
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
       setActiveSection(sectionId);
     }
+  };
+
+  // تابع برای رفتن به کارت بعدی در نظرات
+  const goToNextTestimonial = () => {
+    setIsTransitioning(true);
+    setCurrentTestimonial((prev) => {
+      if (prev >= testimonials.length - 1) {
+        setTimeout(() => {
+          setCurrentTestimonial(0);
+          setIsTransitioning(false);
+          setTimeout(() => setIsTransitioning(true), 50);
+        }, 800);
+        return prev;
+      }
+      return prev + 1;
+    });
+  };
+
+  // تابع برای رفتن به کارت قبلی در نظرات
+  const goToPrevTestimonial = () => {
+    setIsTransitioning(true);
+    setCurrentTestimonial((prev) => {
+      if (prev <= 0) {
+        setTimeout(() => {
+          setCurrentTestimonial(testimonials.length - 1);
+          setIsTransitioning(false);
+          setTimeout(() => setIsTransitioning(true), 50);
+        }, 800);
+        return prev;
+      }
+      return prev - 1;
+    });
   };
 
   return (
@@ -217,7 +273,7 @@ const Landing = () => {
               { id: "home", label: "خانه", icon: <FiHome /> },
               { id: "services", label: "خدمات", icon: <FiUser /> },
               { id: "about", label: "درباره ما", icon: <FiStar /> },
-              { id: "reviews", label: "نظرات", icon: <FiUsers /> },
+              { id: "therapists", label: "متخصصان", icon: <FiUsers /> },
               { id: "contact", label: "تماس", icon: <FiPhone /> },
             ].map((item) => (
               <li key={item.id}>
@@ -247,6 +303,7 @@ const Landing = () => {
           </div>
         </nav>
       </header>
+
       {/* هیرو سکشن */}
       <section id="home" className={`${styles.hero} ${styles.section}`}>
         <div className="container">
@@ -458,93 +515,108 @@ const Landing = () => {
       </section>
 
       {/* نظرات مشتریان */}
-      <section id="reviews" className={`${styles.reviews} ${styles.section}`}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>نظرات مشتریان</h2>
-          <p className={styles.sectionSubtitle}>مشتریان ما چه می‌گویند؟</p>
-        </div>
-        <div className={styles.carouselContainer}>
-          <div className={styles.carousel}>
-            {[currentReview - 1, currentReview, currentReview + 1].map(
-              (index, i) => {
-                const adjustedIndex = (index + reviews.length) % reviews.length;
-                const review = reviews[adjustedIndex];
-                const position = i;
+      {/* نظرات مشتریان */}
+      <section
+        id="testimonials"
+        className={`${styles.testimonials} ${styles.section}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>نظرات مشتریان</h2>
+            <p className={styles.sectionSubtitle}>
+              تجربه‌ی صدها مشتری راضی از خدمات اسپا اکسیر
+            </p>
+          </div>
 
-                return (
-                  <div
-                    key={`${adjustedIndex}-${position}`}
-                    className={`
-                  ${styles.reviewCard}
-                  ${position === 0 ? styles.slideOut : ""}
-                  ${position === 1 ? styles.slideActive : ""}
-                  ${position === 2 ? styles.slideIn : ""}
-                  ${
-                    direction === "next"
-                      ? styles.directionNext
-                      : styles.directionPrev
-                  }
-                `}
-                    data-position={position}
-                  >
-                    {/* <div className={styles.reviewAvatar}>
-                      <img src={review.avatar} alt={`Avatar ${review.name}`} />
-                    </div> */}
-                    <div className={styles.reviewContent}>
-                      <h4 className={styles.reviewName}>{review.name}</h4>
-                      <div className={styles.stars}>
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
+          <div className={styles.testimonialSliderWrapper}>
+            <div className={styles.testimonialTrackContainer}>
+              <div
+                className={styles.testimonialTrack}
+                style={{
+                  transform: `translateX(-${currentTestimonial * (100 / 3)}%)`, // تغییر: نمایش 3 تا در هر صفحه
+                  transition: isTransitioning ? "transform 0.5s ease" : "none",
+                  width: `${(testimonials.length / 3) * 100}%`, // تغییر: عرض بر اساس تعداد صفحات
+                }}
+              >
+                {testimonials.map((item, index) => (
+                  <div key={index} className={styles.testimonialItem}>
+                    <div className={styles.testimonialCard}>
+                      <div className={styles.testimonialAvatar}>
+                        {item.avatar}
                       </div>
-                      <p className={styles.reviewText}>{review.text}</p>
+                      <h4 className={styles.testimonialName}>{item.name}</h4>
+                      <p className={styles.testimonialText}>{item.text}</p>
+                      <div className={styles.testimonialRating}>
+                        {Array(5)
+                          .fill(0)
+                          .map((_, i) => (
+                            <FiStar key={i} className={styles.starIcon} />
+                          ))}
+                      </div>
+                      <div className={styles.testimonialNumber}>
+                        #{index + 1}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.testimonialControls}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsTransitioning(true);
+                setCurrentTestimonial((prev) =>
+                  prev === 0
+                    ? Math.floor((testimonials.length - 1) / 3)
+                    : prev - 1
                 );
-              }
-            )}
+              }}
+              className={styles.controlBtn}
+              aria-label="نظر قبلی"
+            >
+              ‹
+            </button>
+
+            <div className={styles.testimonialDots}>
+              {Array.from({ length: Math.ceil(testimonials.length / 3) }).map(
+                (_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setIsTransitioning(true);
+                      setCurrentTestimonial(index);
+                    }}
+                    className={`${styles.dot} ${
+                      currentTestimonial === index ? styles.activeDot : ""
+                    }`}
+                    aria-label={`برو به صفحه ${index + 1}`}
+                  />
+                )
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsTransitioning(true);
+                setCurrentTestimonial((prev) =>
+                  prev >= Math.floor((testimonials.length - 1) / 3)
+                    ? 0
+                    : prev + 1
+                );
+              }}
+              className={styles.controlBtn}
+              aria-label="نظر بعدی"
+            >
+              ›
+            </button>
           </div>
-        </div>
-
-        <div className={styles.carouselControls}>
-          <button
-            className={`${styles.prevBtn} ${
-              direction === "prev" ? styles.activeNav : ""
-            }`}
-            onClick={handleNext}
-            aria-label="نظر قبلی"
-          >
-            <FiChevronRight />
-          </button>
-
-          {/* نشانگرهای دات */}
-          <div className={styles.carouselDots}>
-            {reviews.map((_, index) => (
-              <button
-                key={index}
-                className={`${styles.dot} ${
-                  index === currentReview ? styles.activeDot : ""
-                }`}
-                onClick={() => {
-                  setDirection(index > currentReview ? "next" : "prev");
-                  setCurrentReview(index);
-                }}
-                aria-label={`رفتن به نظر ${index + 1}`}
-              />
-            ))}
-          </div>
-
-          <button
-            className={`${styles.nextBtn} ${
-              direction === "next" ? styles.activeNav : ""
-            }`}
-            onClick={handlePrev}
-            aria-label="نظر بعدی"
-          >
-            <FiChevronLeft />
-          </button>
         </div>
       </section>
 
@@ -646,191 +718,89 @@ const Landing = () => {
       <footer className={styles.footer}>
         <div className="container">
           <div className="row">
-            {/* ستون 1: درباره ما */}
-            <div className="col-lg-3 col-md-6 mb-5">
-              <div className={styles.footerColumn}>
-                <h4 className={styles.columnTitle}>
-                  <FiHome className={styles.titleIcon} />
-                  درباره اسپا اکسیر
-                </h4>
-                <p className={styles.columnDescription}>
-                  با بیش از ۱۰ سال تجربه در ارائه خدمات ماساژ درمانی و
-                  آرامش‌بخشی، میزبان شما در محیطی لوکس و کاملاً حرفه‌ای هستیم.
-                </p>
-                <div className={styles.contactInfoMini}>
-                  <div className={styles.contactItemMini}>
-                    <FiPhone className={styles.contactIconMini} />
-                    <span>۰۲۱-۱۲۳۴۵۶۷۸</span>
-                  </div>
-                  <div className={styles.contactItemMini}>
-                    <FiMapPin className={styles.contactIconMini} />
-                    <span>تهران، ولیعصر، پلاک ۱۲۳</span>
-                  </div>
-                </div>
+            <div className="col-lg-4 mb-4">
+              <div className={styles.footerLogo}>
+                <img
+                  src="/images/logo.png"
+                  alt="اسپا اکسیر"
+                  className={styles.logoImage}
+                />
+                <span>اسپا اکسیر</span>
+              </div>
+
+              <p className={styles.footerDescription}>
+                مرکز تخصصی ماساژ و اسپا با ارائه بهترین خدمات در محیطی آرام و
+                لوکس
+              </p>
+              <div className={styles.socialLinks}>
+                {[
+                  { icon: <FiFacebook />, name: "Facebook" },
+                  { icon: <FiInstagram />, name: "Instagram" },
+                  { icon: <FiTwitter />, name: "Twitter" },
+                  { icon: <FiYoutube />, name: "YouTube" },
+                ].map((social, index) => (
+                  <a
+                    key={index}
+                    href="#"
+                    className={styles.socialLink}
+                    title={social.name}
+                  >
+                    {social.icon}
+                  </a>
+                ))}
               </div>
             </div>
-
-            {/* ستون 2: لینک‌های سریع */}
-            <div className="col-lg-2 col-md-6 mb-5">
-              <div className={styles.footerColumn}>
-                <h4 className={styles.columnTitle}>
-                  <FiActivity className={styles.titleIcon} />
-                  دسترسی سریع
-                </h4>
-                <ul className={styles.footerLinks}>
-                  <li>
-                    <a href="#home" className={styles.footerLink}>
-                      <FiChevronLeft className={styles.linkIcon} />
-                      صفحه اصلی
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#services" className={styles.footerLink}>
-                      <FiChevronLeft className={styles.linkIcon} />
-                      خدمات ما
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#about" className={styles.footerLink}>
-                      <FiChevronLeft className={styles.linkIcon} />
-                      درباره ما
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#reviews" className={styles.footerLink}>
-                      <FiChevronLeft className={styles.linkIcon} />
-                      نظرات مشتریان
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#contact" className={styles.footerLink}>
-                      <FiChevronLeft className={styles.linkIcon} />
-                      تماس با ما
-                    </a>
-                  </li>
-                </ul>
-              </div>
+            <div className="col-lg-2 col-md-4 mb-4">
+              <h4>لینک‌های سریع</h4>
+              <ul className={styles.footerLinks}>
+                <li>
+                  <a href="#home">خانه</a>
+                </li>
+                <li>
+                  <a href="#services">خدمات</a>
+                </li>
+                <li>
+                  <a href="#about">درباره ما</a>
+                </li>
+                <li>
+                  <a href="#therapists">متخصصان</a>
+                </li>
+              </ul>
             </div>
-
-            {/* ستون 3: خدمات */}
-            <div className="col-lg-3 col-md-6 mb-5">
-              <div className={styles.footerColumn}>
-                <h4 className={styles.columnTitle}>
-                  <FiStar className={styles.titleIcon} />
-                  خدمات ویژه
-                </h4>
-                <ul className={styles.footerLinks}>
-                  {services.slice(0, 5).map((service, index) => (
-                    <li key={index}>
-                      <a href="#services" className={styles.footerLink}>
-                        <FiCheckCircle className={styles.linkIcon} />
-                        {service.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="col-lg-3 col-md-4 mb-4">
+              <h4>خدمات</h4>
+              <ul className={styles.footerLinks}>
+                <li>
+                  <a href="#">ماساژ سوئدی</a>
+                </li>
+                <li>
+                  <a href="#">ماساژ تایلندی</a>
+                </li>
+                <li>
+                  <a href="#">ماساژ ورزشی</a>
+                </li>
+                <li>
+                  <a href="#">ماساژ درمانی</a>
+                </li>
+              </ul>
             </div>
-
-            {/* ستون 4: شبکه‌های اجتماعی و تماس */}
-            <div className="col-lg-4 col-md-6 mb-5">
-              <div className={styles.footerColumn}>
-                <h4 className={styles.columnTitle}>
-                  <FiUsers className={styles.titleIcon} />
-                  ما را دنبال کنید
-                </h4>
-
-                <div className={styles.socialSection}>
-                  {/* <h5>ما را دنبال کنید</h5> */}
-                  <div className={styles.socialLinksAdvanced}>
-                    {[
-                      {
-                        icon: <FiInstagram />,
-                        name: "اینستاگرام",
-                        color: "#E4405F",
-                        href: "#",
-                      },
-                      {
-                        icon: <FiPhone />,
-                        name: "واتساپ",
-                        color: "#25D366",
-                        href: "#",
-                      },
-                    ].map((social, index) => (
-                      <a
-                        key={index}
-                        href={social.href}
-                        className={styles.socialLinkAdvanced}
-                        style={{ "--social-color": social.color }}
-                        title={social.name}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div className={styles.socialIconWrapper}>
-                          {social.icon}
-                        </div>
-                        <span className={styles.socialTooltip}>
-                          {social.name}
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={styles.businessHours}>
-                  <h5>
-                    <FiClock className={styles.titleIcon} />
-                    ساعات کاری
-                  </h5>
-                  <div className={styles.hoursGrid}>
-                    <div className={styles.hourItem}>
-                      <span className={styles.day}>شنبه - چهارشنبه</span>
-                      <span className={styles.time}>۸:۰۰ - ۲۲:۰۰</span>
-                    </div>
-                    <div className={styles.hourItem}>
-                      <span className={styles.day}>پنج‌شنبه</span>
-                      <span className={styles.time}>۸:۰۰ - ۲۰:۰۰</span>
-                    </div>
-                    <div className={styles.hourItem}>
-                      <span className={styles.day}>جمعه</span>
-                      <span className={styles.time}>۱۰:۰۰ - ۱۸:۰۰</span>
-                    </div>
-                  </div>
-                </div>
+            <div className="col-lg-3 col-md-4 mb-4">
+              <h4>خبرنامه</h4>
+              <p>برای دریافت تخفیف‌های ویژه در خبرنامه عضو شوید</p>
+              <div className={styles.newsletter}>
+                <input
+                  type="email"
+                  placeholder="ایمیل شما"
+                  className={styles.newsletterInput}
+                />
+                <button className={styles.newsletterBtn}>
+                  <FiSend className={styles.btnIcon} />
+                </button>
               </div>
             </div>
           </div>
-
-          {/* بخش پایینی فوتر */}
           <div className={styles.footerBottom}>
-            <div className="row align-items-center">
-              <div className="col-lg-6">
-                <div className={styles.copyright}>
-                  <p>© ۱۴۰۳ اسپا اکسیر. تمام حقوق محفوظ است.</p>
-                  <div className={styles.legalLinks}>
-                    {/* <a href="#" className={styles.legalLink}>
-                      قوانین و مقررات
-                    </a>
-                    <span className={styles.separator}>|</span>
-                    <a href="#" className={styles.legalLink}>
-                      حریم خصوصی
-                    </a>
-                    <span className={styles.separator}>|</span> */}
-                    <a href="#" className={styles.legalLink}>
-                      سوالات متداول
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              className={styles.backToTop}
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              aria-label="بازگشت به بالا"
-            >
-              <FiChevronUp />
-            </button>
+            <p>© ۲۰۲۴ اسپا اکسیر. تمام حقوق محفوظ است.</p>
           </div>
         </div>
       </footer>
