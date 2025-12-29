@@ -16,16 +16,7 @@ import "./styles/fonts.css";
 import Landing from "./components/Landing/Landing";
 import Login from "./components/Login/Login";
 import SignUp from "./components/SignUp/SignUp";
-
-// function App() {
-//   const [count, setCount] = useState(0)
-
-//   return (
-//     <div className="App">
-//       <Landing />
-//     </div>
-//   )
-// }
+import Dashboard from "./components/Dashboard/Dashboard";
 
 function App() {
   return (
@@ -34,6 +25,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );
