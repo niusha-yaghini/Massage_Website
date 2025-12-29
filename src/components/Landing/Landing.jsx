@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import {
   FiHome,
   FiUser,
@@ -235,7 +236,7 @@ const Landing = () => {
               </li>
             ))}
           </ul>
-          <div className={styles.headerButtons}>
+          {/* <div className={styles.headerButtons}>
             <button className={` ${styles.loginBtn}`}>
               <FiLogIn className={styles.btnIcon} />
               ورود
@@ -244,6 +245,22 @@ const Landing = () => {
               <FiUserPlus className={styles.btnIcon} />
               ثبت‌نام
             </button>
+          </div> */}
+          <div className={styles.headerButtons}>
+            <Link
+              to="/login"
+              className={`${styles.loginBtn} ${styles.navLink}`}
+            >
+              <FiLogIn className={styles.btnIcon} />
+              ورود
+            </Link>
+            <Link
+              to="/signup"
+              className={`${styles.signupBtn} ${styles.navLink}`}
+            >
+              <FiUserPlus className={styles.btnIcon} />
+              ثبت‌نام
+            </Link>
           </div>
         </nav>
       </header>
@@ -801,7 +818,6 @@ const Landing = () => {
             </div>
           </div>
 
-          {/* بخش پایینی فوتر */}
           <div className={styles.footerBottom}>
             <div className="row align-items-center">
               <div className="col-lg-6">

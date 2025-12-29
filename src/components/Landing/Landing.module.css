@@ -306,7 +306,7 @@
   /* position: absolute; */
   /* bottom: -15px; */
   right: 50%;
-  
+
   transform: translateX(50%);
   /* margin-top: 15px; */
   /* margin-bottom: 300px; */
@@ -780,7 +780,6 @@
   /* padding-bottom: 10rem; */
   padding-top: 2%;
   padding-bottom: 2%;
-  
 }
 
 .carousel {
@@ -1085,33 +1084,33 @@
   .carouselContainer {
     max-width: 95%;
   }
-  
+
   .reviewCard {
     width: 95%;
     padding: 1.5rem;
   }
-  
+
   .reviewAvatar img {
     width: 80px;
     height: 80px;
   }
-  
+
   .reviewName {
     font-size: 1.2rem;
   }
-  
+
   .reviewText {
     font-size: 1rem;
     line-height: 1.6;
   }
-  
+
   .prevBtn,
   .nextBtn {
     width: 50px;
     height: 50px;
     font-size: 1.5rem;
   }
-  
+
   .carousel {
     height: 300px;
   }
@@ -1121,26 +1120,25 @@
   .reviewCard {
     padding: 1.2rem;
   }
-  
+
   .reviewAvatar img {
     width: 70px;
     height: 70px;
   }
-  
+
   .reviewText {
     font-size: 0.95rem;
     max-height: 100px;
   }
-  
+
   .slideActive .reviewText {
     max-height: 150px;
   }
-  
+
   .carouselControls {
     gap: 1rem;
   }
 }
-
 
 /* تماس */
 .contact {
@@ -1240,15 +1238,22 @@
 }
 
 .footer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(200, 179, 147, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(93, 138, 116, 0.1) 0%, transparent 50%);
+  background: radial-gradient(
+      circle at 20% 80%,
+      rgba(200, 179, 147, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(93, 138, 116, 0.1) 0%,
+      transparent 50%
+    );
   pointer-events: none;
 }
 
@@ -1276,7 +1281,11 @@
   transform: translateY(-50%);
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle, rgba(200, 179, 147, 0.2) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(200, 179, 147, 0.2) 0%,
+    transparent 70%
+  );
   z-index: 1;
   pointer-events: none;
 }
@@ -1391,7 +1400,12 @@
 
 .dividerLine {
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(200, 179, 147, 0.3) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 179, 147, 0.3) 50%,
+    transparent 100%
+  );
 }
 
 .dividerOrnament {
@@ -1496,7 +1510,11 @@
 }
 
 .serviceBadge {
-  background: linear-gradient(135deg, rgba(200, 179, 147, 0.2), rgba(93, 138, 116, 0.2));
+  background: linear-gradient(
+    135deg,
+    rgba(200, 179, 147, 0.2),
+    rgba(93, 138, 116, 0.2)
+  );
   border: 1px solid rgba(200, 179, 147, 0.3);
   padding: 0.4rem 0.8rem;
   border-radius: 20px;
@@ -1543,7 +1561,7 @@
 }
 
 .socialLinkAdvanced:hover::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
@@ -1556,8 +1574,13 @@
 }
 
 @keyframes socialGlow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .socialIconWrapper {
@@ -1727,11 +1750,11 @@
   .footerLogo {
     margin-bottom: 2rem;
   }
-  
+
   .newsletterForm {
     flex-direction: column;
   }
-  
+
   .socialLinksAdvanced {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -1741,24 +1764,24 @@
   .footer {
     padding: 3rem 0 1rem;
   }
-  
+
   .footerTop {
     margin-bottom: 3rem;
   }
-  
+
   .footerNewsletter {
     padding: 1.5rem;
   }
-  
+
   .socialLinksAdvanced {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .paymentMethods {
     justify-content: flex-start;
     margin-top: 2rem;
   }
-  
+
   .footerColumn {
     margin-bottom: 2.5rem;
   }
@@ -1768,31 +1791,31 @@
   .logoText {
     font-size: 1.8rem;
   }
-  
+
   .footerTagline {
     font-size: 1.1rem;
   }
-  
+
   .socialLinksAdvanced {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .newsletterBtn span {
     display: none;
   }
-  
+
   .newsletterBtn {
     padding: 15px;
   }
-  
+
   .copyright {
     text-align: center;
   }
-  
+
   .legalLinks {
     justify-content: center;
   }
-  
+
   .backToTop {
     width: 45px;
     height: 45px;
