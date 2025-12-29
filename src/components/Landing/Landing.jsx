@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   FiHome,
   FiUser,
@@ -236,16 +236,6 @@ const Landing = () => {
               </li>
             ))}
           </ul>
-          {/* <div className={styles.headerButtons}>
-            <button className={` ${styles.loginBtn}`}>
-              <FiLogIn className={styles.btnIcon} />
-              ورود
-            </button>
-            <button className={` ${styles.signupBtn}`}>
-              <FiUserPlus className={styles.btnIcon} />
-              ثبت‌نام
-            </button>
-          </div> */}
           <div className={styles.headerButtons}>
             <Link
               to="/login"
@@ -618,9 +608,9 @@ const Landing = () => {
                     <div className={styles.contactForm}>
                       <h3>
                         <FiMail className={styles.sectionIcon} />
-                        ارسال پیام سریع
+                        ارسال پیام
                       </h3>
-                      <div className="row">
+                      {/* <div className="row">
                         <div className="col-md-6">
                           <input
                             type="text"
@@ -635,12 +625,22 @@ const Landing = () => {
                             className={styles.formInput}
                           />
                         </div>
-                      </div>
+                      </div> */}
                       <input
+                        type="text"
+                        placeholder="نام شما"
+                        className={styles.formInput}
+                      />
+                      <input
+                        type="tel"
+                        placeholder="شماره تماس"
+                        className={styles.formInput}
+                      />
+                      {/* <input
                         type="email"
                         placeholder="ایمیل (اختیاری)"
                         className={styles.formInput}
-                      />
+                      /> */}
                       <textarea
                         placeholder="پیام شما..."
                         rows="4"

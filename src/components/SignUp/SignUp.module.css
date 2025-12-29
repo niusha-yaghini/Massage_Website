@@ -1,123 +1,29 @@
 .signupPage {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1f2e 0%, #0c1a15 100%);
+  background: 
+    /* main color */ linear-gradient(
+      135deg,
+      #1a1f2e 0%,
+      #0c1a15 100%
+    ),
+    /* picture transparent */ url("../../assets/images/back1.jpg");
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
   color: white;
   position: relative;
   overflow: hidden;
 }
 
-/* Particles */
-.particles {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  background: rgba(200, 179, 147, 0.1);
-  border-radius: 50%;
-  animation: floatParticle 20s infinite linear;
-}
-
-.particle:nth-child(odd) {
-  background: rgba(93, 138, 116, 0.1);
-}
-
-@keyframes floatParticle {
-  0% {
-    transform: translateY(100vh) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100px) rotate(720deg);
-    opacity: 0;
-  }
-}
-
-/* Generate random particles */
-.particle:nth-child(1) {
-  width: 10px;
-  height: 10px;
-  left: 10%;
-  animation-delay: 0s;
-  animation-duration: 15s;
-}
-.particle:nth-child(2) {
-  width: 8px;
-  height: 8px;
-  left: 20%;
-  animation-delay: 1s;
-  animation-duration: 20s;
-}
-.particle:nth-child(3) {
-  width: 12px;
-  height: 12px;
-  left: 30%;
-  animation-delay: 2s;
-  animation-duration: 18s;
-}
-.particle:nth-child(4) {
-  width: 6px;
-  height: 6px;
-  left: 40%;
-  animation-delay: 3s;
-  animation-duration: 22s;
-}
-.particle:nth-child(5) {
-  width: 14px;
-  height: 14px;
-  left: 50%;
-  animation-delay: 4s;
-  animation-duration: 16s;
-}
-.particle:nth-child(6) {
-  width: 9px;
-  height: 9px;
-  left: 60%;
-  animation-delay: 5s;
-  animation-duration: 19s;
-}
-.particle:nth-child(7) {
-  width: 11px;
-  height: 11px;
-  left: 70%;
-  animation-delay: 6s;
-  animation-duration: 21s;
-}
-.particle:nth-child(8) {
-  width: 7px;
-  height: 7px;
-  left: 80%;
-  animation-delay: 7s;
-  animation-duration: 17s;
-}
-.particle:nth-child(9) {
-  width: 13px;
-  height: 13px;
-  left: 90%;
-  animation-delay: 8s;
-  animation-duration: 23s;
-}
-
 /* Header */
 .signupHeader {
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .headerContainer {
-  max-width: 1400px;
-  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -126,16 +32,45 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  text-decoration: none;
-  color: white;
+  gap: 0.6rem;
   font-size: 1.5rem;
   font-weight: 600;
+  color: var(--white);
 }
 
-.logo img {
-  width: 45px;
-  height: auto;
+.logoImage {
+  width: 120px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  margin-left: 15px;
+}
+
+.logoPulse {
+  position: absolute;
+  top: 15px;
+  right: 55px;
+  bottom: -10px;
+  width: 85px;
+  height: 40px;
+  background: #625b3bb2;
+  border-radius: 50%;
+  z-index: 1;
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
 }
 
 .headerActions {
@@ -179,220 +114,164 @@
 
 /* Main Content */
 .signupMain {
-  padding: 3rem 2rem;
-  min-height: calc(100vh - 200px);
-}
-
-.signupContainer {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  min-height: 600px;
-}
-
-/* Benefits Section */
-.benefitsSection {
-  background: linear-gradient(
-    135deg,
-    rgba(200, 179, 147, 0.05),
-    rgba(93, 138, 116, 0.05)
-  );
-  border-radius: 24px;
-  padding: 3rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.benefitsContent {
-  height: 100%;
+  padding: 2rem 1rem;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 120px);
 }
 
-.welcomeBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(200, 179, 147, 0.1);
-  color: var(--accent);
-  padding: 0.6rem 1.3rem;
-  border-radius: 50px;
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.benefitsTitle {
-  font-size: 2.8rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
-}
-
-.highlight {
-  background: linear-gradient(135deg, var(--accent), #f8f6f2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.benefitsDescription {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.7;
-  margin-bottom: 3rem;
-}
-
-.benefitsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.benefitCard {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-}
-
-.benefitCard:hover {
-  transform: translateY(-5px);
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.benefitIcon {
-  font-size: 1.8rem;
-  color: var(--accent);
-  margin-bottom: 1rem;
-}
-
-.benefitContent h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: white;
-}
-
-.benefitContent p {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.5;
-}
-
-.stats {
-  display: flex;
-  gap: 2rem;
-  margin-top: auto;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.statItem {
-  text-align: center;
-}
-
-.statNumber {
-  display: block;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 0.3rem;
-}
-
-.statLabel {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* Form Section */
-.formSection {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 3rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.formWrapper {
-  max-width: 500px;
+.formContainer {
+  width: 100%;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 .formHeader {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
 }
 
-.formHeader h2 {
-  font-size: 2rem;
+.formHeader h1 {
+  font-size: 2.2rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
 }
 
 .formHeader p {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.headerIcon {
+  color: var(--accent);
+  font-size: 2rem;
 }
 
 /* Alerts */
-.errorAlert {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  color: #f8d7da;
-  padding: 1rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-}
-
+.errorAlert,
 .successAlert {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  animation: slideIn 0.3s ease;
+}
+
+.errorAlert {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #f8d7da;
+}
+
+.successAlert {
   background: rgba(40, 167, 69, 0.1);
   border: 1px solid rgba(40, 167, 69, 0.3);
   color: #d4edda;
-  padding: 1rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
 }
 
-/* Form Styles */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form */
 .signupForm {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
+  direction: rtl;
 }
 
-.formRow {
+/* Form Sections */
+.formSection {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.formSection:hover {
+  border-color: rgba(200, 179, 147, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sectionHeaderToggle {
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.sectionIcon {
+  color: var(--accent);
+  font-size: 1.4rem;
+}
+
+.toggleIcon {
+  margin-right: auto;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.sectionSubtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Form Grid */
+.formGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 @media (max-width: 768px) {
-  .formRow {
+  .formGrid {
     grid-template-columns: 1fr;
   }
 }
 
+/* Form Group */
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  /* margin-bottom: 2rem; */
+}
+
+.formGroupbottom {
+  margin-bottom: 2rem;
 }
 
 .formLabel {
@@ -409,18 +288,19 @@
   font-size: 1rem;
 }
 
+/* Input Styles */
 .inputWrapper {
   position: relative;
 }
 
 .formInput {
   width: 100%;
-  padding: 15px 20px;
+  padding: 14px 16px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border-radius: 10px;
   color: white;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
   font-family: inherit;
 }
@@ -434,6 +314,10 @@
 
 .formInput::placeholder {
   color: rgba(255, 255, 255, 0.5);
+}
+
+.formInputpassword {
+  direction: rtl;
 }
 
 .inputError {
@@ -460,77 +344,204 @@
   color: var(--accent);
 }
 
-.errorMessage {
-  color: #f8d7da;
+/* Textarea */
+.formTextarea {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(200, 179, 147, 0.2);
+}
+
+.charCounter {
+  text-align: left;
   font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 0.3rem;
 }
 
-/* Password Strength */
-.passwordStrength {
-  margin-top: 0.8rem;
-}
-
-.strengthLabels {
+/* Radio Buttons */
+.radioGroup {
   display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 0.5rem;
+  gap: 2rem;
+  margin-top: 0.5rem;
 }
 
-.strengthBar {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.strengthFill {
-  height: 100%;
-  width: 0%;
-  transition: all 0.3s ease;
-}
-
-.strengthText {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-  text-align: center;
-}
-
-/* Password Rules */
-.passwordRules {
-  margin-top: 1rem;
-}
-
-.passwordRules p {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 0.8rem;
-}
-
-.rulesGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.radioLabel {
+  display: flex;
+  align-items: center;
   gap: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  cursor: pointer;
 }
 
-.rule {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 0.6rem;
-  text-align: center;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+.radioInput {
+  display: none;
+}
+
+.radioCustom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  position: relative;
   transition: all 0.3s ease;
 }
 
-.ruleMet {
-  background: rgba(40, 167, 69, 0.1);
-  border-color: rgba(40, 167, 69, 0.3);
-  color: #d4edda;
+.radioInput:checked + .radioCustom {
+  border-color: var(--accent);
+}
+
+.radioInput:checked + .radioCustom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* Checkboxes */
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.checkboxLabel:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.checkboxInput {
+  display: none;
+}
+
+.checkboxCustom {
+  min-width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.checkboxInput:checked + .checkboxCustom {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkboxInput:checked + .checkboxCustom::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-dark);
+  font-weight: bold;
+  font-size: 0.7rem;
+}
+
+.checkboxIcon {
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+/* Toggle Switch */
+.switchGroup {
+  margin-top: 0.5rem;
+}
+
+.switchLabel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.switchInput {
+  display: none;
+}
+
+.switchSlider {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 13px;
+  transition: all 0.3s ease;
+}
+
+.switchSlider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.switchInput:checked + .switchSlider {
+  background: var(--accent);
+}
+
+.switchInput:checked + .switchSlider::after {
+  transform: translateX(24px);
+}
+
+.switchText {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Dependent Fields */
+.dependentField {
+  margin-top: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Terms */
@@ -549,32 +560,6 @@
   display: none;
 }
 
-.checkboxCustom {
-  min-width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  position: relative;
-  transition: all 0.3s ease;
-  margin-top: 0.2rem;
-}
-
-.termsCheckbox:checked + .checkboxCustom {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.termsCheckbox:checked + .checkboxCustom::after {
-  content: "✓";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--text-dark);
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
 .termsText {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
@@ -591,7 +576,14 @@
   text-decoration: underline;
 }
 
-/* Submit Button */
+/* Form Actions */
+.formActions {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .submitButton {
   width: 100%;
   padding: 18px;
@@ -607,7 +599,6 @@
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
-  margin-top: 1rem;
 }
 
 .submitButton:hover:not(:disabled) {
@@ -642,97 +633,43 @@
   }
 }
 
-/* Login Prompt */
-.loginPrompt {
-  text-align: center;
-  margin-top: 2rem;
+/* Form Note */
+.formNote {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: rgba(200, 179, 147, 0.1);
+  border: 1px solid rgba(200, 179, 147, 0.2);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.noteIcon {
+  color: var(--accent);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* Error Message */
+.errorMessage {
+  color: #f8d7da;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Medical Info Section */
+.medicalInfoSection {
+  margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.loginPrompt p {
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 0.8rem;
-}
-
-.loginPrompt .loginLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-}
-
-.loginPrompt .loginLink:hover {
-  color: #f8f6f2;
-  gap: 0.8rem;
-}
-
-/* Footer */
-.signupFooter {
-  padding: 2rem;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.footerContent {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.securityBadge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-}
-
-.footerContent p {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-}
-
-
-/* اضافه کردن به Signup.module.css */
-.successAlert {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  background: rgba(40, 167, 69, 0.1);
-  border: 1px solid rgba(40, 167, 69, 0.3);
-  color: #d4edda;
-  padding: 1rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-}
-
-.successAlert svg {
-  font-size: 1.2rem;
-  color: #28a745;
-}
-
 /* Responsive */
-@media (max-width: 1200px) {
-  .signupContainer {
-    grid-template-columns: 1fr;
-    max-width: 800px;
-  }
-
-  .benefitsSection {
-    display: none;
-  }
-}
-
 @media (max-width: 768px) {
   .signupHeader {
     padding: 1rem;
@@ -748,38 +685,40 @@
     justify-content: center;
   }
 
-  .signupMain {
-    padding: 2rem 1rem;
+  .formHeader h1 {
+    font-size: 1.8rem;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .formSection {
-    padding: 2rem;
+    padding: 1.5rem;
   }
 
-  .benefitsTitle {
-    font-size: 2.2rem;
+  .sectionTitle {
+    font-size: 1.3rem;
   }
 
-  .benefitsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .rulesGrid {
+  .checkboxGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 480px) {
+  .formHeader h1 {
+    font-size: 1.6rem;
+  }
+
+  .formHeader p {
+    font-size: 1rem;
+  }
+
   .formSection {
-    padding: 1.5rem;
+    padding: 1.2rem;
   }
 
-  .formHeader h2 {
-    font-size: 1.8rem;
-  }
-
-  .formInput {
-    padding: 14px 16px;
+  .checkboxGrid {
+    grid-template-columns: 1fr;
   }
 
   .submitButton {

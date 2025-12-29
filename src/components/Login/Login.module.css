@@ -1,19 +1,12 @@
-/* .loginPage {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0c1a15 0%, #1a1f2e 100%);
-  color: white;
-  position: relative;
-  overflow: hidden;
-} */
-
-/* بعد از backgroundAnimation اضافه کن */
 .loginPage {
   min-height: 100vh;
   background: 
-    /* رنگ اصلی */
-    linear-gradient(135deg, #0c1a15 0%, #1a1f2e 100%),
-    /* عکس transparent */
-    url('../../assets/images/back1.jpg');
+    /* main color */ linear-gradient(
+      135deg,
+      #0c1a15 0%,
+      #1a1f2e 100%
+    ),
+    /* picture transparent */ url("../../assets/images/back1.jpg");
   background-size: cover;
   background-position: center;
   background-blend-mode: overlay;
@@ -97,28 +90,10 @@
 }
 
 .headerContainer {
-  /* max-width: 1400px; */
-  /* margin: 0 auto; */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
-/* .logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  text-decoration: none;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 600;
-} */
-
-/* .logo img {
-  width: 45px;
-  height: auto;
-} */
-
 
 .logo {
   display: flex;
@@ -164,7 +139,6 @@
   }
 }
 
-
 .headerActions {
   display: flex;
   gap: 1.5rem;
@@ -207,40 +181,17 @@
 
 /* Main Content */
 .loginMain {
-  /* padding: 4rem 2rem; */
-  /* min-height: calc(100vh - 800px); */
-  /* align-items: center; */
-  /* justify-items: center; */
-  /* align-items: center; */
   justify-content: center;
   padding-top: 3rem;
   padding-bottom: 2rem;
-
-  
-  /* display: grid; */
   display: flex;
-  /* grid-template-columns: 1fr 1fr; */
   gap: 4rem;
 }
 
-.loginContainer {
-  /* max-width: 1400px;
-  margin: 0 auto; */
-  /* display: grid; */
-  /* display: flex; */
-  /* grid-template-columns: 1fr 1fr; */
-  /* gap: 3rem; */
-  /* align-items: center; */
-  
-}
-
-
 /* Hero Section */
 .loginHero {
-  /* padding-right: 1rem; */
   direction: rtl;
   padding-top: 2.5rem;
-  /* padding-bottom: 2rem; */
 }
 
 /* .heroBadge {
@@ -349,10 +300,7 @@
   backdrop-filter: blur(20px);
   border-radius: 24px;
   width: 40%;
-  /* height: 100%; */
   padding: 2.5rem;
-  /* top: 0px; */
-  /* margin: auto 0; */
   direction: rtl;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
@@ -461,7 +409,6 @@
 
 .inputWrapper {
   position: relative;
-  /* direction: rtl; */
 }
 
 .formInputemail,
@@ -475,7 +422,6 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   font-family: inherit;
-  /* direction: rtl; */
 }
 
 .formInputemail:focus,
@@ -702,28 +648,17 @@
 }
 
 .signupPrompt {
-  /* text-align: center; */
-  /* display: flex; */
   display: inline-flex;
-  /* align-items; */
-  /* margin-top: 2rem; */
-  /* padding-top: 1.5rem; */
-  /* border-top: 1px solid rgba(255, 255, 255, 0.1); */
 }
 
 .signupPrompt p {
   color: rgba(255, 255, 255, 0.7);
   margin: auto 0;
-  
-  /* margin-bottom: 0.8rem; */
 }
 
 .signupLink {
-  /* display: inline-flex; */
   align-items: center;
   gap: 0.5rem;
-  /* color: var(--accent); */
-  /* color: #d4b587; */
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-weight: 600;
@@ -775,11 +710,6 @@
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .loginContainer {
-    grid-template-columns: 1fr;
-    max-width: 600px;
-  }
-
   .loginHero {
     display: none;
   }

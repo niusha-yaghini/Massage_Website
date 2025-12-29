@@ -10,14 +10,19 @@ import {
   FiEye,
   FiEyeOff,
   FiPhone,
+  FiCalendar,
   FiCheckCircle,
   FiAlertCircle,
   FiHome,
   FiLogIn,
   FiArrowRight,
-  FiCalendar,
-  FiGift,
-  FiShield,
+  FiActivity,
+  FiHeart,
+  FiAlertTriangle,
+  FiDroplet,
+  FiThermometer,
+  FiChevronDown,
+  FiChevronUp,
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
 
@@ -27,10 +32,12 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showMedicalInfo, setShowMedicalInfo] = useState(false);
   const navigate = useNavigate();
 
-  // طرح اعتبارسنجی
+  // طرح اعتبارسنجی - بخش اطلاعات شخصی
   const validationSchema = Yup.object({
+    // اطلاعات شخصی
     fullName: Yup.string()
       .min(3, "نام باید حداقل ۳ کاراکتر باشد")
       .required("نام و نام خانوادگی الزامی است"),
@@ -38,6 +45,14 @@ const Signup = () => {
     phone: Yup.string()
       .matches(/^09[0-9]{9}$/, "شماره موبایل معتبر نیست")
       .required("شماره موبایل الزامی است"),
+    birthDate: Yup.date()
+      .max(new Date(), "تاریخ تولد نمی‌تواند در آینده باشد")
+      .required("تاریخ تولد الزامی است"),
+    gender: Yup.string()
+      .oneOf(["male", "female"], "جنسیت را انتخاب کنید")
+      .required("جنسیت الزامی است"),
+
+    // رمز عبور
     password: Yup.string()
       .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
       .matches(/[a-z]/, "رمز عبور باید شامل حروف کوچک باشد")
@@ -47,115 +62,136 @@ const Signup = () => {
     confirmPassword: Yup.string()
       .oneOf([Yup.ref("password"), null], "رمز عبور و تأیید آن یکسان نیستند")
       .required("تأیید رمز عبور الزامی است"),
-    terms: Yup.boolean().oneOf([true], "باید قوانین را پذیرفته باشید"),
+
+    // اطلاعات پزشکی
+    medicalConditions: Yup.array().of(Yup.string()),
+    hasAllergy: Yup.boolean(),
+    allergyDetails: Yup.string().when("hasAllergy", {
+      is: true,
+      then: (schema) => schema.required("لطفا توضیح دهید"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    hasSkinCondition: Yup.boolean(),
+    skinConditionDetails: Yup.string(),
+    hasHeartCondition: Yup.boolean(),
+    hasHighBloodPressure: Yup.boolean(),
+    hasDiabetes: Yup.boolean(),
+    isPregnant: Yup.boolean(),
+    recentSurgeries: Yup.string(),
+    regularMedications: Yup.string(),
+    notes: Yup.string().max(500, "یادداشت نباید بیشتر از ۵۰۰ کاراکتر باشد"),
+
+    // قوانین
+    terms: Yup.boolean()
+      .oneOf([true], "باید قوانین را پذیرفته باشید")
+      .required("پذیرش قوانین الزامی است"),
   });
 
-  // مدیریت فرم
-  // const formik = useFormik({
-  //   initialValues: {
-  //     fullName: "",
-  //     email: "",
-  //     phone: "",
-  //     password: "",
-  //     confirmPassword: "",
-  //     terms: false,
-  //   },
-  //   validationSchema,
-  //   onSubmit: async (values) => {
-  //     setLoading(true);
-  //     setError("");
-  //     setSuccess("");
-
-  //     try {
-  //       // شبیه‌سازی API call
-  //       await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  //       // در صورت موفقیت
-  //       setSuccess("حساب کاربری با موفقیت ایجاد شد!");
-
-  //       // هدایت به صفحه ورود بعد از ۲ ثانیه
-  //       setTimeout(() => {
-  //         navigate("/login");
-  //       }, 2000);
-  //     } catch (err) {
-  //       setError("خطا در ایجاد حساب کاربری. لطفا مجددا تلاش کنید.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   },
-  // });
+  const medicalConditionsOptions = [
+    "آرتروز",
+    "دیسک کمر",
+    "میگرن",
+    "فیبرومیالژیا",
+    "پوکی استخوان",
+    "اسکولیوز",
+    "تنگی کانال نخاعی",
+    "سیاتیک",
+    "التهاب مفاصل",
+    "بیماری قلبی",
+    "دیابت",
+    "فشار خون بالا",
+    "سایر",
+  ];
 
   const formik = useFormik({
     initialValues: {
-      fullName: '',
-      email: '',
-      phone: '',
-      password: '',
-      confirmPassword: '',
-      terms: false
+      // اطلاعات شخصی
+      fullName: "",
+      email: "",
+      phone: "",
+      birthDate: "",
+      gender: "",
+
+      // رمز عبور
+      password: "",
+      confirmPassword: "",
+
+      // اطلاعات پزشکی
+      medicalConditions: [],
+      hasAllergy: false,
+      allergyDetails: "",
+      hasSkinCondition: false,
+      skinConditionDetails: "",
+      hasHeartCondition: false,
+      hasHighBloodPressure: false,
+      hasDiabetes: false,
+      isPregnant: false,
+      recentSurgeries: "",
+      regularMedications: "",
+      notes: "",
+
+      // قوانین
+      terms: false,
     },
     validationSchema,
     onSubmit: (values) => {
       setLoading(true);
-      
+      setError("");
+
       // فقط نمایش لاگ در کنسول
-      console.log('Signup form data:', {
-        ...values,
-        password: '***' // مخفی کردن پسورد
+      console.log("Signup form data:", {
+        personalInfo: {
+          name: values.fullName,
+          email: values.email,
+          phone: values.phone,
+          birthDate: values.birthDate,
+          gender: values.gender,
+        },
+        medicalInfo: {
+          conditions: values.medicalConditions,
+          allergies: values.hasAllergy ? values.allergyDetails : "ندارد",
+          skinConditions: values.hasSkinCondition
+            ? values.skinConditionDetails
+            : "ندارد",
+          hasHeartCondition: values.hasHeartCondition,
+          hasHighBloodPressure: values.hasHighBloodPressure,
+          hasDiabetes: values.hasDiabetes,
+          isPregnant: values.isPregnant,
+          recentSurgeries: values.recentSurgeries || "ندارد",
+          regularMedications: values.regularMedications || "ندارد",
+          notes: values.notes || "ندارد",
+        },
       });
-      
+
       // نمایش پیام موفقیت
-      setSuccess(`حساب کاربری ${values.fullName} ایجاد شد!`);
-      
-      // هدایت به صفحه ورود
+      setSuccess(
+        `حساب کاربری ${values.fullName} ایجاد شد! اطلاعات پزشکی شما ثبت گردید.`
+      );
+
+      // هدایت به صفحه اصلی
       setTimeout(() => {
-        navigate('/login');
+        navigate("/");
         setLoading(false);
-      }, 2000);
-    }
+      }, 3000);
+    },
   });
 
-  // بررسی قدرت رمز عبور
-  const getPasswordStrength = (password) => {
-    if (!password) return { score: 0, label: "", color: "" };
-
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[a-z]/.test(password)) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-
-    const levels = [
-      { label: "خیلی ضعیف", color: "#dc3545" },
-      { label: "ضعیف", color: "#fd7e14" },
-      { label: "متوسط", color: "#ffc107" },
-      { label: "قوی", color: "#28a745" },
-      { label: "خیلی قوی", color: "#20c997" },
-    ];
-
-    return levels[Math.min(score - 1, 4)];
+  const handleMedicalConditionChange = (condition) => {
+    const currentConditions = [...formik.values.medicalConditions];
+    if (currentConditions.includes(condition)) {
+      const index = currentConditions.indexOf(condition);
+      currentConditions.splice(index, 1);
+    } else {
+      currentConditions.push(condition);
+    }
+    formik.setFieldValue("medicalConditions", currentConditions);
   };
-
-  const passwordStrength = getPasswordStrength(formik.values.password);
 
   return (
     <div className={styles.signupPage}>
-      {/* Background Particles */}
-      <div className={styles.particles}>
-        {[...Array(20)].map((_, i) => (
-          <div key={i} className={styles.particle}></div>
-        ))}
-      </div>
-
       {/* Header */}
       <header className={styles.signupHeader}>
         <div className={styles.headerContainer}>
-          <Link to="/" className={styles.logo}>
-            <img src={Logo} alt="اسپا اکسیر" />
-            <span>اسپا اکسیر</span>
-          </Link>
-
           <div className={styles.headerActions}>
             <Link to="/" className={styles.backHome}>
               <FiHome />
@@ -166,202 +202,163 @@ const Signup = () => {
               <span>ورود</span>
             </Link>
           </div>
+
+          <div className={styles.logo}>
+            <span className={styles.logospa}>اسپا اکسیر</span>
+            <img src={Logo} alt="اسپا اکسیر" className={styles.logoImage} />
+            <div className={styles.logoPulse}></div>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className={styles.signupMain}>
-        <div className={styles.signupContainer}>
-          {/* Left Side - Benefits */}
-          <div className={styles.benefitsSection}>
-            <div className={styles.benefitsContent}>
-              <div className={styles.welcomeBadge}>
-                <FiGift />
-                <span>عضویت ویژه</span>
-              </div>
-
-              <h1 className={styles.benefitsTitle}>
-                به جمع <span className={styles.highlight}>ویژه</span> ما
-                بپیوندید
-              </h1>
-
-              <p className={styles.benefitsDescription}>
-                با ایجاد حساب کاربری، از مزایای منحصربه‌فرد عضو ویژه اسپا اکسیر
-                بهره‌مند شوید.
-              </p>
-
-              <div className={styles.benefitsGrid}>
-                <div className={styles.benefitCard}>
-                  <div className={styles.benefitIcon}>
-                    <FiCalendar />
-                  </div>
-                  <div className={styles.benefitContent}>
-                    <h3>رزرو آسان</h3>
-                    <p>نوبت‌دهی آنلاین در هر زمان و مکان</p>
-                  </div>
-                </div>
-
-                <div className={styles.benefitCard}>
-                  <div className={styles.benefitIcon}>
-                    <FiGift />
-                  </div>
-                  <div className={styles.benefitContent}>
-                    <h3>تخفیف‌های ویژه</h3>
-                    <p>تا ۳۰٪ تخفیف برای اعضای ویژه</p>
-                  </div>
-                </div>
-
-                <div className={styles.benefitCard}>
-                  <div className={styles.benefitIcon}>
-                    <FiShield />
-                  </div>
-                  <div className={styles.benefitContent}>
-                    <h3>تاریخچه خدمات</h3>
-                    <p>ذخیره تمام خدمات دریافت شده</p>
-                  </div>
-                </div>
-
-                <div className={styles.benefitCard}>
-                  <div className={styles.benefitIcon}>
-                    <FiGift />
-                  </div>
-                  <div className={styles.benefitContent}>
-                    <h3>هدایای تولد</h3>
-                    <p>هدیه ویژه در روز تولد شما</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.stats}>
-                <div className={styles.statItem}>
-                  <span className={styles.statNumber}>۱۰۰۰+</span>
-                  <span className={styles.statLabel}>عضو ویژه</span>
-                </div>
-                <div className={styles.statItem}>
-                  <span className={styles.statNumber}>۹۸٪</span>
-                  <span className={styles.statLabel}>رضایت</span>
-                </div>
-                <div className={styles.statItem}>
-                  <span className={styles.statNumber}>۲۴/۷</span>
-                  <span className={styles.statLabel}>پشتیبانی</span>
-                </div>
-              </div>
-            </div>
+        <div className={styles.formContainer}>
+          <div className={styles.formHeader}>
+            <h2>ایجاد حساب کاربری</h2>
           </div>
 
-          {/* Right Side - Form */}
-          <div className={styles.formSection}>
-            <div className={styles.formWrapper}>
-              <div className={styles.formHeader}>
-                <h2>ایجاد حساب کاربری</h2>
-                <p>لطفا اطلاعات مورد نیاز را وارد کنید</p>
-              </div>
+          {error && (
+            <div className={styles.errorAlert}>
+              <FiAlertCircle />
+              <span>{error}</span>
+            </div>
+          )}
 
-              {error && (
-                <div className={styles.errorAlert}>
-                  <FiAlertCircle />
-                  <span>{error}</span>
+          {success && (
+            <div className={styles.successAlert}>
+              <FiCheckCircle />
+              <span>{success}</span>
+            </div>
+          )}
+
+          <form onSubmit={formik.handleSubmit} className={styles.signupForm}>
+            {/* Section 1: اطلاعات شخصی */}
+            <div className={styles.formSection}>
+              <h2 className={styles.sectionTitle}>
+                <FiUser className={styles.sectionIcon} />
+                اطلاعات شخصی
+              </h2>
+
+              <div className={styles.formGrid}>
+                {/* نام کامل */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="fullName" className={styles.formLabel}>
+                    <FiUser className={styles.labelIcon} />
+                    نام و نام خانوادگی
+                  </label>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    className={`${styles.formInput} ${
+                      formik.touched.fullName && formik.errors.fullName
+                        ? styles.inputError
+                        : ""
+                    }`}
+                    placeholder="علی احمدی"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.fullName}
+                  />
+                  {formik.touched.fullName && formik.errors.fullName && (
+                    <div className={styles.errorMessage}>
+                      {formik.errors.fullName}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {success && (
-                <div className={styles.successAlert}>
-                  <FiCheckCircle />
-                  <span>{success}</span>
+                {/* موبایل */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="phone" className={styles.formLabel}>
+                    <FiPhone className={styles.labelIcon} />
+                    شماره موبایل
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    className={`${styles.formInput} ${
+                      formik.touched.phone && formik.errors.phone
+                        ? styles.inputError
+                        : ""
+                    }`}
+                    placeholder="09123456789"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.phone}
+                    dir="ltr"
+                  />
+                  {formik.touched.phone && formik.errors.phone && (
+                    <div className={styles.errorMessage}>
+                      {formik.errors.phone}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              <form
-                onSubmit={formik.handleSubmit}
-                className={styles.signupForm}
-              >
-                {/* Full Name */}
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="fullName" className={styles.formLabel}>
-                      <FiUser className={styles.labelIcon} />
-                      نام و نام خانوادگی
+                {/* تاریخ تولد */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="birthDate" className={styles.formLabel}>
+                    <FiCalendar className={styles.labelIcon} />
+                    تاریخ تولد
+                  </label>
+                  <input
+                    id="birthDate"
+                    name="birthDate"
+                    type="date"
+                    className={`${styles.formInput} ${
+                      formik.touched.birthDate && formik.errors.birthDate
+                        ? styles.inputError
+                        : ""
+                    }`}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.birthDate}
+                    max={new Date().toISOString().split("T")[0]}
+                  />
+                  {formik.touched.birthDate && formik.errors.birthDate && (
+                    <div className={styles.errorMessage}>
+                      {formik.errors.birthDate}
+                    </div>
+                  )}
+                </div>
+
+                {/* جنسیت */}
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>جنسیت</label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.radioLabel}>
+                      <input
+                        type="radio"
+                        name="gender"
+                        value="male"
+                        checked={formik.values.gender === "male"}
+                        onChange={formik.handleChange}
+                        className={styles.radioInput}
+                      />
+                      <span className={styles.radioCustom}></span>
+                      آقا
                     </label>
-                    <input
-                      id="fullName"
-                      name="fullName"
-                      type="text"
-                      className={`${styles.formInput} ${
-                        formik.touched.fullName && formik.errors.fullName
-                          ? styles.inputError
-                          : ""
-                      }`}
-                      placeholder="علی احمدی"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.fullName}
-                    />
-                    {formik.touched.fullName && formik.errors.fullName && (
-                      <div className={styles.errorMessage}>
-                        {formik.errors.fullName}
-                      </div>
-                    )}
+                    <label className={styles.radioLabel}>
+                      <input
+                        type="radio"
+                        name="gender"
+                        value="female"
+                        checked={formik.values.gender === "female"}
+                        onChange={formik.handleChange}
+                        className={styles.radioInput}
+                      />
+                      <span className={styles.radioCustom}></span>
+                      خانم
+                    </label>
                   </div>
+                  {formik.touched.gender && formik.errors.gender && (
+                    <div className={styles.errorMessage}>
+                      {formik.errors.gender}
+                    </div>
+                  )}
                 </div>
 
-                {/* Email and Phone */}
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="email" className={styles.formLabel}>
-                      <FiMail className={styles.labelIcon} />
-                      ایمیل
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      className={`${styles.formInput} ${
-                        formik.touched.email && formik.errors.email
-                          ? styles.inputError
-                          : ""
-                      }`}
-                      placeholder="example@spa-eksir.com"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.email}
-                      dir="ltr"
-                    />
-                    {formik.touched.email && formik.errors.email && (
-                      <div className={styles.errorMessage}>
-                        {formik.errors.email}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="phone" className={styles.formLabel}>
-                      <FiPhone className={styles.labelIcon} />
-                      موبایل
-                    </label>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      className={`${styles.formInput} ${
-                        formik.touched.phone && formik.errors.phone
-                          ? styles.inputError
-                          : ""
-                      }`}
-                      placeholder="09123456789"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.phone}
-                      dir="ltr"
-                    />
-                    {formik.touched.phone && formik.errors.phone && (
-                      <div className={styles.errorMessage}>
-                        {formik.errors.phone}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Password */}
                 <div className={styles.formGroup}>
                   <label htmlFor="password" className={styles.formLabel}>
                     <FiLock className={styles.labelIcon} />
@@ -373,6 +370,8 @@ const Signup = () => {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       className={`${styles.formInput} ${
+                        styles.formInputpassword
+                      } ${
                         formik.touched.password && formik.errors.password
                           ? styles.inputError
                           : ""
@@ -391,199 +390,196 @@ const Signup = () => {
                       {showPassword ? <FiEyeOff /> : <FiEye />}
                     </button>
                   </div>
-
-                  {/* Password Strength */}
-                  {formik.values.password && (
-                    <div className={styles.passwordStrength}>
-                      <div className={styles.strengthLabels}>
-                        <span>ضعیف</span>
-                        <span>متوسط</span>
-                        <span>قوی</span>
-                      </div>
-                      <div className={styles.strengthBar}>
-                        <div
-                          className={styles.strengthFill}
-                          style={{
-                            width: `${(passwordStrength.score / 5) * 100}%`,
-                            backgroundColor: passwordStrength.color,
-                          }}
-                        ></div>
-                      </div>
-                      <div className={styles.strengthText}>
-                        قدرت رمز عبور:{" "}
-                        <strong style={{ color: passwordStrength.color }}>
-                          {passwordStrength.label}
-                        </strong>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Password Rules */}
-                  <div className={styles.passwordRules}>
-                    <p>رمز عبور باید شامل:</p>
-                    <div className={styles.rulesGrid}>
-                      <div
-                        className={`${styles.rule} ${
-                          formik.values.password.length >= 8
-                            ? styles.ruleMet
-                            : ""
-                        }`}
-                      >
-                        <span>۸ کاراکتر</span>
-                      </div>
-                      <div
-                        className={`${styles.rule} ${
-                          /[a-z]/.test(formik.values.password)
-                            ? styles.ruleMet
-                            : ""
-                        }`}
-                      >
-                        <span>حرف کوچک</span>
-                      </div>
-                      <div
-                        className={`${styles.rule} ${
-                          /[A-Z]/.test(formik.values.password)
-                            ? styles.ruleMet
-                            : ""
-                        }`}
-                      >
-                        <span>حرف بزرگ</span>
-                      </div>
-                      <div
-                        className={`${styles.rule} ${
-                          /[0-9]/.test(formik.values.password)
-                            ? styles.ruleMet
-                            : ""
-                        }`}
-                      >
-                        <span>عدد</span>
-                      </div>
-                    </div>
-                  </div>
-
                   {formik.touched.password && formik.errors.password && (
                     <div className={styles.errorMessage}>
                       {formik.errors.password}
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
 
-                {/* Confirm Password */}
-                <div className={styles.formGroup}>
-                  <label htmlFor="confirmPassword" className={styles.formLabel}>
-                    <FiLock className={styles.labelIcon} />
-                    تکرار رمز عبور
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      className={`${styles.formInput} ${
-                        formik.touched.confirmPassword &&
-                        formik.errors.confirmPassword
-                          ? styles.inputError
-                          : ""
-                      }`}
-                      placeholder="••••••••"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.confirmPassword}
-                      dir="ltr"
-                    />
-                    <button
-                      type="button"
-                      className={styles.togglePassword}
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
-                    </button>
+            {/* Section 3: اطلاعات پزشکی */}
+            <div className={styles.formSection}>
+              <div
+                className={styles.sectionHeaderToggle}
+                onClick={() => setShowMedicalInfo(!showMedicalInfo)}
+              >
+                <h2 className={styles.sectionTitle}>
+                  <FiActivity className={styles.sectionIcon} />
+                  اطلاعات پزشکی
+                  <span className={styles.toggleIcon}>
+                    {showMedicalInfo ? <FiChevronUp /> : <FiChevronDown />}
+                  </span>
+                </h2>
+                <p className={styles.sectionSubtitle}>
+                  این اطلاعات برای ارائه خدمات ماساژ مناسب و ایمن ضروری است
+                </p>
+              </div>
+
+              {showMedicalInfo && (
+                <div className={styles.medicalInfoSection}>
+                  {/* شرایط پزشکی */}
+                  <div
+                    className={`${styles.formGroup} ${styles.formGroupbottom}`}
+                  >
+                    <label className={styles.formLabel}>
+                      <FiActivity className={styles.labelIcon} />
+                      شرایط پزشکی (در صورت وجود)
+                    </label>
+                    <div className={styles.checkboxGrid}>
+                      {medicalConditionsOptions.map((condition, index) => (
+                        <label key={index} className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            checked={formik.values.medicalConditions.includes(
+                              condition
+                            )}
+                            onChange={() =>
+                              handleMedicalConditionChange(condition)
+                            }
+                            className={styles.checkboxInput}
+                          />
+                          <span className={styles.checkboxCustom}></span>
+                          {condition}
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  {formik.touched.confirmPassword &&
-                    formik.errors.confirmPassword && (
-                      <div className={styles.errorMessage}>
-                        {formik.errors.confirmPassword}
+
+                  {/* آلرژی */}
+                  <div
+                    className={`${styles.formGroup} ${styles.formGroupbottom}`}
+                  >
+                    <label className={styles.formLabel}>
+                      <FiAlertTriangle className={styles.labelIcon} />
+                      آیا آلرژی یا مشکلات پوستی دارید؟
+                    </label>
+                    <div className={styles.switchGroup}>
+                      <label className={styles.switchLabel}>
+                        <input
+                          type="checkbox"
+                          name="hasAllergy"
+                          checked={formik.values.hasAllergy}
+                          onChange={formik.handleChange}
+                          className={styles.switchInput}
+                        />
+                        <span className={styles.switchSlider}></span>
+                        <span className={styles.switchText}>
+                          {formik.values.hasAllergy ? "بله" : "خیر"}
+                        </span>
+                      </label>
+                    </div>
+                    {formik.values.hasAllergy && (
+                      <div className={styles.dependentField}>
+                        <input
+                          type="text"
+                          name="allergyDetails"
+                          placeholder="لطفا توضیح دهید ..."
+                          className={styles.formInput}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          value={formik.values.allergyDetails}
+                        />
+                        {formik.touched.allergyDetails &&
+                          formik.errors.allergyDetails && (
+                            <div className={styles.errorMessage}>
+                              {formik.errors.allergyDetails}
+                            </div>
+                          )}
                       </div>
                     )}
-                </div>
+                  </div>
 
-                {/* Terms */}
-                <div className={styles.termsGroup}>
-                  <label className={styles.termsLabel}>
-                    <input
-                      type="checkbox"
-                      name="terms"
-                      checked={formik.values.terms}
+                  {/* یادداشت‌های اضافی */}
+                  <div className={styles.formGroup}>
+                    <label htmlFor="notes" className={styles.formLabel}>
+                      توضیحات (جراحی‌های اخیر، داروهای مصرفی، ... )
+                    </label>
+                    <textarea
+                      id="notes"
+                      name="notes"
+                      className={styles.formTextarea}
+                      placeholder="هرگونه اطلاعات دیگری که لازم می‌دانید..."
+                      rows="3"
                       onChange={formik.handleChange}
-                      className={styles.termsCheckbox}
-                    />
-                    <span className={styles.checkboxCustom}></span>
-                    <span className={styles.termsText}>
-                      با
-                      <Link to="/terms" className={styles.termsLink}>
-                        {" "}
-                        قوانین و مقررات{" "}
-                      </Link>
-                      و
-                      <Link to="/privacy" className={styles.termsLink}>
-                        {" "}
-                        حریم خصوصی{" "}
-                      </Link>
-                      اسپا اکسیر موافقم.
-                    </span>
-                  </label>
-                  {formik.touched.terms && formik.errors.terms && (
-                    <div className={styles.errorMessage}>
-                      {formik.errors.terms}
+                      onBlur={formik.handleBlur}
+                      value={formik.values.notes}
+                    ></textarea>
+                    <div className={styles.charCounter}>
+                      {formik.values.notes.length}/500 کاراکتر
                     </div>
-                  )}
+                  </div>
                 </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={loading || !formik.isValid}
-                >
-                  {loading ? (
-                    <>
-                      <span className={styles.spinner}></span>
-                      در حال ایجاد حساب...
-                    </>
-                  ) : (
-                    <>
-                      ایجاد حساب کاربری
-                      <FiArrowRight className={styles.buttonIcon} />
-                    </>
-                  )}
-                </button>
-
-                {/* Login Prompt */}
-                <div className={styles.loginPrompt}>
-                  <p>قبلاً حساب کاربری دارید؟</p>
-                  <Link to="/login" className={styles.loginLink}>
-                    ورود به حساب
-                    <FiArrowRight />
-                  </Link>
-                </div>
-              </form>
+              )}
             </div>
-          </div>
+
+            {/* Section 4: قوانین */}
+            {/* <div className={styles.formSection}>
+              <div className={styles.termsGroup}>
+                <label className={styles.termsLabel}>
+                  <input
+                    type="checkbox"
+                    name="terms"
+                    checked={formik.values.terms}
+                    onChange={formik.handleChange}
+                    className={styles.termsCheckbox}
+                  />
+                  <span className={styles.checkboxCustom}></span>
+                  <span className={styles.termsText}>
+                    با
+                    <Link to="/terms" className={styles.termsLink}>
+                      {" "}
+                      قوانین و مقررات{" "}
+                    </Link>
+                    و
+                    <Link to="/privacy" className={styles.termsLink}>
+                      {" "}
+                      حریم خصوصی{" "}
+                    </Link>
+                    اسپا اکسیر موافقم و تأیید می‌کنم که اطلاعات پزشکی ارائه شده
+                    صحیح است.
+                  </span>
+                </label>
+                {formik.touched.terms && formik.errors.terms && (
+                  <div className={styles.errorMessage}>
+                    {formik.errors.terms}
+                  </div>
+                )}
+              </div>
+            </div> */}
+
+            {/* Submit Button */}
+            <div className={styles.formActions}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={loading || !formik.isValid}
+              >
+                {loading ? (
+                  <>
+                    <span className={styles.spinner}></span>
+                    در حال ثبت‌نام...
+                  </>
+                ) : (
+                  <>
+                    تکمیل ثبت‌نام
+                    <FiArrowRight className={styles.buttonIcon} />
+                  </>
+                )}
+              </button>
+
+              <div className={styles.formNote}>
+                <FiAlertCircle className={styles.noteIcon} />
+                <span>
+                  اطلاعات پزشکی شما محرمانه بوده و فقط برای ارائه خدمات مناسب
+                  استفاده می‌شود.
+                </span>
+              </div>
+            </div>
+          </form>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className={styles.signupFooter}>
-        <div className={styles.footerContent}>
-          <div className={styles.securityBadge}>
-            <FiShield />
-            <span>امنیت اطلاعات شما برای ما مهم است</span>
-          </div>
-          <p>© ۱۴۰۳ اسپا اکسیر. تمام حقوق محفوظ است.</p>
-        </div>
-      </footer>
     </div>
   );
 };

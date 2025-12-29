@@ -33,32 +33,6 @@ const Login = () => {
     rememberMe: Yup.boolean(),
   });
 
-  // مدیریت فرم
-  // const formik = useFormik({
-  //   initialValues: {
-  //     email: "",
-  //     password: "",
-  //     rememberMe: false,
-  //   },
-  //   validationSchema,
-  //   onSubmit: async (values) => {
-  //     setLoading(true);
-  //     setError("");
-
-  //     try {
-  //       // شبیه‌سازی API call
-  //       await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  //       // در صورت موفقیت
-  //       navigate("/");
-  //     } catch (err) {
-  //       setError("ایمیل یا رمز عبور اشتباه است");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   },
-  // });
-  // مدیریت فرم
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -121,41 +95,6 @@ const Login = () => {
     );
   }
 
-  // ورود سریع (برای دمو)
-  // const handleQuickLogin = (type) => {
-  //   if (type === "admin") {
-  //     formik.setValues({
-  //       email: "admin@spa-eksir.com",
-  //       password: "Admin123!",
-  //       rememberMe: false,
-  //     });
-  //   } else {
-  //     formik.setValues({
-  //       email: "user@spa-eksir.com",
-  //       password: "User123!",
-  //       rememberMe: false,
-  //     });
-  //   }
-  // };
-
-  // ورود سریع (برای دمو)
-  const handleQuickLogin = (type) => {
-    if (type === "admin") {
-      formik.setValues({
-        email: "demo@spa-eksir.com",
-        password: "123456",
-        rememberMe: false,
-      });
-    } else {
-      formik.setValues({
-        email: "user@example.com",
-        password: "123456",
-        rememberMe: false,
-      });
-    }
-    setError(""); // پاک کردن خطای قبلی
-  };
-
   return (
     <div className={styles.loginPage}>
       {/* Background Animation */}
@@ -191,7 +130,6 @@ const Login = () => {
 
       {/* Main Content */}
       <main className={styles.loginMain}>
-        {/* <div className={styles.loginContainer}> */}
         <div className={styles.loginHero}>
           <div className={styles.heroContent}>
             {/* <div className={styles.heroBadge}>
@@ -232,7 +170,6 @@ const Login = () => {
         <div className={styles.loginFormSection}>
           <div className={styles.formHeader}>
             <h2>ورود به حساب کاربری</h2>
-            {/* <p>برای ادامه اطلاعات خود را وارد کنید</p> */}
           </div>
 
           {error && (
@@ -366,57 +303,7 @@ const Login = () => {
             </div>
           </form>
         </div>
-
-        {/* <div className={styles.loginHero}>
-            <div className={styles.heroContent}>
-              <div className={styles.heroBadge}>
-                <FiShield />
-                <span>ورود امن</span>
-              </div>
-              <h1 className={styles.heroTitle}>
-                به دنیای <span className={styles.highlight}>آرامش</span> خوش
-                آمدید
-              </h1>
-              <p className={styles.heroDescription}>
-                با ورود به حساب کاربری خود، از تمامی خدمات اسپا اکسیر بهره‌مند
-                شوید و نوبت‌های خود را مدیریت کنید.
-              </p>
-
-              <div className={styles.features}>
-                <div className={styles.feature}>
-                  <FiStar className={styles.featureIcon} />
-                  <span>مدیریت آسان نوبت‌ها</span>
-                </div>
-                <div className={styles.feature}>
-                  <FiStar className={styles.featureIcon} />
-                  <span>تخفیف‌های ویژه اعضا</span>
-                </div>
-                <div className={styles.feature}>
-                  <FiStar className={styles.featureIcon} />
-                  <span>تاریخچه خدمات دریافت شده</span>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.heroVisual}>
-              <div className={styles.visualCircle}></div>
-              <div className={styles.visualPattern}></div>
-            </div>
-          </div> */}
-        {/* </div> */}
       </main>
-
-      {/* Footer */}
-      {/* <footer className={styles.loginFooter}>
-        <div className={styles.footerContent}>
-          <p>© ۱۴۰۳ اسپا اکسیر. تمام حقوق محفوظ است.</p>
-          <div className={styles.footerLinks}>
-            <Link to="/privacy">حریم خصوصی</Link>
-            <Link to="/terms">قوانین و مقررات</Link>
-            <Link to="/contact">تماس با ما</Link>
-          </div>
-        </div>
-      </footer> */}
     </div>
   );
 };

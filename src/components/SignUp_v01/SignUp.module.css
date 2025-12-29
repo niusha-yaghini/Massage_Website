@@ -1,0 +1,788 @@
+.signupPage {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1f2e 0%, #0c1a15 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Particles */
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(200, 179, 147, 0.1);
+  border-radius: 50%;
+  animation: floatParticle 20s infinite linear;
+}
+
+.particle:nth-child(odd) {
+  background: rgba(93, 138, 116, 0.1);
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Generate random particles */
+.particle:nth-child(1) {
+  width: 10px;
+  height: 10px;
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 15s;
+}
+.particle:nth-child(2) {
+  width: 8px;
+  height: 8px;
+  left: 20%;
+  animation-delay: 1s;
+  animation-duration: 20s;
+}
+.particle:nth-child(3) {
+  width: 12px;
+  height: 12px;
+  left: 30%;
+  animation-delay: 2s;
+  animation-duration: 18s;
+}
+.particle:nth-child(4) {
+  width: 6px;
+  height: 6px;
+  left: 40%;
+  animation-delay: 3s;
+  animation-duration: 22s;
+}
+.particle:nth-child(5) {
+  width: 14px;
+  height: 14px;
+  left: 50%;
+  animation-delay: 4s;
+  animation-duration: 16s;
+}
+.particle:nth-child(6) {
+  width: 9px;
+  height: 9px;
+  left: 60%;
+  animation-delay: 5s;
+  animation-duration: 19s;
+}
+.particle:nth-child(7) {
+  width: 11px;
+  height: 11px;
+  left: 70%;
+  animation-delay: 6s;
+  animation-duration: 21s;
+}
+.particle:nth-child(8) {
+  width: 7px;
+  height: 7px;
+  left: 80%;
+  animation-delay: 7s;
+  animation-duration: 17s;
+}
+.particle:nth-child(9) {
+  width: 13px;
+  height: 13px;
+  left: 90%;
+  animation-delay: 8s;
+  animation-duration: 23s;
+}
+
+/* Header */
+.signupHeader {
+  padding: 1.5rem 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.headerContainer {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.logo img {
+  width: 45px;
+  height: auto;
+}
+
+.headerActions {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.backHome,
+.loginLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.backHome {
+  color: var(--accent);
+  border: 1px solid rgba(200, 179, 147, 0.3);
+}
+
+.backHome:hover {
+  background: rgba(200, 179, 147, 0.1);
+  transform: translateY(-2px);
+}
+
+.loginLink {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.loginLink:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Main Content */
+.signupMain {
+  padding: 3rem 2rem;
+  min-height: calc(100vh - 200px);
+}
+
+.signupContainer {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  min-height: 600px;
+}
+
+/* Benefits Section */
+.benefitsSection {
+  background: linear-gradient(
+    135deg,
+    rgba(200, 179, 147, 0.05),
+    rgba(93, 138, 116, 0.05)
+  );
+  border-radius: 24px;
+  padding: 3rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.benefitsContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcomeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(200, 179, 147, 0.1);
+  color: var(--accent);
+  padding: 0.6rem 1.3rem;
+  border-radius: 50px;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.benefitsTitle {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.highlight {
+  background: linear-gradient(135deg, var(--accent), #f8f6f2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.benefitsDescription {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  margin-bottom: 3rem;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.benefitCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.benefitCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.benefitIcon {
+  font-size: 1.8rem;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.benefitContent h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.benefitContent p {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: auto;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statNumber {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Form Section */
+.formSection {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.formWrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.formHeader {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.formHeader h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.formHeader p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+}
+
+/* Alerts */
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #f8d7da;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.successAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #d4edda;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* Form Styles */
+.signupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.labelIcon {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.formInput {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(200, 179, 147, 0.2);
+}
+
+.formInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inputError {
+  border-color: #dc3545 !important;
+}
+
+.togglePassword {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.togglePassword:hover {
+  color: var(--accent);
+}
+
+.errorMessage {
+  color: #f8d7da;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+/* Password Strength */
+.passwordStrength {
+  margin-top: 0.8rem;
+}
+
+.strengthLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.strengthBar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.strengthFill {
+  height: 100%;
+  width: 0%;
+  transition: all 0.3s ease;
+}
+
+.strengthText {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+/* Password Rules */
+.passwordRules {
+  margin-top: 1rem;
+}
+
+.passwordRules p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+}
+
+.rulesGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+
+.rule {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.6rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.ruleMet {
+  background: rgba(40, 167, 69, 0.1);
+  border-color: rgba(40, 167, 69, 0.3);
+  color: #d4edda;
+}
+
+/* Terms */
+.termsGroup {
+  margin-top: 1rem;
+}
+
+.termsLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  cursor: pointer;
+}
+
+.termsCheckbox {
+  display: none;
+}
+
+.checkboxCustom {
+  min-width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.3s ease;
+  margin-top: 0.2rem;
+}
+
+.termsCheckbox:checked + .checkboxCustom {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.termsCheckbox:checked + .checkboxCustom::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-dark);
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.termsText {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.termsLink {
+  color: var(--accent);
+  text-decoration: none;
+  margin: 0 0.2rem;
+}
+
+.termsLink:hover {
+  text-decoration: underline;
+}
+
+/* Submit Button */
+.submitButton {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, var(--accent), #d4b587);
+  border: none;
+  border-radius: 12px;
+  color: var(--text-dark);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(200, 179, 147, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buttonIcon {
+  font-size: 1.2rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--text-dark);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Login Prompt */
+.loginPrompt {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.loginPrompt p {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.8rem;
+}
+
+.loginPrompt .loginLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.loginPrompt .loginLink:hover {
+  color: #f8f6f2;
+  gap: 0.8rem;
+}
+
+/* Footer */
+.signupFooter {
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.securityBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.footerContent p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+
+/* اضافه کردن به Signup.module.css */
+.successAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #d4edda;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.successAlert svg {
+  font-size: 1.2rem;
+  color: #28a745;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .signupContainer {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+  }
+
+  .benefitsSection {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .signupHeader {
+    padding: 1rem;
+  }
+
+  .headerContainer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .signupMain {
+    padding: 2rem 1rem;
+  }
+
+  .formSection {
+    padding: 2rem;
+  }
+
+  .benefitsTitle {
+    font-size: 2.2rem;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rulesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .formSection {
+    padding: 1.5rem;
+  }
+
+  .formHeader h2 {
+    font-size: 1.8rem;
+  }
+
+  .formInput {
+    padding: 14px 16px;
+  }
+
+  .submitButton {
+    padding: 16px;
+  }
+}
