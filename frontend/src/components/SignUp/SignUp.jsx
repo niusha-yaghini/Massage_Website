@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import styles from "./Signup.module.css";
+import { userService } from "../../services/userService";
 import {
   FiUser,
   FiMail,

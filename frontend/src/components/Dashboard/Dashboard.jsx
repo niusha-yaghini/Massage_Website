@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Dashboard.module.css";
+import { userService } from "../../services/userService";
 import {
   FiUser,
   FiCalendar,
@@ -29,6 +30,7 @@ import {
   FiMapPin,
   FiInfo,
   FiChevronRight,
+  FiChevronLeft,
   FiEdit,
   FiSave,
   FiShield,
@@ -53,8 +55,7 @@ const Dashboard = () => {
     notes: "",
   });
 
-  // ============ اطلاعات ساختگی ============
-
+  // ============ اطلاعات ============
   // اطلاعات کاربر
   const userData = {
     id: 1,
@@ -66,7 +67,6 @@ const Dashboard = () => {
     membershipDate: "2023-01-15",
     points: 1250,
     membershipLevel: "VIP",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
     medicalInfo: {
       allergies: "ندارد",
       conditions: ["میگرن خفیف"],
@@ -81,7 +81,6 @@ const Dashboard = () => {
       date: "2024-01-15",
       time: "14:30",
       type: "ماساژ سوئدی",
-      therapist: "سارا محمدی",
       duration: "60 دقیقه",
       price: "۱,۸۰۰,۰۰۰ تومان",
       rating: 5,
@@ -94,7 +93,6 @@ const Dashboard = () => {
       date: "2024-01-08",
       time: "11:00",
       type: "ماساژ تایلندی",
-      therapist: "رضا کریمی",
       duration: "90 دقیقه",
       price: "۲,۲۰۰,۰۰۰ تومان",
       rating: 4,
@@ -107,7 +105,6 @@ const Dashboard = () => {
       date: "2023-12-20",
       time: "16:00",
       type: "ماساژ ورزشی",
-      therapist: "محمد حسینی",
       duration: "75 دقیقه",
       price: "۲,۰۰۰,۰۰۰ تومان",
       rating: 5,
@@ -120,7 +117,6 @@ const Dashboard = () => {
       date: "2023-12-05",
       time: "10:30",
       type: "ماساژ آرام‌سازی",
-      therapist: "فاطمه رضایی",
       duration: "60 دقیقه",
       price: "۱,۹۰۰,۰۰۰ تومان",
       rating: 5,
@@ -133,7 +129,6 @@ const Dashboard = () => {
       date: "2024-02-01",
       time: "15:00",
       type: "ماساژ درمانی",
-      therapist: "امیر قاسمی",
       duration: "90 دقیقه",
       price: "۲,۴۰۰,۰۰۰ تومان",
       status: "upcoming",
@@ -184,34 +179,6 @@ const Dashboard = () => {
     },
   ];
 
-  // ماساژ تراپیست‌ها
-  const therapists = [
-    {
-      id: 1,
-      name: "سارا محمدی",
-      specialty: "ماساژ سوئدی و آرام‌سازی",
-      experience: "8 سال",
-      rating: 4.9,
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    {
-      id: 2,
-      name: "رضا کریمی",
-      specialty: "ماساژ تایلندی و ورزشی",
-      experience: "10 سال",
-      rating: 4.8,
-      image: "https://randomuser.me/api/portraits/men/46.jpg",
-    },
-    {
-      id: 3,
-      name: "فاطمه رضایی",
-      specialty: "ماساژ درمانی و رفلکسولوژی",
-      experience: "12 سال",
-      rating: 5.0,
-      image: "https://randomuser.me/api/portraits/women/33.jpg",
-    },
-  ];
-
   // ساعات کاری
   const availableSlots = [
     "08:00",
@@ -243,7 +210,6 @@ const Dashboard = () => {
   });
 
   // ============ توابع کمکی ============
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("fa-IR", {
@@ -278,7 +244,7 @@ const Dashboard = () => {
   };
 
   const handleNextBookingStep = () => {
-    if (bookingStep < 4) {
+    if (bookingStep < 3) {
       setBookingStep(bookingStep + 1);
     }
   };
@@ -309,37 +275,10 @@ const Dashboard = () => {
   };
 
   // ============ کامپوننت‌های داخلی ============
-
   const Sidebar = () => (
-    <div
-      className={`${styles.sidebar} ${
-        sidebarCollapsed ? styles.collapsed : ""
-      }`}
-    >
-      <button
-        className={styles.toggleButton}
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-      >
-        {sidebarCollapsed ? <FiMenu /> : <FiX />}
-      </button>
-
+    <div className={styles.sidebar}>
       <div className={styles.logo}>
-        <div className={styles.logoIcon}>🎐</div>
-        {!sidebarCollapsed && (
-          <span className={styles.logoText}>اسپا اکسیر</span>
-        )}
-      </div>
-
-      <div className={styles.userInfo}>
-        <div className={styles.avatar}>
-          <img src={userData.avatar} alt="User" />
-        </div>
-        {!sidebarCollapsed && (
-          <>
-            <h3 className={styles.userName}>{userData.fullName}</h3>
-            <p className={styles.userLevel}>عضویت {userData.membershipLevel}</p>
-          </>
-        )}
+        <h3 className={styles.userName}>{userData.fullName}</h3>
       </div>
 
       <nav className={styles.nav}>
@@ -347,10 +286,7 @@ const Dashboard = () => {
           {[
             { id: "dashboard", label: "داشبورد", icon: <FiHome /> },
             { id: "profile", label: "پروفایل", icon: <FiUser /> },
-            { id: "history", label: "تاریخچه ماساژ", icon: <FiClock /> },
             { id: "booking", label: "رزرو وقت", icon: <FiCalendar /> },
-            { id: "favorites", label: "مورد علاقه‌ها", icon: <FiHeart /> },
-            { id: "settings", label: "تنظیمات", icon: <FiSettings /> },
           ].map((item) => (
             <li key={item.id}>
               <button
@@ -361,9 +297,7 @@ const Dashboard = () => {
                 title={sidebarCollapsed ? item.label : ""}
               >
                 <span className={styles.navIcon}>{item.icon}</span>
-                {!sidebarCollapsed && (
-                  <span className={styles.navLabel}>{item.label}</span>
-                )}
+                <span className={styles.navLabel}>{item.label}</span>
               </button>
             </li>
           ))}
@@ -373,23 +307,8 @@ const Dashboard = () => {
       <div className={styles.footer}>
         <button onClick={handleLogout} className={styles.logoutButton}>
           <FiLogOut className={styles.logoutIcon} />
-          {!sidebarCollapsed && <span>خروج از حساب</span>}
+          <span>خروج از حساب</span>
         </button>
-
-        {!sidebarCollapsed && (
-          <div className={styles.stats}>
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>{massageHistory.length}</span>
-              <span className={styles.statLabel}>ماساژ</span>
-            </div>
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>
-                {userData.points.toLocaleString()}
-              </span>
-              <span className={styles.statLabel}>امتیاز</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -403,21 +322,11 @@ const Dashboard = () => {
         color: "#4CAF50",
       },
       {
-        icon: <FiDollarSign />,
-        label: "مجموع هزینه‌ها",
-        value: "۹,۳۰۰,۰۰۰",
-        color: "#2196F3",
-      },
-      {
-        icon: <FiStar />,
-        label: "میانگین امتیاز",
-        value: "۴.۸",
-        color: "#FFC107",
-      },
-      {
         icon: <FiTrendingUp />,
-        label: "تعداد ماساژ",
-        value: massageHistory.length.toString(),
+        label: "تعداد ماساژهای گذشته",
+        value: massageHistory
+          .filter((item) => item.status === "completed")
+          .length.toString(),
         color: "#9C27B0",
       },
     ];
@@ -425,12 +334,70 @@ const Dashboard = () => {
     const upcomingAppointment = massageHistory.find(
       (item) => item.status === "upcoming"
     ) || {
-      date: "فردا - ۱۴۰۲/۱۱/۱۵",
-      time: "۱۴:۳۰",
+      date: "2024-02-01",
+      time: "۱۵:۰۰",
       type: "ماساژ درمانی",
-      therapist: "امیر قاسمی",
       duration: "۹۰ دقیقه",
     };
+
+    // تاریخچه ماساژهای انجام شده (برای نمایش در داشبورد)
+    const completedMassages = massageHistory
+      .filter((item) => item.status === "completed")
+      .slice(0, 3); // فقط ۳ مورد آخر
+
+    // State‌های جدید برای ثبت نظر
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [ratingValue, setRatingValue] = useState(0);
+    const [reviewText, setReviewText] = useState("");
+    const [userRatings, setUserRatings] = useState({});
+
+    // تابع برای باز کردن مودال ثبت نظر
+    const openRatingModal = (sessionId) => {
+      const session = completedMassages.find((s) => s.id === sessionId);
+      setSelectedSession(session);
+      setRatingValue(userRatings[sessionId]?.rating || 0);
+      setReviewText(userRatings[sessionId]?.review || "");
+      setShowRatingModal(true);
+    };
+
+    // تابع برای ثبت نظر
+    const handleSubmitRating = () => {
+      if (selectedSession && ratingValue > 0) {
+        setUserRatings((prev) => ({
+          ...prev,
+          [selectedSession.id]: {
+            rating: ratingValue,
+            review: reviewText,
+          },
+        }));
+
+        // به روزرسانی session با نظر کاربر
+        const updatedSession = {
+          ...selectedSession,
+          userRating: ratingValue,
+          userReview: reviewText,
+        };
+
+        // در اینجا می‌توانید اطلاعات را به سرور ارسال کنید
+        console.log("Rating submitted:", updatedSession);
+
+        // بستن مودال
+        setShowRatingModal(false);
+        setRatingValue(0);
+        setReviewText("");
+        setSelectedSession(null);
+
+        alert("نظر و امتیاز شما با موفقیت ثبت شد!");
+      }
+    };
+
+    // اضافه کردن userRating و userReview به completedMassages
+    const enhancedCompletedMassages = completedMassages.map((session) => ({
+      ...session,
+      userRating: userRatings[session.id]?.rating,
+      userReview: userRatings[session.id]?.review,
+    }));
 
     return (
       <div className={styles.dashboardHome}>
@@ -482,53 +449,220 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>ماساژتراپیست:</span>
-                <span className={styles.infoValue}>
-                  {upcomingAppointment.therapist}
-                </span>
-              </div>
-              <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>مدت زمان:</span>
                 <span className={styles.infoValue}>
                   {upcomingAppointment.duration}
                 </span>
               </div>
             </div>
-            <div className={styles.appointmentActions}>
-              <button
-                className={styles.actionButtonPrimary}
-                onClick={() => setActiveTab("history")}
-              >
-                مشاهده جزئیات
-              </button>
-              <button className={styles.actionButtonSecondary}>لغو نوبت</button>
-            </div>
+            <button className={styles.actionButtonSecondary}>لغو نوبت</button>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className={styles.quickActions}>
-          <h2 className={styles.sectionTitle}>دسترسی سریع</h2>
-          <div className={styles.actionGrid}>
-            <button
-              className={styles.quickActionButton}
-              onClick={() => setActiveTab("booking")}
-            >
-              <FiCalendar className={styles.actionIcon} />
-              <span>رزرو وقت جدید</span>
-            </button>
-            <button
-              className={styles.quickActionButton}
-              onClick={() => setActiveTab("profile")}
-            >
-              <FiUser className={styles.actionIcon} />
-              <span>ویرایش پروفایل</span>
-            </button>
-            <button className={styles.quickActionButton}>
-              <FiStar className={styles.actionIcon} />
-              <span>ثبت نظر</span>
-            </button>
+        {/* Recent Massage History - زیر بخش نوبت بعدی */}
+        <div className={styles.recentHistory}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              <FiClock className={styles.sectionIcon} />
+              تاریخچه ماساژهای گذشته
+            </h2>
           </div>
+
+          {completedMassages.length > 0 ? (
+            <div className={styles.historyList}>
+              {enhancedCompletedMassages.map((session) => (
+                <div key={session.id} className={styles.historyCard}>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.sessionInfo}>
+                      <div className={styles.sessionDate}>
+                        <FiCalendar className={styles.infoIcon} />
+                        <span>{formatDate(session.date)}</span>
+                        <span className={styles.sessionTime}>
+                          <FiClock className={styles.timeIcon} />
+                          {session.time}
+                        </span>
+                      </div>
+
+                      <div className={styles.sessionType}>
+                        <h3 className={styles.massageType}>{session.type}</h3>
+                        <div className={styles.sessionMeta}>
+                          <span className={styles.metaItem}>
+                            <FiClock className={styles.metaIcon} />
+                            {session.duration}
+                          </span>
+                          <span className={styles.metaItem}>-</span>
+
+                          <span className={styles.metaItem}>
+                            {session.price}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.sessionStatus}>
+                      {/* نمایش امتیاز یا دکمه ثبت امتیاز */}
+                      {session.userRating ? (
+                        <div className={styles.userRatingSection}>
+                          <div className={styles.ratingStars}>
+                            {renderStars(session.userRating)}
+                          </div>
+                          <span className={styles.ratingText}>
+                            امتیاز شما: {session.userRating}/5
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          className={styles.rateButton}
+                          onClick={() => openRatingModal(session.id)}
+                        >
+                          <FiStar />
+                          <span>ثبت نظر و امتیاز</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* نمایش نظر کاربر اگر وجود داشته باشد */}
+                  {session.userReview && (
+                    <div className={styles.userReviewSection}>
+                      <div className={styles.reviewHeader}>
+                        <FiMessageSquare className={styles.reviewIcon} />
+                        <span>نظر شما:</span>
+                      </div>
+                      <p className={styles.reviewText}>{session.userReview}</p>
+                    </div>
+                  )}
+
+                  {/* Therapist Notes (مخفف شده) */}
+                  {session.therapistNotes && (
+                    <div className={styles.notesSection}>
+                      <button
+                        className={styles.notesToggle}
+                        onClick={() => toggleNotes(session.id)}
+                      >
+                        <FiMessageSquare className={styles.notesIcon} />
+                        <span>توضیحات ماساژتراپیست</span>
+                        {expandedNotes.includes(session.id) ? (
+                          <FiChevronUp className={styles.toggleIcon} />
+                        ) : (
+                          <FiChevronDown className={styles.toggleIcon} />
+                        )}
+                      </button>
+
+                      {expandedNotes.includes(session.id) && (
+                        <div className={styles.notesContent}>
+                          <p>{session.therapistNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className={styles.cardActions}>
+                    <button
+                      className={styles.primaryButton}
+                      onClick={() => setActiveTab("booking")}
+                    >
+                      رزرو مجدد این سرویس
+                    </button>
+
+                    {/* دکمه ویرایش نظر اگر کاربر نظر داده باشد */}
+                    {session.userRating && (
+                      <button
+                        className={styles.editReviewButton}
+                        onClick={() => openRatingModal(session.id)}
+                      >
+                        <FiEdit />
+                        ویرایش نظر
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.noHistory}>
+              <FiInfo className={styles.infoIcon} />
+              <p>هنوز ماساژی انجام نداده‌اید.</p>
+            </div>
+          )}
+
+          {/* Modal برای ثبت نظر */}
+          {showRatingModal && selectedSession && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.ratingModal}>
+                <div className={styles.modalHeader}>
+                  <h3>ثبت نظر و امتیاز</h3>
+                  <button
+                    className={styles.closeModal}
+                    onClick={() => setShowRatingModal(false)}
+                  >
+                    <FiX />
+                  </button>
+                </div>
+
+                <div className={styles.modalContent}>
+                  <div className={styles.sessionInfoModal}>
+                    <h4>{selectedSession.type}</h4>
+                    <p>
+                      {formatDate(selectedSession.date)} -{" "}
+                      {selectedSession.time}
+                    </p>
+                  </div>
+
+                  <div className={styles.ratingSection}>
+                    <p>امتیاز شما:</p>
+                    <div className={styles.starRating}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          className={`${styles.starButton} ${
+                            ratingValue >= star ? styles.starActive : ""
+                          }`}
+                          onClick={() => setRatingValue(star)}
+                        >
+                          <FiStar />
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.ratingText}>
+                      {ratingValue > 0
+                        ? `${ratingValue} ستاره`
+                        : "لطفاً امتیاز دهید"}
+                    </div>
+                  </div>
+
+                  <div className={styles.reviewSection}>
+                    <label>نظر شما:</label>
+                    <textarea
+                      className={styles.reviewTextarea}
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      placeholder="تجربه خود از این ماساژ را بنویسید..."
+                      rows="4"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    className={styles.cancelButton}
+                    onClick={() => setShowRatingModal(false)}
+                  >
+                    انصراف
+                  </button>
+                  <button
+                    className={styles.submitRatingButton}
+                    onClick={handleSubmitRating}
+                    disabled={ratingValue === 0}
+                  >
+                    <FiCheck />
+                    ثبت نظر
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -586,43 +720,6 @@ const Dashboard = () => {
         <div className={styles.profileContent}>
           {/* Left Column */}
           <div className={styles.leftColumn}>
-            {/* Avatar Section */}
-            <div className={styles.avatarSection}>
-              <div className={styles.avatarContainer}>
-                <img
-                  src={formData.avatar}
-                  alt={formData.fullName}
-                  className={styles.avatar}
-                />
-                <div className={styles.avatarBadge}>
-                  <FiStar />
-                  <span>{formData.membershipLevel}</span>
-                </div>
-              </div>
-
-              <div className={styles.avatarInfo}>
-                <h2 className={styles.userName}>{formData.fullName}</h2>
-                <div className={styles.userStats}>
-                  <div className={styles.stat}>
-                    <span className={styles.statNumber}>
-                      {formData.points.toLocaleString()}
-                    </span>
-                    <span className={styles.statLabel}>امتیاز</span>
-                  </div>
-                  <div className={styles.stat}>
-                    <span className={styles.statNumber}>
-                      {massageHistory.length}
-                    </span>
-                    <span className={styles.statLabel}>ماساژ</span>
-                  </div>
-                  <div className={styles.stat}>
-                    <span className={styles.statNumber}>۸۵٪</span>
-                    <span className={styles.statLabel}>رضایت</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Personal Information */}
             <div className={styles.infoCard}>
               <h3 className={styles.cardTitle}>
@@ -748,247 +845,6 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-
-          {/* Right Column */}
-          <div className={styles.rightColumn}>
-            {/* Membership Card */}
-            <div className={styles.membershipCard}>
-              <div className={styles.membershipHeader}>
-                <FiShield className={styles.membershipIcon} />
-                <div>
-                  <h3 className={styles.membershipTitle}>
-                    عضویت {formData.membershipLevel}
-                  </h3>
-                  <p className={styles.membershipSubtitle}>
-                    تا {formatDate("2024-12-31")} معتبر است
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.membershipBenefits}>
-                <h4>مزایای عضویت:</h4>
-                <ul className={styles.benefitsList}>
-                  <li>۲۵٪ تخفیف روی تمام خدمات</li>
-                  <li>هدیه تولد رایگان</li>
-                  <li>اولویت در رزرو نوبت</li>
-                  <li>مشاوره رایگان</li>
-                  <li>تخفیف همراه</li>
-                </ul>
-              </div>
-
-              <div className={styles.progressSection}>
-                <div className={styles.progressHeader}>
-                  <span>پیشرفت به سطح بعدی</span>
-                  <span>۲۵۰ امتیاز دیگر</span>
-                </div>
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${(formData.points / 1500) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const MassageHistory = () => {
-    const [filter, setFilter] = useState("all");
-    const [sortBy, setSortBy] = useState("date");
-
-    const filteredHistory = massageHistory.filter((item) => {
-      if (filter === "all") return true;
-      if (filter === "completed") return item.status === "completed";
-      if (filter === "upcoming") return item.status === "upcoming";
-      return true;
-    });
-
-    const sortedHistory = [...filteredHistory].sort((a, b) => {
-      if (sortBy === "date") return new Date(b.date) - new Date(a.date);
-      if (sortBy === "price")
-        return (
-          parseInt(b.price.replace(/[^0-9]/g, "")) -
-          parseInt(a.price.replace(/[^0-9]/g, ""))
-        );
-      if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
-      return 0;
-    });
-
-    return (
-      <div className={styles.historyPage}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>
-            <FiCalendar className={styles.titleIcon} />
-            تاریخچه ماساژها
-          </h1>
-
-          <div className={styles.headerActions}>
-            <div className={styles.filterControls}>
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className={styles.filterSelect}
-              >
-                <option value="all">همه ماساژها</option>
-                <option value="completed">انجام شده</option>
-                <option value="upcoming">آینده</option>
-              </select>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className={styles.sortSelect}
-              >
-                <option value="date">مرتب بر اساس تاریخ</option>
-                <option value="price">مرتب بر اساس قیمت</option>
-                <option value="rating">مرتب بر اساس امتیاز</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Summary */}
-        <div className={styles.statsSummary}>
-          <div className={styles.statItem}>
-            <div
-              className={styles.statIcon}
-              style={{ background: "#4CAF5020", color: "#4CAF50" }}
-            >
-              <FiCalendar />
-            </div>
-            <div className={styles.statContent}>
-              <h3>{massageHistory.length}</h3>
-              <p>کل ماساژها</p>
-            </div>
-          </div>
-
-          <div className={styles.statItem}>
-            <div
-              className={styles.statIcon}
-              style={{ background: "#2196F320", color: "#2196F3" }}
-            >
-              <FiDollarSign />
-            </div>
-            <div className={styles.statContent}>
-              <h3>۹,۳۰۰,۰۰۰</h3>
-              <p>مجموع هزینه‌ها</p>
-            </div>
-          </div>
-
-          <div className={styles.statItem}>
-            <div
-              className={styles.statIcon}
-              style={{ background: "#FFC10720", color: "#FFC107" }}
-            >
-              <FiStar />
-            </div>
-            <div className={styles.statContent}>
-              <h3>۴.۸</h3>
-              <p>میانگین امتیاز</p>
-            </div>
-          </div>
-        </div>
-
-        {/* History List */}
-        <div className={styles.historyList}>
-          {sortedHistory.map((session) => (
-            <div key={session.id} className={styles.historyCard}>
-              <div className={styles.cardHeader}>
-                <div className={styles.sessionInfo}>
-                  <div className={styles.sessionDate}>
-                    <FiCalendar className={styles.infoIcon} />
-                    <span>{formatDate(session.date)}</span>
-                    <span className={styles.sessionTime}>
-                      <FiClock className={styles.timeIcon} />
-                      {session.time}
-                    </span>
-                  </div>
-
-                  <div className={styles.sessionType}>
-                    <h3 className={styles.massageType}>{session.type}</h3>
-                    <div className={styles.sessionMeta}>
-                      <span className={styles.metaItem}>
-                        <FiUser className={styles.metaIcon} />
-                        {session.therapist}
-                      </span>
-                      <span className={styles.metaItem}>
-                        <FiClock className={styles.metaIcon} />
-                        {session.duration}
-                      </span>
-                      <span className={styles.metaItem}>
-                        <FiDollarSign className={styles.metaIcon} />
-                        {session.price}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.sessionStatus}>
-                  <span
-                    className={`${styles.statusBadge} ${
-                      session.status === "completed"
-                        ? styles.completed
-                        : styles.upcoming
-                    }`}
-                  >
-                    {session.status === "completed" ? "انجام شده" : "آینده"}
-                  </span>
-
-                  {session.rating && (
-                    <div className={styles.ratingStars}>
-                      {renderStars(session.rating)}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Therapist Notes */}
-              {session.therapistNotes && (
-                <div className={styles.notesSection}>
-                  <button
-                    className={styles.notesToggle}
-                    onClick={() => toggleNotes(session.id)}
-                  >
-                    <FiMessageSquare className={styles.notesIcon} />
-                    <span>توضیحات ماساژتراپیست</span>
-                    {expandedNotes.includes(session.id) ? (
-                      <FiChevronUp className={styles.toggleIcon} />
-                    ) : (
-                      <FiChevronDown className={styles.toggleIcon} />
-                    )}
-                  </button>
-
-                  {expandedNotes.includes(session.id) && (
-                    <div className={styles.notesContent}>
-                      <p>{session.therapistNotes}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className={styles.cardActions}>
-                {session.status === "completed" ? (
-                  <button
-                    className={styles.primaryButton}
-                    onClick={() => setActiveTab("booking")}
-                  >
-                    رزرو مجدد این سرویس
-                  </button>
-                ) : (
-                  <>
-                    <button className={styles.primaryButton}>
-                      مشاهده جزئیات نوبت
-                    </button>
-                    <button className={styles.cancelButton}>لغو نوبت</button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     );
@@ -1019,7 +875,7 @@ const Dashboard = () => {
               }`}
             >
               <div className={styles.stepNumber}>۲</div>
-              <div className={styles.stepLabel}>انتخاب تراپیست</div>
+              <div className={styles.stepLabel}>تاریخ و ساعت</div>
             </div>
 
             <div
@@ -1028,15 +884,6 @@ const Dashboard = () => {
               }`}
             >
               <div className={styles.stepNumber}>۳</div>
-              <div className={styles.stepLabel}>تاریخ و ساعت</div>
-            </div>
-
-            <div
-              className={`${styles.step} ${
-                bookingStep >= 4 ? styles.active : ""
-              }`}
-            >
-              <div className={styles.stepNumber}>۴</div>
               <div className={styles.stepLabel}>تأیید نهایی</div>
             </div>
           </div>
@@ -1080,11 +927,10 @@ const Dashboard = () => {
 
                     <div className={styles.massageDetails}>
                       <div className={styles.detailItem}>
-                        <FiClock className={styles.detailIcon} />
                         <span>{massage.duration}</span>
                       </div>
+                      <span>-</span>
                       <div className={styles.detailItem}>
-                        <FiDollarSign className={styles.detailIcon} />
                         <span>{massage.price}</span>
                       </div>
                     </div>
@@ -1105,78 +951,8 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Step 2: Select Therapist */}
+          {/* Step 2: Select Date & Time */}
           {bookingStep === 2 && (
-            <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>ماساژتراپیست را انتخاب کنید</h2>
-              <p className={styles.stepDescription}>
-                یکی از متخصصان ما را بر اساس تخصص و تجربه انتخاب نمایید
-              </p>
-
-              <div className={styles.therapistGrid}>
-                {therapists.map((therapist) => (
-                  <div
-                    key={therapist.id}
-                    className={`${styles.therapistCard} ${
-                      bookingData.selectedTherapist?.id === therapist.id
-                        ? styles.selected
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleBookingChange("selectedTherapist", therapist)
-                    }
-                  >
-                    <div className={styles.therapistImage}>
-                      <img src={therapist.image} alt={therapist.name} />
-                      {bookingData.selectedTherapist?.id === therapist.id && (
-                        <div className={styles.selectedBadge}>
-                          <FiCheck />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.therapistInfo}>
-                      <h3 className={styles.therapistName}>{therapist.name}</h3>
-                      <p className={styles.therapistSpecialty}>
-                        {therapist.specialty}
-                      </p>
-
-                      <div className={styles.therapistDetails}>
-                        <div className={styles.detailItem}>
-                          <FiStar className={styles.detailIcon} />
-                          <span>{therapist.rating}</span>
-                        </div>
-                        <div className={styles.detailItem}>
-                          <FiUser className={styles.detailIcon} />
-                          <span>{therapist.experience}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={styles.stepActions}>
-                <button
-                  onClick={handlePrevBookingStep}
-                  className={styles.prevButton}
-                >
-                  مرحله قبل
-                </button>
-                <button
-                  onClick={handleNextBookingStep}
-                  disabled={!bookingData.selectedTherapist}
-                  className={styles.nextButton}
-                >
-                  ادامه
-                  <FiChevronRight className={styles.buttonIcon} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Select Date & Time */}
-          {bookingStep === 3 && (
             <div className={styles.stepContent}>
               <h2 className={styles.stepTitle}>تاریخ و ساعت را انتخاب کنید</h2>
               <p className={styles.stepDescription}>
@@ -1289,8 +1065,8 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Step 4: Confirmation */}
-          {bookingStep === 4 && (
+          {/* Step 3: Confirmation */}
+          {bookingStep === 3 && (
             <div className={styles.stepContent}>
               <h2 className={styles.stepTitle}>تأیید نهایی</h2>
               <p className={styles.stepDescription}>
@@ -1310,13 +1086,6 @@ const Dashboard = () => {
                     <span className={styles.detailLabel}>نوع ماساژ:</span>
                     <span className={styles.detailValue}>
                       {bookingData.selectedMassage?.name}
-                    </span>
-                  </div>
-
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>ماساژتراپیست:</span>
-                    <span className={styles.detailValue}>
-                      {bookingData.selectedTherapist?.name}
                     </span>
                   </div>
 
@@ -1396,19 +1165,6 @@ const Dashboard = () => {
               </div>
             )}
 
-            {bookingData.selectedTherapist && (
-              <div className={styles.summaryItem}>
-                <div className={styles.summaryLabel}>ماساژتراپیست:</div>
-                <div className={styles.summaryValue}>
-                  {bookingData.selectedTherapist.name}
-                </div>
-                <div className={styles.summarySubtext}>
-                  {renderStars(bookingData.selectedTherapist.rating)} •{" "}
-                  {bookingData.selectedTherapist.experience}
-                </div>
-              </div>
-            )}
-
             {bookingData.selectedDate && (
               <div className={styles.summaryItem}>
                 <div className={styles.summaryLabel}>تاریخ:</div>
@@ -1442,41 +1198,14 @@ const Dashboard = () => {
   };
 
   // ============ رندر اصلی ============
-
   return (
     <div className={styles.dashboard}>
       <Sidebar />
 
       <main className={styles.mainContent}>
-        {/* Header */}
-        <header className={styles.header}>
-          <div className={styles.searchBar}>
-            <FiSearch className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="جستجو..."
-              className={styles.searchInput}
-            />
-          </div>
-
-          <div className={styles.headerActions}>
-            <button className={styles.notificationButton}>
-              <FiBell />
-            </button>
-
-            <div className={styles.userQuickInfo}>
-              <span className={styles.welcomeText}>
-                خوش آمدید، {userData.fullName}!
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
         <div className={styles.contentArea}>
           {activeTab === "dashboard" && <DashboardHome />}
           {activeTab === "profile" && <Profile />}
-          {activeTab === "history" && <MassageHistory />}
           {activeTab === "booking" && <Booking />}
         </div>
       </main>

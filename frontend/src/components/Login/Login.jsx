@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import styles from "./Login.module.css";
+import { userService } from "../../services/userService";
 import {
   FiMail,
   FiLock,
@@ -19,12 +20,14 @@ import {
 import Logo from "../../assets/images/Logo_white.png";
 
 const Login = () => {
+  // ======== اضافه کردن stateها ========
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  // طرح اعتبارسنجی
+  // ======== تعریف validationSchema ========
   const validationSchema = Yup.object({
     email: Yup.string().email("ایمیل معتبر نیست").required("ایمیل الزامی است"),
     password: Yup.string()
@@ -33,6 +36,7 @@ const Login = () => {
     rememberMe: Yup.boolean(),
   });
 
+  // ======== تابع formik ========
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -43,57 +47,33 @@ const Login = () => {
     onSubmit: async (values) => {
       setLoading(true);
       setError("");
+      setSuccess("");
 
       try {
-        // شبیه‌سازی API call - فقط برای نمایش
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log("تلاش برای ورود با:", values.email);
 
-        // نمایش پیام موفقیت
-        setSuccess(`خوش آمدید ${values.email}!`);
+        // استفاده از userService
+        const result = await userService.login(values.email, values.password);
 
-        // در مرحله بعدی با بک‌اند متصل می‌شود
-        console.log("Login attempt with:", values);
+        console.log("نتیجه از userService:", result);
 
-        // هدایت به صفحه اصلی بعد از ۲ ثانیه
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
+        if (result.success) {
+          setSuccess(`خوش آمدید ${result.user?.fullName || values.email}!`);
+
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 2000);
+        } else {
+          setError(result.error || "خطا در ورود");
+        }
       } catch (err) {
-        // شبیه‌سازی خطا
-        setError(
-          "ایمیل یا رمز عبور اشتباه است. برای تست از ایمیل demo@spa.com و رمز 123456 استفاده کنید."
-        );
+        console.error("خطای کامل:", err);
+        setError(err.message || "خطا در ارتباط با سرور. لطفا بعداً تلاش کنید.");
       } finally {
         setLoading(false);
       }
     },
   });
-
-  const [success, setSuccess] = useState("");
-
-  {
-    /* نمایش خطا */
-  }
-  {
-    error && (
-      <div className={styles.errorAlert}>
-        <FiAlertCircle />
-        <span>{error}</span>
-      </div>
-    );
-  }
-
-  {
-    /* نمایش موفقیت */
-  }
-  {
-    success && (
-      <div className={styles.successAlert}>
-        <FiCheckCircle />
-        <span>{success}</span>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.loginPage}>
@@ -132,10 +112,6 @@ const Login = () => {
       <main className={styles.loginMain}>
         <div className={styles.loginHero}>
           <div className={styles.heroContent}>
-            {/* <div className={styles.heroBadge}>
-                <FiShield />
-                <span>ورود امن</span>
-              </div> */}
             <h1 className={styles.heroTitle}>
               به دنیای <span className={styles.highlight}>آرامش</span> خوش آمدید
             </h1>
@@ -172,10 +148,26 @@ const Login = () => {
             <h2>ورود به حساب کاربری</h2>
           </div>
 
+          {/* {error && (
+            <div className={styles.errorAlert}>
+              <FiAlertCircle />
+              <span>{error}</span>
+            </div>
+          )} */}
+
+          {/* نمایش خطا */}
           {error && (
             <div className={styles.errorAlert}>
               <FiAlertCircle />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* نمایش موفقیت */}
+          {success && (
+            <div className={styles.successAlert}>
+              <FiCheckCircle />
+              <span>{success}</span>
             </div>
           )}
 
