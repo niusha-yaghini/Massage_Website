@@ -283,7 +283,7 @@
 
 /* Form Section */
 .loginFormSection {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   border-radius: 24px;
   width: 40%;
@@ -360,7 +360,7 @@
   position: relative;
 }
 
-.formInputemail,
+.formInputphonenumber,
 .formInputpassword {
   width: 100%;
   padding: 16px 20px;
@@ -373,7 +373,7 @@
   font-family: inherit;
 }
 
-.formInputemail:focus,
+.formInputphonenumber:focus,
 .formInputpassword:focus {
   outline: none;
   border-color: var(--accent);
@@ -381,7 +381,7 @@
   box-shadow: 0 0 0 3px rgba(200, 179, 147, 0.2);
 }
 
-.formInputemail::placeholder,
+.formInputphonenumber::placeholder,
 .formInputpassword::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
@@ -713,7 +713,7 @@
     font-size: 2rem;
   }
 
-  .formInputemail {
+  .formInputphonenumber {
     padding: 14px 16px;
   }
 

@@ -40,7 +40,7 @@ const Login = () => {
   // ======== تابع formik ========
   const formik = useFormik({
     initialValues: {
-      phone: "", // به جای email
+      phone: "",
       password: "",
       rememberMe: false,
     },
@@ -179,7 +179,7 @@ const Login = () => {
                   id="phone"
                   name="phone"
                   type="tel"
-                  className={`${styles.formInputemail} ${
+                  className={`${styles.formInputphonenumber} ${
                     formik.touched.phone && formik.errors.phone
                       ? styles.inputError
                       : ""
