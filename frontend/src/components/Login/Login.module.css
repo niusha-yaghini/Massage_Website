@@ -324,44 +324,6 @@
   font-size: 1rem;
 }
 
-/* Demo Section */
-.demoSection {
-  background: rgba(200, 179, 147, 0.1);
-  border: 1px solid rgba(200, 179, 147, 0.3);
-  border-radius: 12px;
-  padding: 1.2rem;
-  margin-bottom: 1.5rem;
-}
-
-.demoTitle {
-  color: var(--accent);
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 0.8rem;
-}
-
-.demoButtons {
-  display: flex;
-  gap: 0.8rem;
-}
-
-.demoButton {
-  flex: 1;
-  padding: 0.7rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.demoButton:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-}
-
 /* Error Alert */
 .errorAlert {
   display: flex;

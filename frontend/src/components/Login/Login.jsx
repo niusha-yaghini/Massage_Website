@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import styles from "./Login.module.css";
 import { userService } from "../../services/userService";
 import {
-  FiMail,
+  // FiMail,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -15,7 +15,8 @@ import {
   FiUserPlus,
   FiArrowRight,
   FiStar,
-  FiShield,
+  // FiShield,
+  FiPhone,
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
 
@@ -29,7 +30,9 @@ const Login = () => {
 
   // ======== تعریف validationSchema ========
   const validationSchema = Yup.object({
-    email: Yup.string().email("ایمیل معتبر نیست").required("ایمیل الزامی است"),
+    phone: Yup.string()
+      .matches(/^09[0-9]{9}$/, "شماره موبایل معتبر نیست")
+      .required("شماره موبایل الزامی است"),
     password: Yup.string()
       .min(6, "رمز عبور باید حداقل ۶ کاراکتر باشد")
       .required("رمز عبور الزامی است"),
@@ -39,7 +42,7 @@ const Login = () => {
   // ======== تابع formik ========
   const formik = useFormik({
     initialValues: {
-      email: "",
+      phone: "", // به جای email
       password: "",
       rememberMe: false,
     },
@@ -50,15 +53,18 @@ const Login = () => {
       setSuccess("");
 
       try {
-        console.log("تلاش برای ورود با:", values.email);
+        console.log("تلاش برای ورود با شماره:", values.phone);
 
-        // استفاده از userService
-        const result = await userService.login(values.email, values.password);
+        // استفاده از userService با شماره تماس
+        const result = await userService.loginWithPhone(
+          values.phone,
+          values.password
+        );
 
         console.log("نتیجه از userService:", result);
 
         if (result.success) {
-          setSuccess(`خوش آمدید ${result.user?.fullName || values.email}!`);
+          setSuccess(`خوش آمدید ${result.user?.full_name || ""}!`);
 
           setTimeout(() => {
             navigate("/dashboard");
@@ -68,7 +74,7 @@ const Login = () => {
         }
       } catch (err) {
         console.error("خطای کامل:", err);
-        setError(err.message || "خطا در ارتباط با سرور. لطفا بعداً تلاش کنید.");
+        setError(err.message || "خطا در ارتباط با سرور");
       } finally {
         setLoading(false);
       }
@@ -148,13 +154,6 @@ const Login = () => {
             <h2>ورود به حساب کاربری</h2>
           </div>
 
-          {/* {error && (
-            <div className={styles.errorAlert}>
-              <FiAlertCircle />
-              <span>{error}</span>
-            </div>
-          )} */}
-
           {/* نمایش خطا */}
           {error && (
             <div className={styles.errorAlert}>
@@ -172,8 +171,8 @@ const Login = () => {
           )}
 
           <form onSubmit={formik.handleSubmit} className={styles.loginForm}>
-            {/* Email Field */}
-            <div className={styles.formGroup}>
+            {/* Phone number Field */}
+            {/* <div className={styles.formGroup}>
               <label htmlFor="email" className={styles.formLabel}>
                 <FiMail className={styles.labelIcon} />
                 ایمیل
@@ -194,12 +193,38 @@ const Login = () => {
                   value={formik.values.email}
                   dir="ltr"
                 />
-                {formik.touched.email && !formik.errors.email && (
-                  <FiCheckCircle className={styles.successIcon} />
-                )}
               </div>
               {formik.touched.email && formik.errors.email && (
                 <div className={styles.errorMessage}>{formik.errors.email}</div>
+              )}
+            </div> */}
+
+            {/* Phone Field - به جای Email Field */}
+            <div className={styles.formGroup}>
+              <label htmlFor="phone" className={styles.formLabel}>
+                <FiPhone className={styles.labelIcon} />{" "}
+                {/* ایمپورت FiPhone کن */}
+                شماره موبایل
+              </label>
+              <div className={styles.inputWrapper}>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  className={`${styles.formInputemail} ${
+                    formik.touched.phone && formik.errors.phone
+                      ? styles.inputError
+                      : ""
+                  }`}
+                  placeholder="09123456789"
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.phone}
+                  dir="ltr"
+                />
+              </div>
+              {formik.touched.phone && formik.errors.phone && (
+                <div className={styles.errorMessage}>{formik.errors.phone}</div>
               )}
             </div>
 

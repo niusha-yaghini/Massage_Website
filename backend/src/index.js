@@ -2,321 +2,205 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+// Import دیتابیس و مدل‌ها
+const { sequelize, testConnection } = require("./config/database");
+const { User, Service, Appointment, Review } = require("./models");
+
+// Import routes (بعداً می‌سازیم)
+// const authRoutes = require("./routes/auth");
+// const serviceRoutes = require("./routes/services");
+// const appointmentRoutes = require("./routes/appointments");
+// const userRoutes = require("./routes/users");
+
 const app = express();
 
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // آدرس Vite
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
 app.use(express.json());
 
-// ============ داده‌های موقت ============
-let users = [
-  {
-    id: 1,
-    fullName: "علی احمدی",
-    email: "ali@example.com",
-    phone: "09123456789",
-    password: "123456",
-    birthDate: "1990-05-15",
-    gender: "male",
-    medicalInfo: {
-      allergies: "ندارد",
-      conditions: ["میگرن خفیف"],
-      notes: "ترجیح می‌دهم ماساژ آرام باشد",
-    },
-  },
-];
+// تست اتصال دیتابیس
+testConnection();
 
-let services = [
-  {
-    id: 1,
-    name: "ماساژ سوئدی",
-    description: "ماساژ کلاسیک برای ریلکس شدن عضلات",
-    duration: "60 دقیقه",
-    price: 1800000,
-    category: "آرامش‌بخش",
-    icon: "FiUser",
-  },
-  {
-    id: 2,
-    name: "ماساژ تایلندی",
-    description: "کشش یوگا و تکنیک‌های انرژی‌بخش",
-    duration: "90 دقیقه",
-    price: 2200000,
-    category: "انرژی‌بخش",
-    icon: "FiActivity",
-  },
-  {
-    id: 3,
-    name: "ماساژ ورزشی",
-    description: "مخصوص ورزشکاران حرفه‌ای",
-    duration: "75 دقیقه",
-    price: 2000000,
-    category: "درمانی",
-    icon: "FiActivity",
-  },
-];
-
-let appointments = [
-  {
-    id: 1,
-    userId: 1,
-    serviceId: 1,
-    date: "2024-02-01",
-    time: "15:00",
-    status: "upcoming",
-    notes: "",
-    therapistNotes: "عضلات گردن و شانه نیاز به توجه بیشتری دارند",
-    rating: null,
-    userReview: "",
-    createdAt: new Date(),
-  },
-];
-
-let reviews = [
-  {
-    id: 1,
-    name: "علی احمدی",
-    text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم.",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: "حسین رحمانی",
-    text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام.",
-    avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    rating: 5,
-  },
-];
-
-// ============ Routes ============
-
-// 1. تست سرور
+// Routes موقت برای تست
 app.get("/api/test", (req, res) => {
   res.json({
-    message: "backend works! 🎉",
+    message: "backend works with MySQL! 🎉",
     time: new Date().toLocaleTimeString("fa-IR"),
   });
 });
 
-// 2. دریافت لیست خدمات
-app.get("/api/services", (req, res) => {
-  res.json(services);
-});
+// Routes اصلی (بعداً جایگزین می‌شوند)
+// ============ Routes موقت (تا routes جدید رو بسازیم) ============
 
-app.get("/api/services/:id", (req, res) => {
-  const service = services.find((s) => s.id === parseInt(req.params.id));
-  if (service) {
-    res.json(service);
-  } else {
-    res.status(404).json({ error: "Service not found" });
+// دریافت لیست خدمات از دیتابیس
+app.get("/api/services", async (req, res) => {
+  try {
+    const services = await Service.findAll();
+    res.json(services);
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    res.status(500).json({ error: "خطا در دریافت خدمات" });
   }
 });
 
-// 3. نظرات مشتریان
-app.get("/api/reviews", (req, res) => {
-  res.json(reviews);
+app.get("/api/services/:id", async (req, res) => {
+  try {
+    const service = await Service.findByPk(req.params.id);
+    if (service) {
+      res.json(service);
+    } else {
+      res.status(404).json({ error: "Service not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching service:", error);
+    res.status(500).json({ error: "خطا در دریافت خدمت" });
+  }
 });
 
-// 4. احراز هویت - ثبت‌نام
-app.post("/api/auth/register", (req, res) => {
-  const { fullName, email, phone, password, birthDate, gender, medicalInfo } =
-    req.body;
-
-  // بررسی تکراری نبودن ایمیل
-  const existingUser = users.find((u) => u.email === email);
-  if (existingUser) {
-    return res.status(400).json({ error: "این ایمیل قبلاً ثبت شده است" });
+// دریافت نظرات از دیتابیس
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.findAll({
+      where: { is_approved: true },
+      limit: 10,
+    });
+    res.json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "خطا در دریافت نظرات" });
   }
-
-  const newUser = {
-    id: users.length + 1,
-    fullName,
-    email,
-    phone,
-    password, // در پروژه واقعی باید hash بشه
-    birthDate,
-    gender,
-    medicalInfo: medicalInfo || {
-      allergies: "ندارد",
-      conditions: [],
-      notes: "",
-    },
-    createdAt: new Date(),
-  };
-
-  users.push(newUser);
-
-  // برای امنیت، پسورد رو برنگردونیم
-  const { password: _, ...userWithoutPassword } = newUser;
-
-  res.status(201).json({
-    success: true,
-    message: "signup was successful.",
-    user: userWithoutPassword,
-    token: "fake-jwt-token-" + Date.now(), // در پروژه واقعی JWT واقعی
-  });
 });
 
-// 5. احراز هویت - ورود
-app.post("/api/auth/login", (req, res) => {
-  const { email, password } = req.body;
+// احراز هویت - ورود
+// به جای email، با phone لاگین کن
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { phone, password } = req.body; // تغییر: phone به جای email
 
-  const user = users.find((u) => u.email === email && u.password === password);
-
-  if (!user) {
-    return res.status(401).json({ error: "email or password is wrong!" });
-  }
-
-  // برای امنیت، پسورد رو برنگردونیم
-  const { password: _, ...userWithoutPassword } = user;
-
-  res.json({
-    success: true,
-    message: "Login was successful",
-    user: userWithoutPassword,
-    token: "fake-jwt-token-" + user.id,
-  });
-});
-
-// 6. دریافت اطلاعات کاربر (با توکن)
-app.get("/api/auth/me", (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token || !token.includes("fake-jwt-token-")) {
-    return res.status(401).json({ error: "token isn't valid" });
-  }
-
-  const userId = parseInt(token.replace("fake-jwt-token-", ""));
-  const user = users.find((u) => u.id === userId);
-
-  if (!user) {
-    return res.status(404).json({ error: "user not found!" });
-  }
-
-  const { password: _, ...userWithoutPassword } = user;
-  res.json(userWithoutPassword);
-});
-
-// 7. مدیریت نوبت‌ها
-app.get("/api/appointments", (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  const userId = parseInt(token?.replace("fake-jwt-token-", "") || "1");
-
-  const userAppointments = appointments
-    .filter((apt) => apt.userId === userId)
-    .map((apt) => {
-      const service = services.find((s) => s.id === apt.serviceId);
-      return {
-        ...apt,
-        serviceName: service?.name,
-        serviceDuration: service?.duration,
-        servicePrice: service?.price,
-      };
+    const user = await User.findOne({
+      where: {
+        phone, // جستجو با شماره تلفن
+        is_active: true,
+      },
     });
 
-  res.json(userAppointments);
-});
+    if (!user) {
+      return res
+        .status(401)
+        .json({ error: "شماره تماس یا رمز عبور اشتباه است" });
+    }
 
-app.post("/api/appointments", (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  const userId = parseInt(token?.replace("fake-jwt-token-", "") || "1");
+    const isValid = await user.comparePassword(password);
+    if (!isValid) {
+      return res
+        .status(401)
+        .json({ error: "شماره تماس یا رمز عبور اشتباه است" });
+    }
 
-  const { serviceId, date, time, notes } = req.body;
-
-  const newAppointment = {
-    id: appointments.length + 1,
-    userId,
-    serviceId,
-    date,
-    time,
-    status: "upcoming",
-    notes: notes || "",
-    therapistNotes: "",
-    rating: null,
-    userReview: "",
-    createdAt: new Date(),
-  };
-
-  appointments.push(newAppointment);
-
-  const service = services.find((s) => s.id === serviceId);
-
-  res.status(201).json({
-    success: true,
-    message: "Appoinment booked successfully",
-    appointment: {
-      ...newAppointment,
-      serviceName: service?.name,
-      serviceDuration: service?.duration,
-      servicePrice: service?.price,
-    },
-  });
-});
-
-// 8. ثبت امتیاز و نظر
-app.put("/api/appointments/:id/rate", (req, res) => {
-  const { rating, review } = req.body;
-  const appointmentId = parseInt(req.params.id);
-
-  const appointment = appointments.find((a) => a.id === appointmentId);
-  if (!appointment) {
-    return res.status(404).json({ error: "Appoinment not found!" });
+    res.json({
+      success: true,
+      message: "ورود موفقیت‌آمیز بود",
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        gender: user.gender,
+        medical_info: user.medical_info,
+        role: user.role,
+      },
+      token: `fake-jwt-token-${user.id}`,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "خطا در سرور" });
   }
-
-  appointment.rating = rating;
-  appointment.userReview = review;
-
-  res.json({
-    success: true,
-    message: "Your rating and comment have been recorded.",
-  });
 });
 
-// 9. ویرایش پروفایل
-app.put("/api/users/profile", (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  const userId = parseInt(token?.replace("fake-jwt-token-", "") || "1");
+// احراز هویت - ثبت‌نام (موقت)
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      birth_date,
+      gender,
+      medical_info,
+    } = req.body;
 
-  const userIndex = users.findIndex((u) => u.id === userId);
-  if (userIndex === -1) {
-    return res.status(404).json({ error: "User not found" });
+    // بررسی وجود کاربر
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: "این ایمیل قبلاً ثبت شده است" });
+    }
+
+    // ایجاد کاربر جدید
+    const user = await User.create({
+      full_name,
+      email,
+      phone,
+      password,
+      birth_date,
+      gender,
+      medical_info: medical_info || {
+        allergies: "ندارد",
+        conditions: [],
+        notes: "",
+      },
+    });
+
+    const userResponse = {
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      phone: user.phone,
+      gender: user.gender,
+      medical_info: user.medical_info,
+      role: user.role,
+    };
+
+    res.status(201).json({
+      success: true,
+      message: "ثبت‌نام موفقیت‌آمیز بود",
+      user: userResponse,
+      token: `fake-jwt-token-${user.id}`,
+    });
+  } catch (error) {
+    console.error("Register error:", error);
+    res.status(500).json({ error: "خطا در سرور" });
   }
-
-  const { fullName, phone, medicalInfo } = req.body;
-
-  users[userIndex] = {
-    ...users[userIndex],
-    fullName: fullName || users[userIndex].fullName,
-    phone: phone || users[userIndex].phone,
-    medicalInfo: medicalInfo || users[userIndex].medicalInfo,
-  };
-
-  const { password: _, ...updatedUser } = users[userIndex];
-
-  res.json({
-    success: true,
-    message: "Profile Updated Successfully!",
-    user: updatedUser,
-  });
 });
 
-// ============ Server ============
+// ============ سرور ============
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(` backend server on: http://localhost:${PORT}`);
-  console.log(` Available APIs:`);
-  console.log(`   GET  /api/test`);
-  console.log(`   GET  /api/services`);
-  console.log(`   GET  /api/reviews`);
-  console.log(`   POST /api/auth/register`);
-  console.log(`   POST /api/auth/login`);
-  console.log(`   GET  /api/auth/me`);
-  console.log(`   GET  /api/appointments`);
-  console.log(`   POST /api/appointments`);
-});
+
+const startServer = async () => {
+  try {
+    // Sync دیتابیس
+    await sequelize.sync({ alter: true }); // alter به جای force تا داده‌ها پاک نشن
+    console.log("✅ Database synchronized");
+
+    // شروع سرور
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on: http://localhost:${PORT}`);
+      console.log(`📡 Available APIs:`);
+      console.log(`   GET  /api/test`);
+      console.log(`   GET  /api/services`);
+      console.log(`   GET  /api/reviews`);
+      console.log(`   POST /api/auth/login`);
+      console.log(`   POST /api/auth/register`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
