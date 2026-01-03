@@ -8,35 +8,18 @@ import {
   FiClock,
   FiLogOut,
   FiHome,
-  FiSettings,
   FiStar,
-  FiHeart,
   FiMessageSquare,
-  FiMenu,
   FiX,
-  FiBell,
-  FiSearch,
-  FiDollarSign,
   FiTrendingUp,
-  FiEye,
-  FiEyeOff,
   FiCheck,
-  FiAlertCircle,
-  FiFilter,
-  FiDownload,
   FiChevronDown,
   FiChevronUp,
-  FiCheckCircle,
-  FiMapPin,
   FiInfo,
   FiChevronRight,
-  FiChevronLeft,
   FiEdit,
   FiSave,
-  FiShield,
   FiActivity,
-  FiDroplet,
-  FiThermometer,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -56,7 +39,6 @@ const Dashboard = () => {
   });
 
   // ============ اطلاعات ============
-  // اطلاعات کاربر
   const userData = {
     id: 1,
     fullName: "علی احمدی",

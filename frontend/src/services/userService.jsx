@@ -1,5 +1,3 @@
-// frontend/src/services/userService.jsx
-
 const API_URL = "http://localhost:5000/api";
 
 // Utility function برای هندل کردن errors
@@ -27,9 +25,7 @@ const removeToken = () => {
 };
 
 export const userService = {
-  // ==================== احراز هویت ====================
-
-  // ثبت‌نام کاربر جدید
+  // ==================== ثبت‌نام کاربر جدید - احراز هویت ====================
   async register(userData) {
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -53,8 +49,7 @@ export const userService = {
     }
   },
 
-  // ورود کاربر
-  // ورود با شماره تماس
+  // ورود کاربر با شماره تماس
   async loginWithPhone(phone, password) {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -82,71 +77,6 @@ export const userService = {
       throw error;
     }
   },
-
-  // یا تابع login رو عوض کن که هم با ایمیل و هم با شماره کار کنه
-  async login(identifier, password) {
-    try {
-      // بررسی کن که identifier ایمیل هست یا شماره تلفن
-      const isEmail = identifier.includes("@");
-      const body = isEmail
-        ? { email: identifier, password }
-        : { phone: identifier, password };
-
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.token) {
-          setToken(data.token);
-        }
-        return data;
-      } else {
-        throw new Error(data.error || "خطا در ورود");
-      }
-    } catch (error) {
-      console.error("خطا در ورود:", error);
-      throw error;
-    }
-  },
-  
-  // async login(email, password) {
-  //   try {
-  //     const response = await fetch(`${API_URL}/auth/login`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Accept: "application/json",
-  //       },
-  //       body: JSON.stringify({ email, password }),
-  //     });
-
-  //     // اول پاسخ رو بگیر
-  //     const data = await response.json();
-  //     console.log("پاسخ API:", data);
-
-  //     // اگر پاسخ OK بود
-  //     if (response.ok) {
-  //       if (data.token) {
-  //         setToken(data.token);
-  //       }
-  //       return data;
-  //     } else {
-  //       // اگر خطا بود
-  //       throw new Error(data.error || "خطا در ورود");
-  //     }
-  //   } catch (error) {
-  //     console.error("خطا در ورود:", error);
-  //     throw error;
-  //   }
-  // },
 
   // دریافت اطلاعات کاربر جاری
   async getCurrentUser() {
@@ -177,8 +107,6 @@ export const userService = {
   },
 
   // ==================== پروفایل کاربر ====================
-
-  // ویرایش پروفایل
   async updateProfile(profileData) {
     try {
       const token = getToken();
@@ -214,7 +142,6 @@ export const userService = {
   },
 
   // ==================== خدمات (Services) ====================
-  // دریافت لیست همه خدمات
   async getAllServices() {
     try {
       const response = await fetch(`${API_URL}/services`);
@@ -237,7 +164,6 @@ export const userService = {
   },
 
   // ==================== نوبت‌ها (Appointments) ====================
-  // دریافت همه نوبت‌های کاربر
   async getAppointments() {
     try {
       const token = getToken();
@@ -332,7 +258,6 @@ export const userService = {
   },
 
   // ==================== نظرات (Reviews) ====================
-  // دریافت نظرات مشتریان
   async getAllReviews() {
     try {
       const response = await fetch(`${API_URL}/reviews`);

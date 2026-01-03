@@ -6,12 +6,6 @@ require("dotenv").config();
 const { sequelize, testConnection } = require("./config/database");
 const { User, Service, Appointment, Review } = require("./models");
 
-// Import routes (بعداً می‌سازیم)
-// const authRoutes = require("./routes/auth");
-// const serviceRoutes = require("./routes/services");
-// const appointmentRoutes = require("./routes/appointments");
-// const userRoutes = require("./routes/users");
-
 const app = express();
 
 // Middleware
@@ -36,7 +30,6 @@ app.get("/api/test", (req, res) => {
 
 // Routes اصلی (بعداً جایگزین می‌شوند)
 // ============ Routes موقت (تا routes جدید رو بسازیم) ============
-
 // دریافت لیست خدمات از دیتابیس
 app.get("/api/services", async (req, res) => {
   try {

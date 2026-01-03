@@ -3,11 +3,8 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Landing from './pages/Landing';
-// import LoginPage from './pages/LoginPage';
-// import SignUpPage from './pages/SignUpPage';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -18,7 +15,6 @@ import Login from "./components/Login/Login";
 import SignUp from "./components/SignUp/SignUp";
 import Dashboard from "./components/Dashboard/Dashboard";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
-
 
 function App() {
   return (

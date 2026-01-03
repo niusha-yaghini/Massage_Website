@@ -17,9 +17,6 @@ import {
   FiCheckCircle,
   FiMapPin,
   FiInstagram,
-  FiFacebook,
-  FiTwitter,
-  FiYoutube,
   FiSend,
   FiShield,
   FiGitBranch,
@@ -32,7 +29,6 @@ import styles from "./Landing.module.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import Logo from "../../assets/images/Logo_white.png";
-import Logobackback from "../../assets/images/back7-2.jpg";
 
 const Landing = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -495,9 +491,6 @@ const Landing = () => {
                 `}
                     data-position={position}
                   >
-                    {/* <div className={styles.reviewAvatar}>
-                      <img src={review.avatar} alt={`Avatar ${review.name}`} />
-                    </div> */}
                     <div className={styles.reviewContent}>
                       <h4 className={styles.reviewName}>{review.name}</h4>
                       <div className={styles.stars}>
@@ -611,22 +604,6 @@ const Landing = () => {
                         <FiMail className={styles.sectionIcon} />
                         ارسال پیام
                       </h3>
-                      {/* <div className="row">
-                        <div className="col-md-6">
-                          <input
-                            type="text"
-                            placeholder="نام شما"
-                            className={styles.formInput}
-                          />
-                        </div>
-                        <div className="col-md-6">
-                          <input
-                            type="tel"
-                            placeholder="شماره تماس"
-                            className={styles.formInput}
-                          />
-                        </div>
-                      </div> */}
                       <input
                         type="text"
                         placeholder="نام شما"
@@ -637,11 +614,6 @@ const Landing = () => {
                         placeholder="شماره تماس"
                         className={styles.formInput}
                       />
-                      {/* <input
-                        type="email"
-                        placeholder="ایمیل (اختیاری)"
-                        className={styles.formInput}
-                      /> */}
                       <textarea
                         placeholder="پیام شما..."
                         rows="4"
@@ -759,7 +731,6 @@ const Landing = () => {
                 </h4>
 
                 <div className={styles.socialSection}>
-                  {/* <h5>ما را دنبال کنید</h5> */}
                   <div className={styles.socialLinksAdvanced}>
                     {[
                       {
@@ -824,19 +795,6 @@ const Landing = () => {
               <div className="col-lg-6">
                 <div className={styles.copyright}>
                   <p>© ۱۴۰۳ اسپا اکسیر. تمام حقوق محفوظ است.</p>
-                  <div className={styles.legalLinks}>
-                    {/* <a href="#" className={styles.legalLink}>
-                      قوانین و مقررات
-                    </a>
-                    <span className={styles.separator}>|</span>
-                    <a href="#" className={styles.legalLink}>
-                      حریم خصوصی
-                    </a>
-                    <span className={styles.separator}>|</span> */}
-                    <a href="#" className={styles.legalLink}>
-                      سوالات متداول
-                    </a>
-                  </div>
                 </div>
               </div>
             </div>

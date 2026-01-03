@@ -194,19 +194,6 @@
   padding-top: 2.5rem;
 }
 
-/* .heroBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(200, 179, 147, 0.1);
-  color: var(--accent);
-  padding: 0.5rem 0.5rem;
-  border-radius: 50px;
-  margin-bottom: 2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-} */
-
 .heroTitle {
   font-size: 3rem;
   font-weight: 700;

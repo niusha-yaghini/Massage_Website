@@ -5,7 +5,6 @@ import * as Yup from "yup";
 import styles from "./Login.module.css";
 import { userService } from "../../services/userService";
 import {
-  // FiMail,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -15,7 +14,6 @@ import {
   FiUserPlus,
   FiArrowRight,
   FiStar,
-  // FiShield,
   FiPhone,
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
@@ -171,40 +169,10 @@ const Login = () => {
           )}
 
           <form onSubmit={formik.handleSubmit} className={styles.loginForm}>
-            {/* Phone number Field */}
-            {/* <div className={styles.formGroup}>
-              <label htmlFor="email" className={styles.formLabel}>
-                <FiMail className={styles.labelIcon} />
-                ایمیل
-              </label>
-              <div className={styles.inputWrapper}>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  className={`${styles.formInputemail} ${
-                    formik.touched.email && formik.errors.email
-                      ? styles.inputError
-                      : ""
-                  }`}
-                  placeholder="example@spa-eksir.com"
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  value={formik.values.email}
-                  dir="ltr"
-                />
-              </div>
-              {formik.touched.email && formik.errors.email && (
-                <div className={styles.errorMessage}>{formik.errors.email}</div>
-              )}
-            </div> */}
-
-            {/* Phone Field - به جای Email Field */}
+            {/* Phone Field */}
             <div className={styles.formGroup}>
               <label htmlFor="phone" className={styles.formLabel}>
-                <FiPhone className={styles.labelIcon} />{" "}
-                {/* ایمپورت FiPhone کن */}
-                شماره موبایل
+                <FiPhone className={styles.labelIcon} /> شماره موبایل
               </label>
               <div className={styles.inputWrapper}>
                 <input

@@ -6,7 +6,6 @@ import styles from "./Signup.module.css";
 import { userService } from "../../services/userService";
 import {
   FiUser,
-  FiMail,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -18,10 +17,7 @@ import {
   FiLogIn,
   FiArrowRight,
   FiActivity,
-  FiHeart,
   FiAlertTriangle,
-  FiDroplet,
-  FiThermometer,
   FiChevronDown,
   FiChevronUp,
 } from "react-icons/fi";
@@ -514,41 +510,6 @@ const Signup = () => {
                 </div>
               )}
             </div>
-
-            {/* Section 4: قوانین */}
-            {/* <div className={styles.formSection}>
-              <div className={styles.termsGroup}>
-                <label className={styles.termsLabel}>
-                  <input
-                    type="checkbox"
-                    name="terms"
-                    checked={formik.values.terms}
-                    onChange={formik.handleChange}
-                    className={styles.termsCheckbox}
-                  />
-                  <span className={styles.checkboxCustom}></span>
-                  <span className={styles.termsText}>
-                    با
-                    <Link to="/terms" className={styles.termsLink}>
-                      {" "}
-                      قوانین و مقررات{" "}
-                    </Link>
-                    و
-                    <Link to="/privacy" className={styles.termsLink}>
-                      {" "}
-                      حریم خصوصی{" "}
-                    </Link>
-                    اسپا اکسیر موافقم و تأیید می‌کنم که اطلاعات پزشکی ارائه شده
-                    صحیح است.
-                  </span>
-                </label>
-                {formik.touched.terms && formik.errors.terms && (
-                  <div className={styles.errorMessage}>
-                    {formik.errors.terms}
-                  </div>
-                )}
-              </div>
-            </div> */}
 
             {/* Submit Button */}
             <div className={styles.formActions}>

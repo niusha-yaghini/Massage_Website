@@ -1,4 +1,3 @@
-// frontend/src/pages/ForgotPassword/ForgotPassword.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
@@ -182,34 +181,10 @@ const ForgotPassword = () => {
         </div>
       </header>
 
-      {/* Header */}
-      {/* <header className={styles.forgotHeader}>
-        <div className={styles.headerContainer}>
-          <div className={styles.headerActions}>
-            <Link to="/" className={styles.backHome}>
-              <FiHome />
-              <span>بازگشت به سایت</span>
-            </Link>
-            <Link to="/login" className={styles.loginLink}>
-              <FiArrowLeft />
-              <span>بازگشت به ورود</span>
-            </Link>
-          </div>
-
-          <div className={styles.logo}>
-            <span className={styles.logospa}>اسپا اکسیر</span>
-            <img src={Logo} alt="اسپا اکسیر" className={styles.logoImage} />
-          </div>
-        </div>
-      </header> */}
-
       {/* Main Content */}
       <main className={styles.forgotMain}>
         <div className={styles.formContainer}>
           <div className={styles.formHeader}>
-            {/* <div className={styles.formIcon}> */}
-              {/* <FiShield /> */}
-            {/* </div> */}
             <h1>بازیابی رمز عبور</h1>
             <p className={styles.formSubtitle}>
               {step === 1 && "شماره موبایل خود را وارد کنید."}
@@ -473,48 +448,6 @@ const ForgotPassword = () => {
                     </div>
                   )}
               </div>
-
-              {/* <div className={styles.passwordRequirements}>
-                <h4>رمز عبور باید شامل:</h4>
-                <ul>
-                  <li
-                    className={
-                      formikStep3.values.newPassword.length >= 8
-                        ? styles.valid
-                        : ""
-                    }
-                  >
-                    حداقل ۸ کاراکتر
-                  </li>
-                  <li
-                    className={
-                      /[a-z]/.test(formikStep3.values.newPassword)
-                        ? styles.valid
-                        : ""
-                    }
-                  >
-                    حروف کوچک انگلیسی
-                  </li>
-                  <li
-                    className={
-                      /[A-Z]/.test(formikStep3.values.newPassword)
-                        ? styles.valid
-                        : ""
-                    }
-                  >
-                    حروف بزرگ انگلیسی
-                  </li>
-                  <li
-                    className={
-                      /[0-9]/.test(formikStep3.values.newPassword)
-                        ? styles.valid
-                        : ""
-                    }
-                  >
-                    اعداد
-                  </li>
-                </ul>
-              </div> */}
 
               <div className={styles.formActions}>
                 <button
