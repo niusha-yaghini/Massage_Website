@@ -30,134 +30,94 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import Logo from "../../assets/images/Logo_white.png";
 
+const iconMap = {
+  FiUser: FiUser,
+  FiActivity: FiActivity,
+  FiStar: FiStar,
+  FiShield: FiShield,
+};
+
 const Landing = () => {
+  // ============ Stateها ============
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
-  const services = [
-    {
-      icon: <FiUser />,
-      title: "ماساژ سوئدی",
-      description: "ماساژ کلاسیک برای ریلکس شدن عضلات",
-      price: "۱,۸۰۰,۰۰۰ تومان",
-    },
-    {
-      icon: <FiActivity />,
-      title: "ماساژ تایلندی",
-      description: "کشش یوگا و تکنیک‌های انرژی‌بخش",
-      price: "۲,۲۰۰,۰۰۰ تومان",
-    },
-    {
-      icon: <FiActivity />,
-      title: "ماساژ ورزشی",
-      description: "مخصوص ورزشکاران حرفه‌ای",
-      price: "۲,۰۰۰,۰۰۰ تومان",
-    },
-    {
-      icon: <FiUser />,
-      title: "ماساژ آرام‌سازی",
-      description: "ریلکسیشن عمیق با روغن‌های ارگانیک",
-      price: "۱,۹۰۰,۰۰۰ تومان",
-    },
-    {
-      icon: <FiStar />,
-      title: "ماساژ درمانی",
-      description: "درمان دردهای عضلانی و گرفتگی‌ها",
-      price: "۲,۴۰۰,۰۰۰ تومان",
-    },
-    {
-      icon: <FiShield />,
-      title: "ماساژ VIP",
-      description: "لوکس‌ترین پکیج همراه با رایحه‌درمانی",
-      price: "۳,۰۰۰,۰۰۰ تومان",
-    },
-  ];
+  // داده‌ها
+  const [services, setServices] = useState([]);
+  const [reviews, setReviews] = useState([]);
 
-  const reviews = [
-    {
-      name: "علی احمدی",
-      text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "حسین رحمانی",
-      text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "رضا رحیمی",
-      text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "سهیل کریمی",
-      text: "خدمات عالی و حرفه‌ای! به شدت توصیه می‌کنم. ماساژ درمانی فوق‌العاده‌ای بود.",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-    {
-      name: "علی احمدی",
-      text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "خسن سلطانی",
-      text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "رضا رحیمی",
-      text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "پدرام کریمی",
-      text: "خدمات عالی و حرفه‌ای! به شدت توصیه می‌کنم. ماساژ درمانی فوق‌العاده‌ای بود.",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-    {
-      name: "علی احمدی",
-      text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      name: "پوریا سلطانی",
-      text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      name: "رضا رحیمی",
-      text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-    {
-      name: "صدرا کریمی",
-      text: "خدمات عالی و حرفه‌ای! به شدت توصیه می‌کنم. ماساژ درمانی فوق‌العاده‌ای بود.",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-  ];
+  // کاروسل خدمات
+  const [currentService, setCurrentService] = useState(0);
+  const [expandedIndex, setExpandedIndex] = useState(null);
 
+  // کاروسل نظرات
   const [currentReview, setCurrentReview] = useState(0);
-
   const [direction, setDirection] = useState("next");
 
-  const handleNext = () => {
+  // ============ Debug Log ============
+  console.log("Reviews from API:", reviews);
+
+  // ============ Fetch Data ============
+  // دریافت خدمات
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const servicesData = await userService.getAllServices();
+        setServices(servicesData);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // دریافت نظرات
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        console.log("Fetching reviews from API...");
+        const reviewsData = await userService.getAllReviews();
+
+        if (Array.isArray(reviewsData)) {
+          console.log("Reviews received from API:", reviewsData);
+          setReviews(reviewsData);
+        } else {
+          console.error("Reviews data from API is not array:", reviewsData);
+          setReviews([]);
+        }
+      } catch (error) {
+        console.error("Error fetching reviews from API:", error);
+        setReviews([]);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  // ============ کاروسل نظرات ============
+  const handleNextReview = () => {
     setDirection("next");
     setCurrentReview((prev) => (prev + 1) % reviews.length);
   };
 
-  const handlePrev = () => {
+  const handlePrevReview = () => {
     setDirection("prev");
     setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
   };
 
+  // اتوماتیک چرخش کاروسل نظرات - فقط یک interval داشته باش!
   useEffect(() => {
-    const interval = setInterval(handleNext, 2000);
+    if (reviews.length <= 1) return;
+
+    const interval = setInterval(() => {
+      handleNextReview();
+    }, 5000); // هر 5 ثانیه
+
     return () => clearInterval(interval);
-  }, []);
+  }, [reviews.length]); // فقط وقتی reviews.length تغییر کرد، interval جدید بساز
 
-  const [currentService, setCurrentService] = useState(0);
-  const [expandedIndex, setExpandedIndex] = useState(null);
-
+  // ============ کاروسل خدمات ============
   const handleNextService = () => {
     setCurrentService((prev) => (prev + 1) % services.length);
   };
@@ -166,11 +126,12 @@ const Landing = () => {
     setCurrentService((prev) => (prev - 1 + services.length) % services.length);
   };
 
+  // ============ Navigation & Scroll ============
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      const sections = ["home", "services", "about", "therapists", "contact"];
+      const sections = ["home", "services", "about", "reviews", "contact"];
       const current = sections.find((section) => {
         const element = document.getElementById(section);
         if (element) {
@@ -205,9 +166,9 @@ const Landing = () => {
       >
         <nav className={`${styles.nav}`}>
           <div className={styles.logo}>
-            <img src={Logo} alt="اسپا اکسیر" className={styles.logoImage} />
+            <img src={Logo} alt="فرشاد ماساژ" className={styles.logoImage} />
             <div className={styles.logoPulse}></div>
-            <span className={styles.logospa}>اسپا اکسیر</span>
+            <span className={styles.logospa}>فرشاد ماساژ</span>
           </div>
 
           <ul className={styles.navLinks}>
@@ -251,6 +212,7 @@ const Landing = () => {
           </div>
         </nav>
       </header>
+
       {/* هیرو سکشن */}
       <section id="home" className={`${styles.hero} ${styles.section}`}>
         <div className="container">
@@ -265,14 +227,14 @@ const Landing = () => {
                 <span className={styles.highlight}> محیطی لوکس</span>
               </h1>
               <p className={styles.heroSubtitle}>
-                در اسپا اکسیر، با ترکیبی از هنر ماساژ سنتی و تکنیک‌های مدرن،
+                در فرشاد ماساژ، با ترکیبی از هنر ماساژ سنتی و تکنیک‌های مدرن،
                 سفری به دنیای آرامش و تندرستی را تجربه کنید
               </p>
               <div className={styles.ctaButtons}>
-                <button className={` ${styles.primaryBtn}`}>
+                <Link to="/login" className={styles.primaryBtn}>
                   <FiCalendar className={styles.btnIcon} />
                   رزرو نوبت آنلاین
-                </button>
+                </Link>
                 <button className={` ${styles.secondaryBtn}`}>
                   <FiVideo className={styles.btnIcon} />
                   ویدیو معرفی
@@ -318,7 +280,7 @@ const Landing = () => {
 
                   return (
                     <div
-                      key={index}
+                      key={service.id}
                       className={`
         ${styles.slide}
         ${isActive ? styles.activeSlide : ""}
@@ -340,34 +302,40 @@ const Landing = () => {
         `}
                       >
                         <div className={styles.serviceIconMinimal}>
-                          {service.icon}
+                          {iconMap[service.icon] ? (
+                            React.createElement(iconMap[service.icon])
+                          ) : (
+                            <FiUser />
+                          )}
                         </div>
-                        <h3>{service.title}</h3>
+
+                        <h3>{service.name}</h3>
                         <p>{service.description}</p>
                         <span className={styles.priceMinimal}>
-                          {service.price}
+                          {service.price
+                            ? new Intl.NumberFormat("fa-IR").format(
+                                service.price
+                              ) + " تومان"
+                            : "۰ تومان"}
                         </span>
-
                         {isExpanded && (
                           <div className={styles.moreContent}>
-                            <p>
-                              این ماساژ شامل مدت‌زمان بیشتر، استفاده از روغن‌های
-                              ویژه و تمرکز روی نواحی حساس بدن است تا حداکثر
-                              آرامش را برای شما فراهم کند.
-                            </p>
+                            <p>{service.description}</p>{" "}
                             <ul className={styles.moreList}>
-                              <li>مدت‌زمان تقریبی: ۶۰ تا ۹۰ دقیقه</li>
-                              <li>استفاده از روغن‌های ۱۰۰٪ گیاهی</li>
-                              <li>مشاوره کوتاه قبل از شروع ماساژ</li>
+                              <li>
+                                مدت‌زمان:{" "}
+                                {service.duration ||
+                                  `${service.duration_minutes} دقیقه`}
+                              </li>
+                              <li>دسته‌بندی: {service.category || "عمومی"}</li>
                             </ul>
                           </div>
                         )}
-
                         <div className={styles.cardActionsRow}>
-                          <button className={styles.bookBtnMinimal}>
+                          <Link to="/login" className={styles.bookBtnMinimal}>
                             <FiCalendar className={styles.btnIcon} />
                             رزرو نوبت
-                          </button>
+                          </Link>
                         </div>
                       </div>
                     </div>
@@ -375,7 +343,6 @@ const Landing = () => {
                 })}
               </div>
             </div>
-
             <button className={styles.navBtn} onClick={handleNextService}>
               ›
             </button>
@@ -411,7 +378,7 @@ const Landing = () => {
               <div className={styles.aboutContent}>
                 <div className={styles.sectionBadge}>
                   <FiStar className={styles.badgeIcon} />
-                  چرا اسپا اکسیر؟
+                  چرا فرشاد ماساژ؟
                 </div>
                 <h2 className={styles.sectionTitle}>
                   تجربه‌ای <span className={styles.highlight}>منحصربه‌فرد</span>{" "}
@@ -467,86 +434,129 @@ const Landing = () => {
           <h2 className={styles.sectionTitle}>نظرات مشتریان</h2>
           <p className={styles.sectionSubtitle}>مشتریان ما چه می‌گویند؟</p>
         </div>
-        <div className={styles.carouselContainer}>
-          <div className={styles.carousel}>
-            {[currentReview - 1, currentReview, currentReview + 1].map(
-              (index, i) => {
-                const adjustedIndex = (index + reviews.length) % reviews.length;
-                const review = reviews[adjustedIndex];
-                const position = i;
 
-                return (
-                  <div
-                    key={`${adjustedIndex}-${position}`}
-                    className={`
+        {reviews.length > 0 ? (
+          <>
+            <div className={styles.carouselContainer}>
+              <div className={styles.carousel}>
+                {[currentReview - 1, currentReview, currentReview + 1].map(
+                  (index, i) => {
+                    const adjustedIndex =
+                      (index + reviews.length) % reviews.length;
+                    const review = reviews[adjustedIndex];
+                    const position = i;
+
+                    // اگر review وجود نداره
+                    if (!review) return null;
+
+                    return (
+                      <div
+                        key={`${review.id || adjustedIndex}-${position}`}
+                        className={`
                   ${styles.reviewCard}
-                  ${position === 0 ? styles.slideOut : ""}
                   ${position === 1 ? styles.slideActive : ""}
                   ${position === 2 ? styles.slideIn : ""}
+                  ${position === 0 ? styles.slideOut : ""}
                   ${
                     direction === "next"
                       ? styles.directionNext
                       : styles.directionPrev
                   }
                 `}
-                    data-position={position}
-                  >
-                    <div className={styles.reviewContent}>
-                      <h4 className={styles.reviewName}>{review.name}</h4>
-                      <div className={styles.stars}>
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
-                        <FiStar />
+                        data-position={position}
+                      >
+                        <div className={styles.reviewContent}>
+                          <h4 className={styles.reviewName}>
+                            {review.name || "مشتری ناشناس"}
+                          </h4>
+                          <div className={styles.stars}>
+                            {[...Array(5)].map((_, i) => {
+                              const isFilled = i < (review.rating || 5);
+                              return isFilled ? (
+                                <FiStar key={i} className={styles.starFilled} />
+                              ) : (
+                                <FiStar key={i} className={styles.starEmpty} />
+                              );
+                            })}
+                          </div>
+                          <p className={styles.reviewText}>
+                            {review.text || "بدون متن"}
+                          </p>
+                        </div>
                       </div>
-                      <p className={styles.reviewText}>{review.text}</p>
-                    </div>
-                  </div>
-                );
-              }
-            )}
-          </div>
-        </div>
+                    );
+                  }
+                )}
+              </div>
+            </div>
 
-        <div className={styles.carouselControls}>
-          <button
-            className={`${styles.prevBtn} ${
-              direction === "prev" ? styles.activeNav : ""
-            }`}
-            onClick={handleNext}
-            aria-label="نظر قبلی"
-          >
-            <FiChevronRight />
-          </button>
-
-          {/* نشانگرهای دات */}
-          <div className={styles.carouselDots}>
-            {reviews.map((_, index) => (
+            <div className={styles.carouselControls}>
               <button
-                key={index}
-                className={`${styles.dot} ${
-                  index === currentReview ? styles.activeDot : ""
+                className={`${styles.prevBtn} ${
+                  direction === "prev" ? styles.activeNav : ""
                 }`}
-                onClick={() => {
-                  setDirection(index > currentReview ? "next" : "prev");
-                  setCurrentReview(index);
-                }}
-                aria-label={`رفتن به نظر ${index + 1}`}
-              />
-            ))}
-          </div>
+                onClick={handlePrevReview}
+                aria-label="نظر قبلی"
+              >
+                <FiChevronRight />
+              </button>
 
-          <button
-            className={`${styles.nextBtn} ${
-              direction === "next" ? styles.activeNav : ""
-            }`}
-            onClick={handlePrev}
-            aria-label="نظر بعدی"
+              {/* نشانگرهای دات */}
+              <div className={styles.carouselDots}>
+                {reviews.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`${styles.dot} ${
+                      index === currentReview ? styles.activeDot : ""
+                    }`}
+                    onClick={() => {
+                      setDirection(index > currentReview ? "next" : "prev");
+                      setCurrentReview(index);
+                    }}
+                    aria-label={`رفتن به نظر ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                className={`${styles.nextBtn} ${
+                  direction === "next" ? styles.activeNav : ""
+                }`}
+                onClick={handleNextReview}
+                aria-label="نظر بعدی"
+              >
+                <FiChevronLeft />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "60px 20px",
+              color: "#666",
+              backgroundColor: "#f9f9f9",
+              borderRadius: "12px",
+              margin: "20px auto",
+              maxWidth: "600px",
+            }}
           >
-            <FiChevronLeft />
-          </button>
-        </div>
+            <FiUsers
+              style={{
+                fontSize: "64px",
+                marginBottom: "20px",
+                opacity: 0.3,
+                color: "#999",
+              }}
+            />
+            <h4 style={{ marginBottom: "10px", color: "#555" }}>
+              هنوز نظری ثبت نشده است
+            </h4>
+            <p style={{ fontSize: "16px", opacity: 0.7 }}>
+              اولین نفری باشید که نظر می‌دهید!
+            </p>
+          </div>
+        )}
       </section>
 
       {/* تماس */}
@@ -641,7 +651,7 @@ const Landing = () => {
               <div className={styles.footerColumn}>
                 <h4 className={styles.columnTitle}>
                   <FiHome className={styles.titleIcon} />
-                  درباره اسپا اکسیر
+                  درباره فرشاد ماساژ
                 </h4>
                 <p className={styles.columnDescription}>
                   با بیش از ۱۰ سال تجربه در ارائه خدمات ماساژ درمانی و
@@ -711,10 +721,10 @@ const Landing = () => {
                 </h4>
                 <ul className={styles.footerLinks}>
                   {services.slice(0, 5).map((service, index) => (
-                    <li key={index}>
+                    <li key={service.id}>
                       <a href="#services" className={styles.footerLink}>
                         <FiCheckCircle className={styles.linkIcon} />
-                        {service.title}
+                        {service.name}
                       </a>
                     </li>
                   ))}
@@ -794,7 +804,7 @@ const Landing = () => {
             <div className="row align-items-center">
               <div className="col-lg-6">
                 <div className={styles.copyright}>
-                  <p>© ۱۴۰۳ اسپا اکسیر. تمام حقوق محفوظ است.</p>
+                  <p>© ۱۴۰۳ فرشاد ماساژ. تمام حقوق محفوظ است.</p>
                 </div>
               </div>
             </div>

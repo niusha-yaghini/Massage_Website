@@ -56,7 +56,7 @@ const Appointment = sequelize.define(
         min: 1,
         max: 5,
       },
-      defaultValue: null,
+      allowNull: true, // اضافه شد
     },
     user_review: {
       type: DataTypes.TEXT,
@@ -65,11 +65,18 @@ const Appointment = sequelize.define(
     },
     therapist_id: {
       type: DataTypes.INTEGER,
+      allowNull: true, // اضافه شد
       references: {
         model: "users",
         key: "id",
       },
       field: "therapist_id",
+    },
+    appointment_code: {
+      // اضافه شد: کد یکتا برای نوبت
+      type: DataTypes.STRING(20),
+      unique: true,
+      field: "appointment_code",
     },
   },
   {
@@ -77,12 +84,28 @@ const Appointment = sequelize.define(
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
+    hooks: {
+      beforeCreate: async (appointment) => {
+        // ایجاد کد یکتا برای نوبت
+        if (!appointment.appointment_code) {
+          const date = new Date();
+          const timestamp = date.getTime().toString().slice(-6);
+          const random = Math.floor(Math.random() * 1000)
+            .toString()
+            .padStart(3, "0");
+          appointment.appointment_code = `SPA-${timestamp}${random}`;
+        }
+      },
+    },
   }
 );
 
 // تعریف رابطه‌ها
 Appointment.associate = (models) => {
-  Appointment.belongsTo(models.User, { foreignKey: "user_id", as: "user" });
+  Appointment.belongsTo(models.User, {
+    foreignKey: "user_id",
+    as: "user",
+  });
   Appointment.belongsTo(models.Service, {
     foreignKey: "service_id",
     as: "service",
@@ -91,6 +114,23 @@ Appointment.associate = (models) => {
     foreignKey: "therapist_id",
     as: "therapist",
   });
+};
+
+// متدهای کمکی
+Appointment.prototype.getStatusText = function () {
+  const statusMap = {
+    pending: "در انتظار تأیید",
+    confirmed: "تأیید شده",
+    completed: "انجام شده",
+    cancelled: "لغو شده",
+  };
+  return statusMap[this.status] || this.status;
+};
+
+Appointment.prototype.getDateTime = function () {
+  const date = new Date(this.appointment_date);
+  const persianDate = date.toLocaleDateString("fa-IR");
+  return `${persianDate} ساعت ${this.appointment_time}`;
 };
 
 module.exports = Appointment;

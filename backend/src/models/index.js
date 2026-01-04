@@ -7,13 +7,19 @@ const Appointment = require("./Appointment");
 const Review = require("./Review");
 
 // تعریف رابطه‌ها
-if (Appointment.associate) {
-  Appointment.associate({ User, Service });
-}
+const models = {
+  User,
+  Service,
+  Appointment,
+  Review,
+};
 
-if (Review.associate) {
-  Review.associate({ User });
-}
+// تعریف همه associations
+Object.keys(models).forEach((modelName) => {
+  if (models[modelName].associate) {
+    models[modelName].associate(models);
+  }
+});
 
 // sync کردن دیتابیس
 const syncDatabase = async (force = false) => {

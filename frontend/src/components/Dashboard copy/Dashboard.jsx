@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import { userService } from "../../services/userService";
@@ -20,7 +20,6 @@ import {
   FiEdit,
   FiSave,
   FiActivity,
-  FiBriefcase,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -39,79 +38,128 @@ const Dashboard = () => {
     notes: "",
   });
 
-  // ============ stateهای جدید برای داده‌های واقعی ============
-  const [userData, setUserData] = useState(null);
-  const [appointments, setAppointments] = useState([]);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // ============ اطلاعات ============
+  const userData = {
+    id: 1,
+    fullName: "علی احمدی",
+    email: "ali.ahmadi@example.com",
+    phone: "09123456789",
+    birthDate: "1990-05-15",
+    gender: "male",
+    membershipDate: "2023-01-15",
+    points: 1250,
+    membershipLevel: "VIP",
+    medicalInfo: {
+      allergies: "ندارد",
+      conditions: ["میگرن خفیف"],
+      notes: "ترجیح می‌دهم ماساژ آرام باشد",
+    },
+  };
 
-  // ============ useEffect برای بارگذاری داده‌ها ============
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
+  // تاریخچه ماساژها
+  const massageHistory = [
+    {
+      id: 1,
+      date: "2024-01-15",
+      time: "14:30",
+      type: "ماساژ سوئدی",
+      duration: "60 دقیقه",
+      price: "۱,۸۰۰,۰۰۰ تومان",
+      rating: 5,
+      therapistNotes:
+        "عضلات گردن و شانه نیاز به توجه بیشتری دارند. پیشنهاد می‌کنم جلسات هفتگی داشته باشید.",
+      status: "completed",
+    },
+    {
+      id: 2,
+      date: "2024-01-08",
+      time: "11:00",
+      type: "ماساژ تایلندی",
+      duration: "90 دقیقه",
+      price: "۲,۲۰۰,۰۰۰ تومان",
+      rating: 4,
+      therapistNotes:
+        "انعطاف پذیری خوبی دارید. برای جلسه بعدی تمرکز روی کمر خواهد بود.",
+      status: "completed",
+    },
+    {
+      id: 3,
+      date: "2023-12-20",
+      time: "16:00",
+      type: "ماساژ ورزشی",
+      duration: "75 دقیقه",
+      price: "۲,۰۰۰,۰۰۰ تومان",
+      rating: 5,
+      therapistNotes:
+        "عضلات پا بعد از ورزش نیاز به ریکاوری بیشتری دارند. حتما آب زیاد بنوشید.",
+      status: "completed",
+    },
+    {
+      id: 4,
+      date: "2023-12-05",
+      time: "10:30",
+      type: "ماساژ آرام‌سازی",
+      duration: "60 دقیقه",
+      price: "۱,۹۰۰,۰۰۰ تومان",
+      rating: 5,
+      therapistNotes:
+        "استرس قابل توجهی در ناحیه کتف مشاهده شد. تمرینات تنفسی پیشنهاد می‌شود.",
+      status: "completed",
+    },
+    {
+      id: 5,
+      date: "2024-02-01",
+      time: "15:00",
+      type: "ماساژ درمانی",
+      duration: "90 دقیقه",
+      price: "۲,۴۰۰,۰۰۰ تومان",
+      status: "upcoming",
+    },
+  ];
 
-        // دریافت اطلاعات کاربر
-        const userResponse = await userService.getCurrentUser();
-        setUserData(userResponse.user);
-
-        // دریافت نوبت‌ها
-        const appointmentsResponse = await userService.getAppointments();
-        setAppointments(appointmentsResponse.appointments || []);
-
-        // دریافت خدمات
-        const servicesResponse = await userService.getAllServices();
-        setServices(servicesResponse || []);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("خطا در دریافت اطلاعات. لطفاً دوباره تلاش کنید.");
-
-        // اگر کاربر لاگین نبوده، به صفحه login هدایت کن
-        if (err.message.includes("توکن")) {
-          navigate("/login");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [navigate]);
-
-  // ============ تغییر توابع برای استفاده از داده‌های واقعی ============
-  const massageHistory = appointments.map((apt) => ({
-    id: apt.id,
-    date: apt.date,
-    time: apt.time,
-    type: apt.service?.name || "ماساژ عمومی",
-    duration: apt.service?.duration || "۶۰ دقیقه",
-    price: apt.service?.price || "۰ تومان",
-    rating: apt.rating || 0,
-    therapistNotes: apt.therapist_notes || "",
-    status:
-      apt.status === "completed"
-        ? "completed"
-        : apt.status === "cancelled"
-        ? "cancelled"
-        : "upcoming",
-    userRating: apt.rating,
-    userReview: apt.user_review,
-  }));
-
-  // انواع ماساژ برای رزرو (از services واقعی)
-  const massageTypes = services.map((service) => ({
-    id: service.id,
-    name: service.name,
-    description: service.description,
-    duration: service.duration_minutes
-      ? `${service.duration_minutes} دقیقه`
-      : "۶۰ دقیقه",
-    price: service.price
-      ? new Intl.NumberFormat("fa-IR").format(service.price) + " تومان"
-      : "۰ تومان",
-    category: service.category || "آرامش‌بخش",
-  }));
+  // انواع ماساژ برای رزرو
+  const massageTypes = [
+    {
+      id: 1,
+      name: "ماساژ سوئدی",
+      description: "ماساژ کلاسیک برای ریلکس شدن عضلات",
+      duration: "60 دقیقه",
+      price: "۱,۸۰۰,۰۰۰ تومان",
+      category: "آرامش‌بخش",
+    },
+    {
+      id: 2,
+      name: "ماساژ تایلندی",
+      description: "کشش یوگا و تکنیک‌های انرژی‌بخش",
+      duration: "90 دقیقه",
+      price: "۲,۲۰۰,۰۰۰ تومان",
+      category: "انرژی‌بخش",
+    },
+    {
+      id: 3,
+      name: "ماساژ ورزشی",
+      description: "مخصوص ورزشکاران حرفه‌ای",
+      duration: "75 دقیقه",
+      price: "۲,۰۰۰,۰۰۰ تومان",
+      category: "درمانی",
+    },
+    {
+      id: 4,
+      name: "ماساژ آرام‌سازی",
+      description: "ریلکسیشن عمیق با روغن‌های ارگانیک",
+      duration: "60 دقیقه",
+      price: "۱,۹۰۰,۰۰۰ تومان",
+      category: "آرامش‌بخش",
+    },
+    {
+      id: 5,
+      name: "ماساژ درمانی",
+      description: "درمان دردهای عضلانی و گرفتگی‌ها",
+      duration: "90 دقیقه",
+      price: "۲,۴۰۰,۰۰۰ تومان",
+      category: "درمانی",
+    },
+  ];
 
   // ساعات کاری
   const availableSlots = [
@@ -189,6 +237,21 @@ const Dashboard = () => {
     }
   };
 
+  const handleSubmitBooking = () => {
+    console.log("Booking submitted:", bookingData);
+    alert(
+      `نوبت شما برای ${bookingData.selectedMassage.name} با موفقیت رزرو شد!`
+    );
+    setBookingStep(1);
+    setBookingData({
+      selectedMassage: null,
+      selectedTherapist: null,
+      selectedDate: "",
+      selectedTime: "",
+      notes: "",
+    });
+  };
+
   const handleLogout = () => {
     navigate("/");
   };
@@ -197,7 +260,7 @@ const Dashboard = () => {
   const Sidebar = () => (
     <div className={styles.sidebar}>
       <div className={styles.logo}>
-        <h3 className={styles.userName}>{userData?.full_name || "کاربر"}</h3>
+        <h3 className={styles.userName}>{userData.fullName}</h3>
       </div>
 
       <nav className={styles.nav}>
@@ -233,50 +296,30 @@ const Dashboard = () => {
   );
 
   const DashboardHome = () => {
-    // استفاده از appointments واقعی
-    const upcomingAppointments = appointments.filter(
-      (apt) => apt.status === "pending" || apt.status === "confirmed"
-    );
-
-    const completedAppointments = appointments.filter(
-      (apt) => apt.status === "completed"
-    );
-
     const stats = [
       {
         icon: <FiCalendar />,
         label: "نوبت‌های آینده",
-        value: upcomingAppointments.length.toString(),
+        value: "۱",
         color: "#4CAF50",
       },
       {
         icon: <FiTrendingUp />,
         label: "تعداد ماساژهای گذشته",
-        value: completedAppointments.length.toString(),
+        value: massageHistory
+          .filter((item) => item.status === "completed")
+          .length.toString(),
         color: "#9C27B0",
       },
     ];
 
-    const upcomingAppointment = upcomingAppointments[0] || null;
-
-    const handleSubmitRating = async (appointmentId, rating, review) => {
-      try {
-        await userService.rateAppointment(appointmentId, rating, review);
-
-        // آپدیت local state
-        setAppointments((prev) =>
-          prev.map((apt) =>
-            apt.id === appointmentId
-              ? { ...apt, rating, user_review: review }
-              : apt
-          )
-        );
-
-        alert("نظر و امتیاز شما با موفقیت ثبت شد!");
-      } catch (err) {
-        console.error("Error submitting rating:", err);
-        alert("خطا در ثبت نظر. لطفاً دوباره تلاش کنید.");
-      }
+    const upcomingAppointment = massageHistory.find(
+      (item) => item.status === "upcoming"
+    ) || {
+      date: "2024-02-01",
+      time: "۱۵:۰۰",
+      type: "ماساژ درمانی",
+      duration: "۹۰ دقیقه",
     };
 
     // تاریخچه ماساژهای انجام شده (برای نمایش در داشبورد)
@@ -298,6 +341,37 @@ const Dashboard = () => {
       setRatingValue(userRatings[sessionId]?.rating || 0);
       setReviewText(userRatings[sessionId]?.review || "");
       setShowRatingModal(true);
+    };
+
+    // تابع برای ثبت نظر
+    const handleSubmitRating = () => {
+      if (selectedSession && ratingValue > 0) {
+        setUserRatings((prev) => ({
+          ...prev,
+          [selectedSession.id]: {
+            rating: ratingValue,
+            review: reviewText,
+          },
+        }));
+
+        // به روزرسانی session با نظر کاربر
+        const updatedSession = {
+          ...selectedSession,
+          userRating: ratingValue,
+          userReview: reviewText,
+        };
+
+        // در اینجا می‌توانید اطلاعات را به سرور ارسال کنید
+        console.log("Rating submitted:", updatedSession);
+
+        // بستن مودال
+        setShowRatingModal(false);
+        setRatingValue(0);
+        setReviewText("");
+        setSelectedSession(null);
+
+        alert("نظر و امتیاز شما با موفقیت ثبت شد!");
+      }
     };
 
     // اضافه کردن userRating و userReview به completedMassages
@@ -338,43 +412,36 @@ const Dashboard = () => {
           </h2>
           <div className={styles.appointmentDetails}>
             <div className={styles.appointmentInfo}>
-              {upcomingAppointment ? (
-                <>
-                  <div className={styles.infoRow}>
-                    <span className={styles.infoLabel}>تاریخ:</span>
-                    <span className={styles.infoValue}>
-                      {formatDate(upcomingAppointment.date)}
-                    </span>
-                  </div>
-                  <div className={styles.infoRow}>
-                    <span className={styles.infoLabel}>ساعت:</span>
-                    <span className={styles.infoValue}>
-                      {upcomingAppointment.time}
-                    </span>
-                  </div>
-                  <div className={styles.infoRow}>
-                    <span className={styles.infoLabel}>نوع ماساژ:</span>
-                    <span className={styles.infoValue}>
-                      {upcomingAppointment.type}
-                    </span>
-                  </div>
-                  <div className={styles.infoRow}>
-                    <span className={styles.infoLabel}>مدت زمان:</span>
-                    <span className={styles.infoValue}>
-                      {upcomingAppointment.duration}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className={styles.noAppointment}>
-                  <FiInfo className={styles.infoIcon} />
-                  <p>نوبت آینده‌ای ندارید.</p>
-                </div>
-              )}
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>تاریخ:</span>
+                <span className={styles.infoValue}>
+                  {formatDate(upcomingAppointment.date)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>ساعت:</span>
+                <span className={styles.infoValue}>
+                  {upcomingAppointment.time}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>نوع ماساژ:</span>
+                <span className={styles.infoValue}>
+                  {upcomingAppointment.type}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>مدت زمان:</span>
+                <span className={styles.infoValue}>
+                  {upcomingAppointment.duration}
+                </span>
+              </div>
             </div>
             <button className={styles.actionButtonSecondary}>لغو نوبت</button>
           </div>
         </div>
+
+        {/* Recent Massage History - زیر بخش نوبت بعدی */}
         <div className={styles.recentHistory}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>
@@ -584,29 +651,15 @@ const Dashboard = () => {
   };
 
   const Profile = () => {
-    // const [formData, setFormData] = useState(userData);
-    const [formData, setFormData] = useState(userData || {});
-
-    // وقتی userData تغییر کرد، formData رو آپدیت کن
-    useEffect(() => {
-      if (userData) {
-        setFormData(userData);
-      }
-    }, [userData]);
-
-    const handleSave = async () => {
-      try {
-        await userService.updateProfile(formData);
-        setIsEditingProfile(false);
-        alert("پروفایل با موفقیت به‌روزرسانی شد.");
-      } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("خطا در به‌روزرسانی پروفایل.");
-      }
-    };
+    const [formData, setFormData] = useState(userData);
 
     const handleEdit = () => {
       setIsEditingProfile(true);
+    };
+
+    const handleSave = () => {
+      setIsEditingProfile(false);
+      console.log("Profile saved:", formData);
     };
 
     const handleCancel = () => {
@@ -665,15 +718,13 @@ const Dashboard = () => {
                   {isEditingProfile ? (
                     <input
                       type="text"
-                      name="full_name"
-                      value={formData.full_name || ""}
+                      name="fullName"
+                      value={formData.fullName}
                       onChange={handleChange}
                       className={styles.formInput}
                     />
                   ) : (
-                    <p className={styles.formValue}>
-                      {formData.full_name || ""}
-                    </p>
+                    <p className={styles.formValue}>{formData.fullName}</p>
                   )}
                 </div>
 
@@ -682,7 +733,7 @@ const Dashboard = () => {
                     <FiUser />
                     ایمیل
                   </label>
-                  <p className={styles.formValue}>{formData.email || ""}</p>
+                  <p className={styles.formValue}>{formData.email}</p>
                 </div>
 
                 <div className={styles.formGroup}>
@@ -699,28 +750,7 @@ const Dashboard = () => {
                       className={styles.formInput}
                     />
                   ) : (
-                    <p className={styles.formValue}>{formData.phone || ""}</p>
-                  )}
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    <FiBriefcase />
-                    شغل
-                  </label>
-                  {isEditingProfile ? (
-                    <input
-                      type="text"
-                      name="job"
-                      value={formData.job || ""}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                      placeholder="شغل خود را وارد کنید"
-                    />
-                  ) : (
-                    <p className={styles.formValue}>
-                      {formData.job || "ثبت نشده"}
-                    </p>
+                    <p className={styles.formValue}>{formData.phone}</p>
                   )}
                 </div>
 
@@ -730,25 +760,21 @@ const Dashboard = () => {
                     تاریخ تولد
                   </label>
                   <p className={styles.formValue}>
-                    {formData.birth_date ? formatDate(formData.birth_date) : ""}{" "}
+                    {formatDate(formData.birthDate)}
                   </p>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>جنسیت</label>
                   <p className={styles.formValue}>
-                    {formData.gender === "male"
-                      ? "آقا"
-                      : formData.gender === "female"
-                      ? "خانم"
-                      : ""}
+                    {formData.gender === "male" ? "آقا" : "خانم"}
                   </p>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>تاریخ عضویت</label>
                   <p className={styles.formValue}>
-                    {formData.created_at ? formatDate(formData.created_at) : ""}
+                    {formatDate(formData.membershipDate)}
                   </p>
                 </div>
               </div>
@@ -768,19 +794,20 @@ const Dashboard = () => {
                   </span>
                 </h3>
               </div>
-              {/* {showMedicalInfo && (
+
+              {showMedicalInfo && (
                 <div className={styles.medicalInfo}>
                   <div className={styles.medicalItem}>
                     <span className={styles.medicalLabel}>آلرژی‌ها:</span>
                     <span className={styles.medicalValue}>
-                      {formData.medical_info?.allergies || "ندارد"}
+                      {formData.medicalInfo.allergies}
                     </span>
                   </div>
 
                   <div className={styles.medicalItem}>
                     <span className={styles.medicalLabel}>شرایط خاص:</span>
                     <div className={styles.conditionsList}>
-                      {formData.medical_info.conditions.map(
+                      {formData.medicalInfo.conditions.map(
                         (condition, index) => (
                           <span key={index} className={styles.conditionTag}>
                             {condition}
@@ -793,38 +820,7 @@ const Dashboard = () => {
                   <div className={styles.medicalItem}>
                     <span className={styles.medicalLabel}>یادداشت:</span>
                     <p className={styles.medicalNote}>
-                      {formData.medical_info.notes || "یادداشتی ثبت نشده است."}
-                    </p>
-                  </div>
-                </div>
-              )} */}
-
-              {showMedicalInfo && formData.medical_info && (
-                <div className={styles.medicalInfo}>
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>آلرژی‌ها:</span>
-                    <span className={styles.medicalValue}>
-                      {formData.medical_info.allergies || "ندارد."}
-                    </span>
-                  </div>
-
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>شرایط خاص:</span>
-                    <div className={styles.conditionsList}>
-                      {formData.medical_info.conditions?.map(
-                        (condition, index) => (
-                          <span key={index} className={styles.conditionTag}>
-                            {condition}
-                          </span>
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>یادداشت:</span>
-                    <p className={styles.medicalNote}>
-                      {formData.medical_info.notes || "یادداشتی ثبت نشده است."}
+                      {formData.medicalInfo.notes}
                     </p>
                   </div>
                 </div>
@@ -837,107 +833,6 @@ const Dashboard = () => {
   };
 
   const Booking = () => {
-    const [availableDates, setAvailableDates] = useState([]);
-    const [availableSlots, setAvailableSlots] = useState([]);
-    const [loadingDates, setLoadingDates] = useState(false);
-    const [loadingSlots, setLoadingSlots] = useState(false);
-
-    // بارگذاری تاریخ‌های available
-    useEffect(() => {
-      const fetchAvailableDates = async () => {
-        try {
-          setLoadingDates(true);
-          const response = await userService.getAvailableSlots();
-          if (response.success) {
-            setAvailableDates(response.available_dates || []);
-          }
-        } catch (error) {
-          console.error("Error fetching available dates:", error);
-          setAvailableDates([]);
-        } finally {
-          setLoadingDates(false);
-        }
-      };
-
-      fetchAvailableDates();
-    }, []);
-
-    // وقتی تاریخ انتخاب شد، ساعت‌های اون تاریخ رو بگیر
-    useEffect(() => {
-      const fetchAvailableSlots = async () => {
-        if (bookingData.selectedDate) {
-          try {
-            setLoadingSlots(true);
-            const response = await userService.getAvailableSlots(
-              bookingData.selectedDate
-            );
-            if (response.success) {
-              setAvailableSlots(response.available_slots || []);
-            }
-          } catch (error) {
-            console.error("Error fetching available slots:", error);
-            setAvailableSlots([]);
-          } finally {
-            setLoadingSlots(false);
-          }
-        } else {
-          setAvailableSlots([]);
-        }
-      };
-
-      fetchAvailableSlots();
-    }, [bookingData.selectedDate]);
-
-    // تابع handleSubmitBooking رو آپدیت کن
-    const handleSubmitBooking = async () => {
-      try {
-        if (
-          !bookingData.selectedMassage ||
-          !bookingData.selectedDate ||
-          !bookingData.selectedTime
-        ) {
-          alert("لطفاً تمام اطلاعات لازم را وارد کنید.");
-          return;
-        }
-
-        const appointmentData = {
-          service_id: bookingData.selectedMassage.id,
-          appointment_date: bookingData.selectedDate,
-          appointment_time: bookingData.selectedTime,
-          notes: bookingData.notes,
-        };
-
-        const response = await userService.bookAppointment(appointmentData);
-
-        if (response.success) {
-          alert(
-            `نوبت شما برای ${bookingData.selectedMassage.name} با موفقیت رزرو شد!`
-          );
-
-          // ریست فرم
-          setBookingStep(1);
-          setBookingData({
-            selectedMassage: null,
-            selectedDate: "",
-            selectedTime: "",
-            notes: "",
-          });
-
-          // refresh تاریخ‌های available
-          const datesResponse = await userService.getAvailableSlots();
-          if (datesResponse.success) {
-            setAvailableDates(datesResponse.available_dates || []);
-          }
-
-          // به داشبورد برگرد
-          setActiveTab("dashboard");
-        }
-      } catch (error) {
-        console.error("Error booking appointment:", error);
-        alert("خطا در رزرو نوبت. لطفاً دوباره تلاش کنید.");
-      }
-    };
-
     return (
       <div className={styles.bookingPage}>
         <div className={styles.pageHeader}>

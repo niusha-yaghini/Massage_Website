@@ -17,13 +17,22 @@ const Service = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    duration: {
-      type: DataTypes.STRING(50),
+    duration_minutes: {
+      // تغییر از STRING به INTEGER
+      type: DataTypes.INTEGER,
       allowNull: false,
+      field: "duration_minutes",
+      validate: {
+        min: 15,
+        max: 180,
+      },
     },
     price: {
       type: DataTypes.DECIMAL(10, 0),
       allowNull: false,
+      validate: {
+        min: 0,
+      },
     },
     category: {
       type: DataTypes.ENUM("آرامش‌بخش", "انرژی‌بخش", "درمانی", "ویژه"),
@@ -51,5 +60,24 @@ const Service = sequelize.define(
     updatedAt: "updated_at",
   }
 );
+
+// متد کمکی برای نمایش مدت زمان
+Service.prototype.getDurationDisplay = function () {
+  const hours = Math.floor(this.duration_minutes / 60);
+  const minutes = this.duration_minutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours} ساعت و ${minutes} دقیقه`;
+  } else if (hours > 0) {
+    return `${hours} ساعت`;
+  } else {
+    return `${minutes} دقیقه`;
+  }
+};
+
+// متد کمکی برای نمایش قیمت
+Service.prototype.getPriceDisplay = function () {
+  return new Intl.NumberFormat("fa-IR").format(this.price) + " تومان";
+};
 
 module.exports = Service;

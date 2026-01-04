@@ -40,8 +40,28 @@ const Review = sequelize.define(
     },
     is_approved: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false, // تغییر به false - باید ادمین تایید کنه
       field: "is_approved",
+    },
+    service_id: {
+      // اضافه شد: مربوط به کدام سرویس
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "services",
+        key: "id",
+      },
+      field: "service_id",
+    },
+    appointment_id: {
+      // اضافه شد: مربوط به کدام نوبت
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "appointments",
+        key: "id",
+      },
+      field: "appointment_id",
     },
   },
   {
@@ -53,7 +73,18 @@ const Review = sequelize.define(
 );
 
 Review.associate = (models) => {
-  Review.belongsTo(models.User, { foreignKey: "user_id", as: "user" });
+  Review.belongsTo(models.User, {
+    foreignKey: "user_id",
+    as: "user",
+  });
+  Review.belongsTo(models.Service, {
+    foreignKey: "service_id",
+    as: "service",
+  });
+  Review.belongsTo(models.Appointment, {
+    foreignKey: "appointment_id",
+    as: "appointment",
+  });
 };
 
 module.exports = Review;

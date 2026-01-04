@@ -16,47 +16,67 @@ const seedDatabase = async () => {
     await sequelize.sync({ force: true });
     console.log("✅ Tables created successfully");
 
-    // ایجاد خدمات (همون داده‌های فرانت)
+    // ایجاد خدمات (اصلاح شده)
     const services = await Service.bulkCreate([
       {
         name: "ماساژ سوئدی",
         description: "ماساژ کلاسیک برای ریلکس شدن عضلات",
-        duration: "60 دقیقه",
+        duration_minutes: 60,
         price: 1800000,
         category: "آرامش‌بخش",
         icon: "FiUser",
+        image_url: "",
+        is_active: true,
       },
       {
         name: "ماساژ تایلندی",
         description: "کشش یوگا و تکنیک‌های انرژی‌بخش",
-        duration: "90 دقیقه",
+        duration_minutes: 90,
         price: 2200000,
         category: "انرژی‌بخش",
         icon: "FiActivity",
+        image_url: "",
+        is_active: true,
       },
       {
         name: "ماساژ ورزشی",
         description: "مخصوص ورزشکاران حرفه‌ای",
-        duration: "75 دقیقه",
+        duration_minutes: 75,
         price: 2000000,
         category: "درمانی",
         icon: "FiActivity",
+        image_url: "",
+        is_active: true,
       },
       {
         name: "ماساژ آرام‌سازی",
         description: "ریلکسیشن عمیق با روغن‌های ارگانیک",
-        duration: "60 دقیقه",
+        duration_minutes: 60,
         price: 1900000,
         category: "آرامش‌بخش",
         icon: "FiUser",
+        image_url: "",
+        is_active: true,
       },
       {
         name: "ماساژ درمانی",
         description: "درمان دردهای عضلانی و گرفتگی‌ها",
-        duration: "90 دقیقه",
+        duration_minutes: 90,
         price: 2400000,
         category: "درمانی",
         icon: "FiStar",
+        image_url: "",
+        is_active: true,
+      },
+      {
+        name: "ماساژ VIP",
+        description: "لوکس‌ترین پکیج همراه با رایحه‌درمانی",
+        duration_minutes: 120,
+        price: 3000000,
+        category: "ویژه",
+        icon: "FiShield",
+        image_url: "",
+        is_active: true,
       },
     ]);
     console.log(`✅ ${services.length} services created`);
@@ -69,12 +89,16 @@ const seedDatabase = async () => {
       password: "123456",
       birth_date: "1990-01-01",
       gender: "male",
-      role: "admin",
-      medical_info: JSON.stringify({
+      job: "مدیر",
+      medical_info: {
         allergies: "ندارد",
         conditions: [],
         notes: "",
-      }),
+      },
+      role: "admin",
+      membership_level: "premium",
+      points: 100,
+      is_verified: true,
     });
 
     // ایجاد کاربر تست
@@ -85,48 +109,87 @@ const seedDatabase = async () => {
       password: "123456",
       birth_date: "1995-05-15",
       gender: "male",
-      medical_info: JSON.stringify({
+      job: "مهندس نرم‌افزار",
+      medical_info: {
         allergies: "گل محمدی",
-        conditions: ["میگرن"],
+        conditions: ["میگرن", "آرتروز"],
         notes: "ترجیح می‌دهم ماساژ ملایم باشد",
-      }),
+      },
+      role: "user",
+      membership_level: "regular",
+      points: 50,
+      is_verified: true,
     });
     console.log("✅ 2 users created (admin@spa.com / test@spa.com)");
 
     // ایجاد نوبت تست
-    await Appointment.create({
-      user_id: testUser.id,
-      service_id: services[0].id,
-      appointment_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 روز بعد
-      appointment_time: "15:00",
-      status: "confirmed",
-      notes: "اولین نوبت تست",
-    });
-    console.log("✅ Test appointment created");
+    const appointments = await Appointment.bulkCreate([
+      {
+        user_id: testUser.id,
+        service_id: services[0].id,
+        appointment_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 روز بعد
+        appointment_time: "15:00",
+        status: "confirmed",
+        notes: "اولین نوبت تست",
+      },
+      {
+        user_id: testUser.id,
+        service_id: services[1].id,
+        appointment_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 روز قبل
+        appointment_time: "10:00",
+        status: "completed",
+        notes: "نوبت انجام شده",
+        rating: 5,
+        user_review: "تجربه بسیار خوبی بود، حتماً تکرار می‌کنم",
+      },
+      {
+        user_id: testUser.id,
+        service_id: services[2].id,
+        appointment_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 روز قبل
+        appointment_time: "14:00",
+        status: "completed",
+        notes: "نوبت قدیمی",
+        rating: 4,
+        user_review: "قیمت مناسب، خدمات خوب",
+      },
+    ]);
+    console.log(`✅ ${appointments.length} appointments created`);
 
-    // ایجاد نظرات
+    // ایجاد نظرات برای نمایش در Landing
     await Review.bulkCreate([
       {
         user_id: testUser.id,
-        name: "کاربر تست",
-        text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم.",
-        avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+        name: "علی احمدی",
+        text: "تجربه عالی! من بعد از ماساژ تایلندی احساس خیلی بهتری داشتم. قطعا دوباره مراجعه می‌کنم.",
         rating: 5,
+        is_approved: true,
+        service_id: services[1].id,
+        appointment_id: appointments[1].id,
       },
       {
         user_id: admin.id,
-        name: "ادمین اسپا",
-        text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام.",
-        avatar: "https://randomuser.me/api/portraits/men/2.jpg",
+        name: "حسین رحمانی",
+        text: "عالی بود! خدمات بسیار حرفه‌ای و محیطی آرام. ماساژ آرام‌سازی واقعا تاثیرگذار بود.",
         rating: 5,
+        is_approved: true,
+        service_id: services[3].id,
+      },
+      {
+        user_id: testUser.id,
+        name: "رضا رحیمی",
+        text: "تجربه فوق‌العاده‌ای بود. احساس آرامش و ریلکسیشن بعد از ماساژ سوئدی خیلی ماندگار بود.",
+        rating: 4,
+        is_approved: true,
+        service_id: services[0].id,
       },
     ]);
-    console.log("✅ 2 reviews created");
+    console.log("✅ 3 reviews created for landing page");
 
     console.log("\n🎉 Database seeding completed successfully!");
     console.log("👤 Login with:");
-    console.log("   Email: admin@spa.com / Password: 123456");
-    console.log("   Email: test@spa.com  / Password: 123456");
+    console.log("   Phone: 09123456789 / Password: 123456 (Admin)");
+    console.log("   Phone: 09129876543 / Password: 123456 (Test User)");
+    console.log("\n📱 Use these phone numbers in frontend login");
 
     process.exit(0);
   } catch (error) {
