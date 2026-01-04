@@ -1,15 +1,10 @@
 .loginPage {
   min-height: 100vh;
-  background: 
-    /* main color */ linear-gradient(
-      135deg,
-      #0c1a15 0%,
-      #1a1f2e 100%
-    ),
-    /* picture transparent */ url("../../assets/images/back1.jpg");
+  background: linear-gradient(135deg, #0c1a15 0%, #1a1f2e 100%),
+    url("../../assets/images/back1.jpg");
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* این باعث میشه بک‌گراند موقع اسکرول حرکت نکنه */
+  background-attachment: fixed;
   background-blend-mode: overlay;
   color: white;
   position: relative;
@@ -261,7 +256,6 @@
 }
 
 .visualPattern {
-  /* position: absolute; */
   width: 550px;
   height: 100%;
   background-image: radial-gradient(

@@ -16,7 +16,7 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiInfo,
-  FiChevronRight,
+  FiChevronLeft,
   FiEdit,
   FiSave,
   FiActivity,
@@ -768,37 +768,6 @@ const Dashboard = () => {
                   </span>
                 </h3>
               </div>
-              {/* {showMedicalInfo && (
-                <div className={styles.medicalInfo}>
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>آلرژی‌ها:</span>
-                    <span className={styles.medicalValue}>
-                      {formData.medical_info?.allergies || "ندارد"}
-                    </span>
-                  </div>
-
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>شرایط خاص:</span>
-                    <div className={styles.conditionsList}>
-                      {formData.medical_info.conditions.map(
-                        (condition, index) => (
-                          <span key={index} className={styles.conditionTag}>
-                            {condition}
-                          </span>
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>یادداشت:</span>
-                    <p className={styles.medicalNote}>
-                      {formData.medical_info.notes || "یادداشتی ثبت نشده است."}
-                    </p>
-                  </div>
-                </div>
-              )} */}
-
               {showMedicalInfo && formData.medical_info && (
                 <div className={styles.medicalInfo}>
                   <div className={styles.medicalItem}>
@@ -982,7 +951,9 @@ const Dashboard = () => {
             <div className={styles.stepContent}>
               <h2 className={styles.stepTitle}>نوع ماساژ را انتخاب کنید.</h2>
               <p className={styles.stepDescription}>
-                بر اساس نیاز خود، یکی از انواع ماساژ را انتخاب نمایید. جهت مشاوره برای انتخاب مناسب می توانید در واتس اپ به ماساژتراپیست پیام دهید.
+                بر اساس نیاز خود، یکی از انواع ماساژ را انتخاب نمایید. جهت
+                مشاوره برای انتخاب مناسب می توانید در واتس اپ به ماساژتراپیست
+                پیام دهید.
               </p>
 
               <div className={styles.massageGrid}>
@@ -1032,7 +1003,7 @@ const Dashboard = () => {
                   className={styles.nextButton}
                 >
                   ادامه
-                  <FiChevronRight className={styles.buttonIcon} />
+                  <FiChevronLeft className={styles.buttonIcon} />
                 </button>
               </div>
             </div>
@@ -1146,7 +1117,7 @@ const Dashboard = () => {
                   className={styles.nextButton}
                 >
                   ادامه
-                  <FiChevronRight className={styles.buttonIcon} />
+                  <FiChevronLeft className={styles.buttonIcon} />
                 </button>
               </div>
             </div>

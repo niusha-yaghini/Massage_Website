@@ -1,13 +1,10 @@
 .signupPage {
   min-height: 100vh;
- 
-  background: 
-  linear-gradient(135deg, #1a1f2e 0%, #0c1a15 100%),
-  url("../../assets/images/back1.jpg");
- 
+  background: linear-gradient(135deg, #1a1f2e 0%, #0c1a15 100%),
+    url("../../assets/images/back1.jpg");
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* این باعث میشه بک‌گراند موقع اسکرول حرکت نکنه */
+  background-attachment: fixed;
   background-blend-mode: overlay;
   color: white;
   position: relative;

@@ -10,7 +10,6 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiLock,
-  FiShield,
   FiHome,
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
@@ -185,7 +184,6 @@ const ForgotPassword = () => {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  // بعد از stateها و قبل از formikStep1
   // Handle countdown timer
   useEffect(() => {
     let timer;
@@ -203,7 +201,7 @@ const ForgotPassword = () => {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [countdown, clearMessages]); // clearMessages رو اضافه کن
+  }, [countdown, clearMessages]);
 
   return (
     <div className={styles.forgotPasswordPage}>
@@ -229,8 +227,8 @@ const ForgotPassword = () => {
           </div>
 
           <div className={styles.logo}>
-            <span className={styles.logospa}>اسپا اکسیر</span>
-            <img src={Logo} alt="اسپا اکسیر" className={styles.logoImage} />
+            <span className={styles.logospa}>فرشاد ماساژ</span>
+            <img src={Logo} alt="فرشاد ماساژ" className={styles.logoImage} />
             <div className={styles.logoPulse}></div>
           </div>
         </div>

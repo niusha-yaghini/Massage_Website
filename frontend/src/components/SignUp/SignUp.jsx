@@ -24,7 +24,6 @@ import {
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
 
-// بعد از importها
 const phoneRegex = /^09[0-9]{9}$/;
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
 
@@ -196,32 +195,6 @@ const Signup = () => {
         setLoading(false);
       }
     },
-    // onSubmit: async (values) => {
-    //   setLoading(true);
-    //   setError("");
-
-    //   try {
-    //     // Log data
-    //     console.log("Signup data:", values);
-
-    //     // TODO: Replace with actual API call
-    //     // const response = await userService.register(values);
-
-    //     // Simulate API call
-    //     setTimeout(() => {
-    //       setSuccess("ثبت‌نام با موفقیت انجام شد! در حال انتقال به داشبورد...");
-    //       setLoading(false);
-
-    //       // Auto login and redirect to dashboard
-    //       setTimeout(() => {
-    //         navigate("/dashboard");
-    //       }, 2000);
-    //     }, 1500);
-    //   } catch (err) {
-    //     setError(err.message || "خطا در ثبت‌نام");
-    //     setLoading(false);
-    //   }
-    // },
   });
 
   // Handle countdown timer
@@ -245,7 +218,7 @@ const Signup = () => {
 
     setVerificationSent(true);
     setCountdown(120); // 2 minutes
-    clearMessages(); // اضافه کن
+    clearMessages();
     setError("");
     setSuccess("کد تأیید به شماره شما ارسال شد.");
   };
@@ -287,7 +260,6 @@ const Signup = () => {
     // TODO: Implement actual verification
     console.log("Verifying code:", code);
 
-    // پیام‌های قبلی رو پاک کن
     clearMessages();
 
     // Simulate verification
@@ -296,7 +268,7 @@ const Signup = () => {
         // Test code
         setSuccess("شماره موبایل با موفقیت تأیید شد.");
         setTimeout(() => {
-          clearMessages(); // دوباره پاک کن برای اطمینان
+          clearMessages();
           setCurrentStep(3);
           setCodeInputs(["", "", "", ""]);
         }, 1500);
@@ -319,13 +291,14 @@ const Signup = () => {
     if (currentStep === 1) {
       // Validate step 1
       const errors = {};
-      if (!formik.values.fullName.trim()) errors.fullName = "نام الزامی است";
-      if (!formik.values.phone.trim()) errors.phone = "شماره موبایل الزامی است";
-      if (!formik.values.password) errors.password = "رمز عبور الزامی است";
+      if (!formik.values.fullName.trim()) errors.fullName = "نام الزامی است.";
+      if (!formik.values.phone.trim())
+        errors.phone = "شماره موبایل الزامی است.";
+      if (!formik.values.password) errors.password = "رمز عبور الزامی است.";
       if (!formik.values.confirmPassword)
-        errors.confirmPassword = "تأیید رمز عبور الزامی است";
+        errors.confirmPassword = "تأیید رمز عبور الزامی است.";
       if (formik.values.password !== formik.values.confirmPassword) {
-        errors.confirmPassword = "رمز عبور و تأیید آن یکسان نیستند";
+        errors.confirmPassword = "رمز عبور و تأیید آن یکسان نیستند.";
       }
 
       if (Object.keys(errors).length > 0) {
@@ -342,7 +315,7 @@ const Signup = () => {
     } else if (currentStep === 2) {
       // Check if verification is done
       if (codeInputs.some((digit) => digit === "")) {
-        setError("لطفا کد تأیید را کامل وارد کنید");
+        setError("لطفا کد تأیید را کامل وارد کنید.");
         return;
       }
       // Verification will be handled by auto-submit
@@ -351,7 +324,7 @@ const Signup = () => {
 
   const goToPrevStep = () => {
     if (currentStep > 1) {
-      clearMessages(); // اضافه کن
+      clearMessages();
       setCurrentStep(currentStep - 1);
       setError("");
       setSuccess("");
@@ -831,8 +804,8 @@ const Signup = () => {
           </div>
 
           <div className={styles.logo}>
-            <span className={styles.logospa}>اسپا اکسیر</span>
-            <img src={Logo} alt="اسپا اکسیر" className={styles.logoImage} />
+            <span className={styles.logospa}>فرشاد ماساژ</span>
+            <img src={Logo} alt="فرشاد ماساژ" className={styles.logoImage} />
             <div className={styles.logoPulse}></div>
           </div>
         </div>
@@ -884,10 +857,6 @@ const Signup = () => {
               type="button"
               onClick={currentStep === 3 ? formik.handleSubmit : goToNextStep}
               className={`${styles.stepButton} ${styles.primary}`}
-              // disabled={
-              //   loading ||
-              //   (currentStep === 2 && codeInputs.some((digit) => digit === ""))
-              // }
               disabled={
                 loading ||
                 (currentStep === 1 &&
@@ -898,17 +867,6 @@ const Signup = () => {
                     formik.values.password !== formik.values.confirmPassword))
               }
             >
-              {/* {loading ? (
-                <>
-                  <span className={styles.spinner}></span>
-                  {currentStep === 3 ? "در حال ثبت‌نام..." : "در حال ارسال..."}
-                </>
-              ) : (
-                <>
-                  {currentStep === 3 ? "تکمیل ثبت‌نام" : "مرحله بعد"}
-                  {currentStep === 3 ? <FiCheckCircle /> : <FiArrowLeft />}
-                </>
-              )} */}
               {loading ? (
                 <>
                   <span className={styles.spinner}></span>

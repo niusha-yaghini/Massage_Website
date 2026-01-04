@@ -82,7 +82,6 @@ body {
 }
 
 .logo {
-  /* padding: 1.5rem 1.5rem 1.5rem; */
   padding-top: 1.5rem;
   padding-right: 1.5rem;
   display: flex;
@@ -437,7 +436,6 @@ body {
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid #e9ecef;
-  /* direction: rtl; */
 }
 
 .sectionTitle {
@@ -459,7 +457,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* gap: 104rem; */
 }
 
 @media (max-width: 768px) {
@@ -657,8 +654,6 @@ body {
 }
 
 .profileContent {
-  /* display: grid; */
-  /* grid-template-columns: 2fr 1fr; */
   gap: 2rem;
 }
 
@@ -1813,21 +1808,16 @@ body {
   gap: 1rem;
 }
 
-/* اصلاح استایل‌های قبلی برای دو ستونه */
 .upcomingCard .infoRow {
   display: flex;
-  /* justify-content: space-between; */
   align-items: center;
-  /* padding: 0.5rem 0; */
   border-bottom: none;
-  /* direction: rtl; */
 }
 
 .upcomingCard .infoLabel {
   color: #6c757d;
   font-size: 0.95rem;
   font-weight: 500;
-  /* min-width: 100px; */
 }
 
 .upcomingCard .infoValue {
