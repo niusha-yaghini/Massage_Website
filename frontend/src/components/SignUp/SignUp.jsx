@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import styles from "./Signup.module.css";
+import { userService } from "../../services/userService";
 import {
   FiUser,
   FiLock,
@@ -22,6 +23,10 @@ import {
   FiBriefcase,
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
+
+// بعد از importها
+const phoneRegex = /^09[0-9]{9}$/;
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
 
 const Signup = () => {
   // States
@@ -125,27 +130,98 @@ const Signup = () => {
       setError("");
 
       try {
-        // Log data
-        console.log("Signup data:", values);
+        console.log("Signup data being sent:", values);
 
-        // TODO: Replace with actual API call
-        // const response = await userService.register(values);
+        // آماده‌سازی داده برای ارسال به بک‌اند
+        const userData = {
+          full_name: values.fullName,
+          phone: values.phone,
+          password: values.password,
+          email: values.email || null,
+          birth_date: values.birthDate || null,
+          gender: values.gender || null,
+          job: values.job || null,
+          // medical_info اختیاری
+          // medical_info:
+          //   values.hasAllergy ||
+          //   values.medicalConditions.length > 0 ||
+          //   values.notes
+          //     ? {
+          //         conditions: values.medicalConditions || [],
+          //         allergies: values.hasAllergy
+          //           ? values.allergyDetails || "ندارد"
+          //           : "ندارد",
+          //         notes: values.notes || "",
+          //       }
+          //     : null,
+          medical_info:
+            values.hasAllergy ||
+            values.medicalConditions.length > 0 ||
+            values.notes
+              ? JSON.stringify({
+                  conditions: values.medicalConditions || [],
+                  allergies: values.hasAllergy
+                    ? values.allergyDetails || "ندارد"
+                    : "ندارد",
+                  notes: values.notes || "",
+                })
+              : null,
+        };
 
-        // Simulate API call
-        setTimeout(() => {
-          setSuccess("ثبت‌نام با موفقیت انجام شد! در حال انتقال به داشبورد...");
-          setLoading(false);
+        console.log("Sending to API:", userData);
 
-          // Auto login and redirect to dashboard
+        // ارسال به API واقعی - فقط این خط تغییر کرده
+        const response = await userService.register(userData);
+
+        console.log("Signup API response:", response);
+
+        if (response.success) {
+          setSuccess(
+            response.message || "ثبت‌نام با موفقیت انجام شد! در حال انتقال..."
+          );
+
+          // 3 ثانیه صبر کن بعد به داشبورد برو
           setTimeout(() => {
             navigate("/dashboard");
-          }, 2000);
-        }, 1500);
+          }, 3000);
+        } else {
+          setError(response.error || "خطا در ثبت‌نام");
+        }
       } catch (err) {
-        setError(err.message || "خطا در ثبت‌نام");
+        console.error("Signup error:", err);
+        setError(
+          err.message || "خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید."
+        );
+      } finally {
         setLoading(false);
       }
     },
+    // onSubmit: async (values) => {
+    //   setLoading(true);
+    //   setError("");
+
+    //   try {
+    //     // Log data
+    //     console.log("Signup data:", values);
+
+    //     // TODO: Replace with actual API call
+    //     // const response = await userService.register(values);
+
+    //     // Simulate API call
+    //     setTimeout(() => {
+    //       setSuccess("ثبت‌نام با موفقیت انجام شد! در حال انتقال به داشبورد...");
+    //       setLoading(false);
+
+    //       // Auto login and redirect to dashboard
+    //       setTimeout(() => {
+    //         navigate("/dashboard");
+    //       }, 2000);
+    //     }, 1500);
+    //   } catch (err) {
+    //     setError(err.message || "خطا در ثبت‌نام");
+    //     setLoading(false);
+    //   }
+    // },
   });
 
   // Handle countdown timer
@@ -746,7 +822,7 @@ const Signup = () => {
           <div className={styles.headerActions}>
             <Link to="/" className={styles.backHome}>
               <FiHome />
-              <span>بازگشت به سایت</span>
+              <span>بازگشت به صفحه اصلی</span>
             </Link>
             <Link to="/login" className={styles.loginLink}>
               <FiLogIn />
@@ -808,12 +884,21 @@ const Signup = () => {
               type="button"
               onClick={currentStep === 3 ? formik.handleSubmit : goToNextStep}
               className={`${styles.stepButton} ${styles.primary}`}
+              // disabled={
+              //   loading ||
+              //   (currentStep === 2 && codeInputs.some((digit) => digit === ""))
+              // }
               disabled={
                 loading ||
-                (currentStep === 2 && codeInputs.some((digit) => digit === ""))
+                (currentStep === 1 &&
+                  (!formik.values.fullName ||
+                    !formik.values.phone ||
+                    !formik.values.password ||
+                    !formik.values.confirmPassword ||
+                    formik.values.password !== formik.values.confirmPassword))
               }
             >
-              {loading ? (
+              {/* {loading ? (
                 <>
                   <span className={styles.spinner}></span>
                   {currentStep === 3 ? "در حال ثبت‌نام..." : "در حال ارسال..."}
@@ -821,6 +906,17 @@ const Signup = () => {
               ) : (
                 <>
                   {currentStep === 3 ? "تکمیل ثبت‌نام" : "مرحله بعد"}
+                  {currentStep === 3 ? <FiCheckCircle /> : <FiArrowLeft />}
+                </>
+              )} */}
+              {loading ? (
+                <>
+                  <span className={styles.spinner}></span>
+                  {currentStep === 3 ? "در حال ثبت‌نام..." : "در حال پردازش..."}
+                </>
+              ) : (
+                <>
+                  {currentStep === 3 ? "تکمیل ثبت‌نام" : "ادامه"}
                   {currentStep === 3 ? <FiCheckCircle /> : <FiArrowLeft />}
                 </>
               )}

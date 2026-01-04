@@ -9,10 +9,11 @@
     /* picture transparent */ url("../../assets/images/back1.jpg");
   background-size: cover;
   background-position: center;
+  background-attachment: fixed; /* این باعث میشه بک‌گراند موقع اسکرول حرکت نکنه */
   background-blend-mode: overlay;
   color: white;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* Background Animation */
@@ -236,8 +237,10 @@
 }
 
 .heroVisual {
-  padding-top: 2rem;
-  position: relative;
+  /* padding-top: 2rem; */
+  position: absolute;
+  top: 60%;
+  left: 11%;
   height: 200px;
 }
 
@@ -258,8 +261,8 @@
 }
 
 .visualPattern {
-  position: absolute;
-  width: 100%;
+  /* position: absolute; */
+  width: 550px;
   height: 100%;
   background-image: radial-gradient(
     circle at 2px 2px,

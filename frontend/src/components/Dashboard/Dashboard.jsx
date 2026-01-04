@@ -980,9 +980,9 @@ const Dashboard = () => {
           {/* Step 1: Select Massage Type */}
           {bookingStep === 1 && (
             <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>نوع ماساژ را انتخاب کنید</h2>
+              <h2 className={styles.stepTitle}>نوع ماساژ را انتخاب کنید.</h2>
               <p className={styles.stepDescription}>
-                بر اساس نیاز خود، یکی از انواع ماساژ را انتخاب نمایید
+                بر اساس نیاز خود، یکی از انواع ماساژ را انتخاب نمایید. جهت مشاوره برای انتخاب مناسب می توانید در واتس اپ به ماساژتراپیست پیام دهید.
               </p>
 
               <div className={styles.massageGrid}>
@@ -1041,9 +1041,9 @@ const Dashboard = () => {
           {/* Step 2: Select Date & Time */}
           {bookingStep === 2 && (
             <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>تاریخ و ساعت را انتخاب کنید</h2>
+              <h2 className={styles.stepTitle}>تاریخ و ساعت را انتخاب کنید.</h2>
               <p className={styles.stepDescription}>
-                زمان مناسب خود را برای دریافت ماساژ انتخاب نمایید
+                زمان مناسب خود را برای دریافت ماساژ انتخاب نمایید.
               </p>
 
               <div className={styles.datetimeSection}>
@@ -1125,7 +1125,7 @@ const Dashboard = () => {
                 <textarea
                   value={bookingData.notes}
                   onChange={(e) => handleBookingChange("notes", e.target.value)}
-                  placeholder="هرگونه نکته خاص یا درخواست ویژه برای ماساژتراپیست (اختیاری)..."
+                  placeholder="هرگونه نکته خاص یا درخواست ویژه برای ماساژتراپیست (اختیاری) ..."
                   className={styles.notesTextarea}
                   rows="3"
                 />
@@ -1157,7 +1157,7 @@ const Dashboard = () => {
             <div className={styles.stepContent}>
               <h2 className={styles.stepTitle}>تأیید نهایی</h2>
               <p className={styles.stepDescription}>
-                لطفا اطلاعات رزرو خود را بررسی و تأیید کنید
+                لطفا اطلاعات رزرو خود را بررسی و تأیید کنید.
               </p>
 
               <div className={styles.confirmationCard}>

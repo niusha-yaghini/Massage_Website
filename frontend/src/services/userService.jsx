@@ -99,13 +99,23 @@ export const userService = {
   // ثبت‌نام کاربر جدید
   async register(userData) {
     try {
+      console.log("Registering user with data:", userData);
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: getHeaders(false),
         body: JSON.stringify(userData),
       });
 
-      const data = await handleResponse(response);
+      // اگر response.ok نبود، خطا هندل کن
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || errorData.message || "خطا در ثبت‌نام"
+        );
+      }
+
+      // const data = await handleResponse(response);
+      const data = await response.json();
 
       if (data.token) {
         setToken(data.token);
@@ -120,8 +130,14 @@ export const userService = {
         message: data.message || "ثبت‌نام با موفقیت انجام شد",
       };
     } catch (error) {
-      handleNetworkError(error);
+      // handleNetworkError(error);
       console.error("خطا در ثبت‌نام:", error);
+      // اگر خطای شبکه بود
+      if (error.message.includes("Failed to fetch")) {
+        throw new Error(
+          "خطا در ارتباط با سرور. لطفاً اتصال اینترنت را بررسی کنید."
+        );
+      }
       throw error;
     }
   },
@@ -436,43 +452,6 @@ export const userService = {
   },
 
   // ==================== نظرات (Reviews) ====================
-  // دریافت همه نظرات
-  // async getAllReviews() {
-  //   try {
-  //     const response = await fetch(`${API_URL}/reviews`, {
-  //       headers: getHeaders(false),
-  //     });
-  //     const data = await handleResponse(response);
-
-  //     return data.reviews || data;
-  //   } catch (error) {
-  //     handleNetworkError(error);
-  //     console.error("خطا در دریافت نظرات:", error);
-  //     throw error;
-  //   }
-  // },
-
-  // async getAllReviews() {
-  //   try {
-  //     const response = await fetch(`${API_URL}/reviews`, {
-  //       headers: getHeaders(false),
-  //     });
-  //     const data = await handleResponse(response);
-
-  //     // تبدیل به فرمت Landing.jsx
-  //     return data.map((review) => ({
-  //       name: review.name,
-  //       text: review.text,
-  //       avatar: review.avatar,
-  //       // rating لازم نیست چون Landing ستاره hard-coded دارد
-  //     }));
-  //   } catch (error) {
-  //     handleNetworkError(error);
-  //     console.error("خطا در دریافت نظرات:", error);
-  //     throw error;
-  //   }
-  // },
-
   async getAllReviews() {
     try {
       console.log("Fetching reviews from:", `${API_URL}/reviews`);

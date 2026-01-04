@@ -565,7 +565,7 @@ const Landing = () => {
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>آماده خدمات‌رسانی هستیم</h2>
             <p className={styles.sectionSubtitle}>
-              برای رزرو نوبت یا مشاوره رایگان با ما در تماس باشید
+              برای رزرو نوبت یا مشاوره رایگان با ما در تماس باشید.
             </p>
           </div>
           <div className="row">
@@ -621,11 +621,11 @@ const Landing = () => {
                       />
                       <input
                         type="tel"
-                        placeholder="شماره تماس"
+                        placeholder="09123456789"
                         className={styles.formInput}
                       />
                       <textarea
-                        placeholder="پیام شما..."
+                        placeholder="پیام شما ..."
                         rows="4"
                         className={styles.formTextarea}
                       ></textarea>

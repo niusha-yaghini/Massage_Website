@@ -496,21 +496,21 @@ app.put("/api/appointments/:id/cancel", authMiddleware, async (req, res) => {
     if (!appointment) {
       return res.status(404).json({
         success: false,
-        error: "نوبت مورد نظر یافت نشد",
+        error: "نوبت مورد نظر یافت نشد.",
       });
     }
 
     if (appointment.status === "cancelled") {
       return res.status(400).json({
         success: false,
-        error: "این نوبت قبلاً لغو شده است",
+        error: "این نوبت قبلاً لغو شده است.",
       });
     }
 
     if (appointment.status === "completed") {
       return res.status(400).json({
         success: false,
-        error: "نوبت‌های انجام شده قابل لغو نیستند",
+        error: "نوبت‌های انجام شده قابل لغو نیستند.",
       });
     }
 
@@ -520,7 +520,7 @@ app.put("/api/appointments/:id/cancel", authMiddleware, async (req, res) => {
 
     res.json({
       success: true,
-      message: "نوبت با موفقیت لغو شد",
+      message: "نوبت با موفقیت لغو شد.",
       appointment: {
         id: appointment.id,
         status: appointment.status,
@@ -545,7 +545,7 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
     if (rating < 1 || rating > 5) {
       return res.status(400).json({
         success: false,
-        error: "امتیاز باید بین ۱ تا ۵ باشد",
+        error: "امتیاز باید بین ۱ تا ۵ باشد.",
       });
     }
 
@@ -560,7 +560,7 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
     if (!appointment) {
       return res.status(404).json({
         success: false,
-        error: "نوبت مورد نظر یافت نشد یا قابل امتیازدهی نیست",
+        error: "نوبت مورد نظر یافت نشد یا قابل امتیازدهی نیست.",
       });
     }
 
@@ -568,7 +568,7 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
     if (appointment.rating) {
       return res.status(400).json({
         success: false,
-        error: "شما قبلاً برای این نوبت امتیاز داده‌اید",
+        error: "شما قبلاً برای این نوبت امتیاز داده‌اید.",
       });
     }
 
@@ -582,7 +582,7 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
     await Review.create({
       user_id: req.userId,
       name: user.full_name,
-      text: review || "تجربه خوبی بود.",
+      text: review || "تجربه خوبی بود..",
       rating: rating,
       is_approved: false, // نیاز به تایید ادمین
       service_id: appointment.service_id,
@@ -591,7 +591,7 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
 
     res.json({
       success: true,
-      message: "امتیاز و نظر شما با موفقیت ثبت شد",
+      message: "امتیاز و نظر شما با موفقیت ثبت شد.",
       appointment: {
         id: appointment.id,
         rating: appointment.rating,
@@ -760,7 +760,7 @@ app.put("/api/user/profile", authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: "کاربر پیدا نشد",
+        error: "کاربر پیدا نشد.",
       });
     }
 
@@ -776,7 +776,7 @@ app.put("/api/user/profile", authMiddleware, async (req, res) => {
 
     res.json({
       success: true,
-      message: "پروفایل با موفقیت به‌روزرسانی شد",
+      message: "پروفایل با موفقیت به‌روزرسانی شد.",
       user: {
         id: user.id,
         full_name: user.full_name,

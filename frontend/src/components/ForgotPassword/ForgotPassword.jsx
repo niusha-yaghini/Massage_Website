@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -16,12 +16,57 @@ import {
 import Logo from "../../assets/images/Logo_white.png";
 
 const ForgotPassword = () => {
+  // States
   const [step, setStep] = useState(1); // 1: شماره تلفن، 2: کد تایید، 3: رمز جدید
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [countdown, setCountdown] = useState(0);
+
+  // این stateها رو اضافه کن:
+  const [codeInputs, setCodeInputs] = useState(["", "", "", ""]);
+  const inputRefs = useRef([]);
+
   const navigate = useNavigate();
+
+  // این تابع رو اضافه کن:
+  const handleCodeChange = (index, value) => {
+    if (!/^\d?$/.test(value)) return;
+
+    const newCodeInputs = [...codeInputs];
+    newCodeInputs[index] = value;
+    setCodeInputs(newCodeInputs);
+
+    // Auto focus next input
+    if (value && index < 3) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // Check if all inputs are filled
+    if (newCodeInputs.every((digit) => digit !== "") && index === 3) {
+      // وقتی ۴ رقم کامل شد، فرم رو submit کن
+      const fullCode = newCodeInputs.join("");
+      formikStep2.setFieldValue("code", fullCode);
+
+      // کمی تاخیر بده بعد submit کن
+      setTimeout(() => {
+        formikStep2.handleSubmit();
+      }, 300);
+    }
+  };
+
+  // این تابع رو اضافه کن:
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !codeInputs[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  // این تابع رو اضافه کن:
+  const clearMessages = () => {
+    setError("");
+    setSuccess("");
+  };
 
   // فرم مرحله ۱: وارد کردن شماره تلفن
   const formikStep1 = useFormik({
@@ -30,33 +75,23 @@ const ForgotPassword = () => {
     },
     validationSchema: Yup.object({
       phone: Yup.string()
-        .matches(/^09[0-9]{9}$/, "شماره موبایل معتبر نیست")
-        .required("شماره موبایل الزامی است"),
+        .matches(/^09[0-9]{9}$/, "شماره موبایل معتبر نیست.")
+        .required("شماره موبایل الزامی است."),
     }),
     onSubmit: async (values) => {
       setLoading(true);
       setError("");
 
       try {
-        // شبیه‌سازی ارسال کد (بعداً با API جایگزین می‌شه)
         console.log("ارسال کد تایید به:", values.phone);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        setSuccess(`کد تایید به شماره ${values.phone} ارسال شد`);
+        setSuccess(`کد تایید به شماره ${values.phone} ارسال شد.`);
         setStep(2);
 
         // تایمر ۲ دقیقه‌ای برای ارسال مجدد
         setCountdown(120);
-        const timer = setInterval(() => {
-          setCountdown((prev) => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
       } catch (err) {
         setError("خطا در ارسال کد تایید. لطفاً مجدداً تلاش کنید.");
       } finally {
@@ -72,25 +107,26 @@ const ForgotPassword = () => {
     },
     validationSchema: Yup.object({
       code: Yup.string()
-        .matches(/^[0-9]{6}$/, "کد تایید باید ۶ رقمی باشد")
-        .required("کد تایید الزامی است"),
+        .matches(/^[0-9]{4}$/, "کد تایید باید ۴ رقمی باشد") // 6 به 4 تغییر کرد
+        .required("کد تایید الزامی است."),
     }),
     onSubmit: async (values) => {
       setLoading(true);
       setError("");
 
       try {
-        // شبیه‌سازی تأیید کد
         console.log("تأیید کد:", values.code);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        if (values.code === "123456") {
-          // کد تست
-          setSuccess("کد تایید صحیح است");
+        if (values.code === "1234") {
+          setSuccess("کد تایید صحیح است.");
           setStep(3);
+          setCodeInputs(["", "", "", ""]);
         } else {
-          setError("کد تایید نامعتبر است");
+          setError("کد تایید نامعتبر است.");
+          setCodeInputs(["", "", "", ""]);
+          inputRefs.current[0]?.focus();
         }
       } catch (err) {
         setError("خطا در تأیید کد");
@@ -108,17 +144,16 @@ const ForgotPassword = () => {
     },
     validationSchema: Yup.object({
       newPassword: Yup.string()
-        .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
-        .matches(/[a-z]/, "رمز عبور باید شامل حروف کوچک باشد")
-        .matches(/[A-Z]/, "رمز عبور باید شامل حروف بزرگ باشد")
-        .matches(/[0-9]/, "رمز عبور باید شامل عدد باشد")
-        .required("رمز عبور جدید الزامی است"),
+        .min(6, "رمز عبور باید حداقل ۶ کاراکتر باشد.")
+        .matches(/[a-zA-Z]/, "رمز عبور باید شامل حروف باشد.")
+        .matches(/[0-9]/, "رمز عبور باید شامل عدد باشد.")
+        .required("رمز عبور جدید الزامی است."),
       confirmPassword: Yup.string()
         .oneOf(
           [Yup.ref("newPassword"), null],
-          "رمز عبور و تأیید آن یکسان نیستند"
+          "رمز عبور و تأیید آن یکسان نیستند."
         )
-        .required("تأیید رمز عبور الزامی است"),
+        .required("تأیید رمز عبور الزامی است."),
     }),
     onSubmit: async (values) => {
       setLoading(true);
@@ -130,7 +165,7 @@ const ForgotPassword = () => {
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        setSuccess("رمز عبور با موفقیت تغییر یافت");
+        setSuccess("رمز عبور با موفقیت تغییر یافت.");
 
         // هدایت به صفحه لاگین بعد از ۲ ثانیه
         setTimeout(() => {
@@ -149,6 +184,26 @@ const ForgotPassword = () => {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
+
+  // بعد از stateها و قبل از formikStep1
+  // Handle countdown timer
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [countdown, clearMessages]); // clearMessages رو اضافه کن
 
   return (
     <div className={styles.forgotPasswordPage}>
@@ -291,38 +346,21 @@ const ForgotPassword = () => {
               className={styles.forgotForm}
             >
               <div className={styles.formGroup}>
-                <label htmlFor="code" className={styles.formLabel}>
-                  کد ۶ رقمی
-                </label>
-                <div className={styles.codeInputContainer}>
-                  <input
-                    id="code"
-                    name="code"
-                    type="text"
-                    maxLength="6"
-                    className={`${styles.codeInput} ${
-                      formikStep2.touched.code && formikStep2.errors.code
-                        ? styles.inputError
-                        : ""
-                    }`}
-                    placeholder="------"
-                    onChange={formikStep2.handleChange}
-                    onBlur={formikStep2.handleBlur}
-                    value={formikStep2.values.code}
-                    dir="ltr"
-                  />
-                  <div className={styles.codeDashes}>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={`${styles.codeDash} ${
-                          formikStep2.values.code.length > i
-                            ? styles.codeDashFilled
-                            : ""
-                        }`}
-                      ></div>
-                    ))}
-                  </div>
+                <div className={styles.codeInputsContainer}>
+                  {codeInputs.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (inputRefs.current[index] = el)}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength="1"
+                      value={digit}
+                      onChange={(e) => handleCodeChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      className={styles.codeInput}
+                      autoFocus={index === 0}
+                    />
+                  ))}
                 </div>
                 {formikStep2.touched.code && formikStep2.errors.code && (
                   <div className={styles.errorMessage}>
@@ -343,7 +381,11 @@ const ForgotPassword = () => {
                     className={styles.resendButton}
                     onClick={() => {
                       setCountdown(120);
-                      setSuccess("کد تایید مجدداً ارسال شد");
+                      setSuccess("کد تایید مجدداً ارسال شد.");
+                      setCodeInputs(["", "", "", ""]);
+                      if (inputRefs.current[0]) {
+                        inputRefs.current[0].focus();
+                      }
                     }}
                   >
                     ارسال مجدد کد تایید
@@ -355,7 +397,10 @@ const ForgotPassword = () => {
                 <button
                   type="button"
                   className={styles.backButton}
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    setStep(1);
+                    clearMessages();
+                  }}
                 >
                   <FiArrowRight className={styles.buttonIcon} />
                   بازگشت
@@ -363,7 +408,7 @@ const ForgotPassword = () => {
                 <button
                   type="submit"
                   className={styles.submitButton}
-                  disabled={loading || !formikStep2.isValid}
+                  disabled={loading || codeInputs.some((digit) => digit === "")}
                 >
                   {loading ? (
                     <>

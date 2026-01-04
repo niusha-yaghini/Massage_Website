@@ -258,12 +258,12 @@ const Login = () => {
             </button>
 
             {/* Divider */}
-            <div className={styles.divider}>
+            {/* <div className={styles.divider}>
               <span>یا</span>
-            </div>
+            </div> */}
 
             {/* Social Login */}
-            <div className={styles.socialLogin}>
+            {/* <div className={styles.socialLogin}>
               <button type="button" className={styles.socialButton}>
                 <svg className={styles.googleIcon} viewBox="0 0 24 24">
                   <path
@@ -285,7 +285,7 @@ const Login = () => {
                 </svg>
                 ادامه با گوگل
               </button>
-            </div>
+            </div> */}
           </form>
         </div>
       </main>
