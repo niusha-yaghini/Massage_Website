@@ -49,25 +49,68 @@ const User = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    // medical_info: {
+    //   type: DataTypes.TEXT,
+    //   defaultValue: "{}",
+    //   get() {
+    //     const rawValue = this.getDataValue("medical_info");
+    //     return rawValue ? JSON.parse(rawValue) : {};
+    //   },
+    //   set(value) {
+    //     this.setDataValue("medical_info", JSON.stringify(value));
+    //   },
+    //   field: "medical_info",
+    // },
+
     medical_info: {
       type: DataTypes.TEXT,
       defaultValue: "{}",
       get() {
         const rawValue = this.getDataValue("medical_info");
-        return rawValue ? JSON.parse(rawValue) : {};
+        if (!rawValue || rawValue === "{}") return {};
+
+        try {
+          // اگر مقدار string هست، parse کن
+          if (typeof rawValue === "string") {
+            return JSON.parse(rawValue);
+          }
+          // اگر object هست، مستقیم برگردون
+          return rawValue;
+        } catch (error) {
+          console.error("Error parsing medical_info:", error);
+          return {};
+        }
       },
       set(value) {
-        this.setDataValue("medical_info", JSON.stringify(value));
+        try {
+          // اگر مقدار null یا undefined هست، "{}" بذار
+          if (!value) {
+            this.setDataValue("medical_info", "{}");
+          }
+          // اگر مقدار string هست و از قبل JSON هست، مستقیم بذار
+          else if (typeof value === "string") {
+            // چک کن valid JSON هست
+            JSON.parse(value); // فقط برای validation
+            this.setDataValue("medical_info", value);
+          }
+          // اگر object هست، stringify کن
+          else {
+            this.setDataValue("medical_info", JSON.stringify(value));
+          }
+        } catch (error) {
+          console.error("Error setting medical_info:", error);
+          this.setDataValue("medical_info", "{}");
+        }
       },
       field: "medical_info",
     },
+
     membership_date: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
       field: "membership_date",
     },
     membership_level: {
-      // اضافه شد
       type: DataTypes.ENUM("regular", "premium", "vip"),
       defaultValue: "regular",
       field: "membership_level",

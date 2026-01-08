@@ -140,32 +140,56 @@ const Signup = () => {
           birth_date: values.birthDate || null,
           gender: values.gender || null,
           job: values.job || null,
-          // medical_info اختیاری
-          // medical_info:
-          //   values.hasAllergy ||
-          //   values.medicalConditions.length > 0 ||
-          //   values.notes
-          //     ? {
-          //         conditions: values.medicalConditions || [],
-          //         allergies: values.hasAllergy
-          //           ? values.allergyDetails || "ندارد"
-          //           : "ندارد",
-          //         notes: values.notes || "",
-          //       }
-          //     : null,
+          // medical_info رو به صورت object ساده بفرست (نه JSON.stringify)
           medical_info:
             values.hasAllergy ||
             values.medicalConditions.length > 0 ||
             values.notes
-              ? JSON.stringify({
+              ? {
                   conditions: values.medicalConditions || [],
                   allergies: values.hasAllergy
                     ? values.allergyDetails || "ندارد"
                     : "ندارد",
                   notes: values.notes || "",
-                })
+                }
               : null,
         };
+
+        // آماده‌سازی داده برای ارسال به بک‌اند
+        // const userData = {
+        //   full_name: values.fullName,
+        //   phone: values.phone,
+        //   password: values.password,
+        //   email: values.email || null,
+        //   birth_date: values.birthDate || null,
+        //   gender: values.gender || null,
+        //   job: values.job || null,
+        //   // medical_info اختیاری
+        //   // medical_info:
+        //   //   values.hasAllergy ||
+        //   //   values.medicalConditions.length > 0 ||
+        //   //   values.notes
+        //   //     ? {
+        //   //         conditions: values.medicalConditions || [],
+        //   //         allergies: values.hasAllergy
+        //   //           ? values.allergyDetails || "ندارد"
+        //   //           : "ندارد",
+        //   //         notes: values.notes || "",
+        //   //       }
+        //   //     : null,
+        //   medical_info:
+        //     values.hasAllergy ||
+        //     values.medicalConditions.length > 0 ||
+        //     values.notes
+        //       ? JSON.stringify({
+        //           conditions: values.medicalConditions || [],
+        //           allergies: values.hasAllergy
+        //             ? values.allergyDetails || "ندارد"
+        //             : "ندارد",
+        //           notes: values.notes || "",
+        //         })
+        //       : null,
+        // };
 
         console.log("Sending to API:", userData);
 

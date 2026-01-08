@@ -95,49 +95,100 @@ const fetchWithAuth = async (url, options = {}) => {
 
 // ==================== سرویس اصلی ====================
 export const userService = {
-  // ==================== احراز هویت ====================
-  // ثبت‌نام کاربر جدید
+  // async register(userData) {
+  //   try {
+  //     console.log("Registering user with data:", userData);
+  //     const response = await fetch(`${API_URL}/auth/register`, {
+  //       method: "POST",
+  //       headers: getHeaders(false),
+  //       body: JSON.stringify(userData),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(
+  //         errorData.error || errorData.message || "خطا در ثبت‌نام"
+  //       );
+  //     }
+
+  //     const data = await response.json();
+
+  //     if (data.token) {
+  //       setToken(data.token);
+  //     }
+  //     if (data.refresh_token) {
+  //       setRefreshToken(data.refresh_token);
+  //     }
+
+  //     return {
+  //       success: true,
+  //       user: data.user,
+  //       message: data.message || "ثبت‌نام با موفقیت انجام شد",
+  //     };
+  //   } catch (error) {
+  //     console.error("خطا در ثبت‌نام:", error);
+  //     if (error.message.includes("Failed to fetch")) {
+  //       throw new Error(
+  //         "خطا در ارتباط با سرور. لطفاً اتصال اینترنت را بررسی کنید."
+  //       );
+  //     }
+  //     throw error;
+  //   }
+  // },
+
   async register(userData) {
     try {
       console.log("Registering user with data:", userData);
+      console.log("Sending to:", `${API_URL}/auth/register`);
+
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: getHeaders(false),
         body: JSON.stringify(userData),
       });
 
-      // اگر response.ok نبود، خطا هندل کن
+      console.log("Response status:", response.status, response.statusText);
+
+      // اول چک کن response داره یا نه
+      const contentType = response.headers.get("content-type");
+      let errorData;
+
       if (!response.ok) {
-        const errorData = await response.json();
+        if (contentType && contentType.includes("application/json")) {
+          errorData = await response.json();
+        } else {
+          errorData = { error: (await response.text()) || "خطای سرور" };
+        }
+
         throw new Error(
-          errorData.error || errorData.message || "خطا در ثبت‌نام"
+          errorData.error ||
+            errorData.message ||
+            `خطا در ثبت‌نام (${response.status})`
         );
       }
 
-      // const data = await handleResponse(response);
+      // اگر response.ok بود
       const data = await response.json();
-
+      console.log("Registration successful:", data);
       if (data.token) {
         setToken(data.token);
       }
       if (data.refresh_token) {
         setRefreshToken(data.refresh_token);
       }
-
       return {
         success: true,
         user: data.user,
         message: data.message || "ثبت‌نام با موفقیت انجام شد",
       };
     } catch (error) {
-      // handleNetworkError(error);
       console.error("خطا در ثبت‌نام:", error);
-      // اگر خطای شبکه بود
       if (error.message.includes("Failed to fetch")) {
         throw new Error(
           "خطا در ارتباط با سرور. لطفاً اتصال اینترنت را بررسی کنید."
         );
       }
+
       throw error;
     }
   },
@@ -548,5 +599,4 @@ export const userService = {
   },
 };
 
-// یک instance از سرویس export می‌کنیم
 export default userService;

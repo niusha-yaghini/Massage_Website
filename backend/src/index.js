@@ -187,7 +187,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// احراز هویت - ثبت‌نام (موقت)
+// احراز هویت - ثبت‌نام (اصلاح شده)
 app.post("/api/auth/register", async (req, res) => {
   try {
     const {
@@ -199,6 +199,8 @@ app.post("/api/auth/register", async (req, res) => {
       gender,
       medical_info,
     } = req.body;
+
+    console.log("Register request received:", req.body); // برای دیباگ
 
     // بررسی وجود کاربر با شماره تلفن
     const existingUser = await User.findOne({
@@ -225,6 +227,26 @@ app.post("/api/auth/register", async (req, res) => {
       }
     }
 
+    // پردازش medical_info
+    let processedMedicalInfo = null;
+    if (medical_info) {
+      try {
+        // اگر medical_info string هست (JSON.stringify شده)، parse کن
+        if (typeof medical_info === "string") {
+          processedMedicalInfo = JSON.parse(medical_info);
+        } else {
+          processedMedicalInfo = medical_info;
+        }
+      } catch (parseError) {
+        console.error("Error parsing medical_info:", parseError);
+        processedMedicalInfo = {
+          conditions: [],
+          allergies: "ندارد",
+          notes: "",
+        };
+      }
+    }
+
     // ایجاد کاربر جدید
     const user = await User.create({
       full_name,
@@ -233,12 +255,7 @@ app.post("/api/auth/register", async (req, res) => {
       password,
       birth_date: birth_date || null,
       gender: gender || null,
-      // medical_info: medical_info || {
-      //   allergies: "ندارد",
-      //   conditions: [],
-      //   notes: "",
-      // },
-      medical_info: medical_info || null,
+      medical_info: processedMedicalInfo, // استفاده از processed version
       membership_date: new Date(),
       membership_level: "regular",
       points: 0,
@@ -260,20 +277,110 @@ app.post("/api/auth/register", async (req, res) => {
       points: user.points,
     };
 
+    console.log("User created successfully:", userResponse); // برای دیباگ
+
     res.status(201).json({
       success: true,
-      message: "ثبت‌نام موفقیت‌آمیز بود. لطفاً شماره تلفن خود را تأیید کنید.",
+      message: "ثبت‌نام موفقیت‌آمیز بود.",
       user: userResponse,
       token: token,
     });
   } catch (error) {
-    console.error("Register error:", error);
+    console.error("Register error details:", error);
     res.status(500).json({
       success: false,
-      error: "خطا در ثبت‌نام",
+      error: "خطا در ثبت‌نام: " + error.message,
     });
   }
 });
+
+// احراز هویت - ثبت‌نام (موقت)
+// app.post("/api/auth/register", async (req, res) => {
+//   try {
+//     const {
+//       full_name,
+//       email,
+//       phone,
+//       password,
+//       birth_date,
+//       gender,
+//       medical_info,
+//     } = req.body;
+
+//     // بررسی وجود کاربر با شماره تلفن
+//     const existingUser = await User.findOne({
+//       where: {
+//         phone,
+//       },
+//     });
+
+//     if (existingUser) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "این شماره تماس قبلاً ثبت شده است.",
+//       });
+//     }
+
+//     // اگر ایمیل ارسال شده، چک کن تکراری نباشه
+//     if (email) {
+//       const existingEmail = await User.findOne({ where: { email } });
+//       if (existingEmail) {
+//         return res.status(400).json({
+//           success: false,
+//           error: "این ایمیل قبلاً ثبت شده است.",
+//         });
+//       }
+//     }
+
+//     // ایجاد کاربر جدید
+//     const user = await User.create({
+//       full_name,
+//       email: email || null,
+//       phone,
+//       password,
+//       birth_date: birth_date || null,
+//       gender: gender || null,
+//       // medical_info: medical_info || {
+//       //   allergies: "ندارد",
+//       //   conditions: [],
+//       //   notes: "",
+//       // },
+//       medical_info: medical_info || null,
+//       membership_date: new Date(),
+//       membership_level: "regular",
+//       points: 0,
+//       is_verified: false,
+//     });
+
+//     // ساخت JWT token
+//     const token = generateToken(user.id);
+
+//     const userResponse = {
+//       id: user.id,
+//       full_name: user.full_name,
+//       email: user.email,
+//       phone: user.phone,
+//       gender: user.gender,
+//       medical_info: user.medical_info,
+//       role: user.role,
+//       membership_level: user.membership_level,
+//       points: user.points,
+//     };
+
+//     res.status(201).json({
+//       success: true,
+//       message: "ثبت‌نام موفقیت‌آمیز بود. لطفاً شماره تلفن خود را تأیید کنید.",
+//       user: userResponse,
+//       token: token,
+//     });
+//   } catch (error) {
+//     console.error("Register error:", error);
+//     res.status(500).json({
+//       success: false,
+//       error: "خطا در ثبت‌نام",
+//     });
+//   }
+// });
 
 // ============ Routes جدید ============
 // دریافت اطلاعات کاربر جاری
