@@ -26,7 +26,7 @@ const User = sequelize.define(
     phone: {
       type: DataTypes.STRING(11),
       allowNull: false,
-      unique: true, // اضافه شد
+      unique: true,
       validate: {
         is: /^09[0-9]{9}$/,
       },
@@ -37,31 +37,17 @@ const User = sequelize.define(
     },
     birth_date: {
       type: DataTypes.DATEONLY,
-      allowNull: true, // تغییر از false به true (اختیاری در signup)
+      allowNull: true,
       field: "birth_date",
     },
     gender: {
-      type: DataTypes.ENUM("male", "female", "other"), // اضافه شدن other
-      allowNull: true, // تغییر از false به true (اختیاری)
+      type: DataTypes.ENUM("male", "female", "other"),
+      allowNull: true,
     },
     job: {
-      // اضافه شد
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    // medical_info: {
-    //   type: DataTypes.TEXT,
-    //   defaultValue: "{}",
-    //   get() {
-    //     const rawValue = this.getDataValue("medical_info");
-    //     return rawValue ? JSON.parse(rawValue) : {};
-    //   },
-    //   set(value) {
-    //     this.setDataValue("medical_info", JSON.stringify(value));
-    //   },
-    //   field: "medical_info",
-    // },
-
     medical_info: {
       type: DataTypes.TEXT,
       defaultValue: "{}",
@@ -104,21 +90,10 @@ const User = sequelize.define(
       },
       field: "medical_info",
     },
-
-    membership_date: {
+    created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
-      field: "membership_date",
-    },
-    membership_level: {
-      type: DataTypes.ENUM("regular", "premium", "vip"),
-      defaultValue: "regular",
-      field: "membership_level",
-    },
-    points: {
-      // اضافه شد
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
+      field: "created_at",
     },
     is_verified: {
       // اضافه شد - برای تأیید شماره تلفن

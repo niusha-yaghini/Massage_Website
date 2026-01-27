@@ -96,8 +96,8 @@ const seedDatabase = async () => {
         notes: "",
       },
       role: "admin",
-      membership_level: "premium",
-      points: 100,
+      // membership_level: "premium",
+      // points: 100,
       is_verified: true,
     });
 
@@ -116,8 +116,8 @@ const seedDatabase = async () => {
         notes: "ترجیح می‌دهم ماساژ ملایم باشد",
       },
       role: "user",
-      membership_level: "regular",
-      points: 50,
+      // membership_level: "regular",
+      // points: 50,
       is_verified: true,
     });
     console.log("✅ 2 users created (admin@spa.com / test@spa.com)");

@@ -824,6 +824,7 @@ body {
   transition: var(--transition);
   background: #f8f9fa;
   font-family: inherit;
+  width: 100%;
 }
 
 .formInput:focus {
@@ -843,6 +844,98 @@ body {
   border: 1px solid #e9ecef;
 }
 
+/* استایل برای input تاریخ */
+.formInput[type="date"] {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.formInput[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+}
+
+.formInput[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: #e2e8f0;
+}
+
+/* استایل برای select */
+.formSelect {
+  padding: 10px 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  background: #f8f9fa;
+  font-family: inherit;
+  width: 100%;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  cursor: pointer;
+  background-position: right 12px center;
+  background-size: 14px;
+  direction: rtl;
+}
+
+.formSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(200, 179, 147, 0.1);
+}
+
+/* استایل برای textarea */
+.formTextarea {
+  padding: 10px 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  background: #f8f9fa;
+  font-family: inherit;
+  width: 100%;
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.formTextarea:focus {
+
+  outline: none;
+  border-color: var(--accent);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(200, 179, 147, 0.1);
+}
+
+/* استایل برای input خطا */
+.inputError {
+  border-color: #fc8181 !important;
+  background-color: #fff5f5 !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.15) !important;
+}
+
+/* پیام خطا */
+.errorMessage {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 6px;
+  padding-right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.errorMessage::before {
+  content: "⚠";
+  font-size: 14px;
+}
+
+/* ============ استایل‌های فرم اطلاعات پزشکی ============ */
 /* Medical Info */
 .medicalInfo {
   display: flex;
@@ -894,97 +987,26 @@ body {
   border: 1px solid #e9ecef;
 }
 
-/* Right Column */
-.rightColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.medicalFormGroup {
+  margin-bottom: 20px;
 }
 
-/* Membership Card */
-.membershipCard {
-  background: linear-gradient(135deg, #1a1f2e 0%, #0c1a15 100%);
-  color: var(--white);
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-.membershipHeader {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.membershipIcon {
-  font-size: 2rem;
-  color: var(--accent);
-}
-
-.membershipTitle {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-}
-
-.membershipSubtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-}
-
-.membershipBenefits h4 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: var(--white);
-}
-
-.benefitsList {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.5rem 0;
-}
-
-.benefitsList li {
-  padding: 0.5rem 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
+.medicalFormLabel {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: #495057;
+  font-size: 0.95rem;
+  font-weight: 500;  
+  margin-bottom: 8px;
 }
 
-.benefitsList li::before {
-  content: "✓";
-  color: var(--accent);
-  font-weight: bold;
-}
-
-.progressSection {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1rem;
-  border-radius: var(--border-radius);
-}
-
-.progressHeader {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.8rem;
-  font-size: 0.9rem;
-}
-
-.progressBar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), #d4b587);
-  border-radius: 4px;
-  transition: width 0.5s ease;
+.medicalFormHint {
+  color: #718096;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-style: italic;
 }
 
 /* ============ Massage History Page ============ */
@@ -1078,7 +1100,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
 }
 
 @media (max-width: 768px) {

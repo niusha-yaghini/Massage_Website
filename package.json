@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "nodemo": "^1.0.0"
+  },
+  "dependencies": {
+    "jalaali-js": "^1.2.8"
   }
 }

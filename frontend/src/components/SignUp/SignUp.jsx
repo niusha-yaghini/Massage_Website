@@ -4,6 +4,9 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import styles from "./Signup.module.css";
 import { userService } from "../../services/userService";
+// import DatePicker from "react-datepicker2";
+// import moment from "moment-jalaali";
+// import "react-datepicker2/dist/react-datepicker2.css";
 import {
   FiUser,
   FiLock,
@@ -26,6 +29,127 @@ import Logo from "../../assets/images/Logo_white.png";
 
 const phoneRegex = /^09[0-9]{9}$/;
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
+
+// کامپوننت اصلاح شده SimplePersianDateInput
+const SimplePersianDateInput = ({
+  value,
+  onChange,
+  className,
+  placeholder,
+}) => {
+  const [displayValue, setDisplayValue] = useState("");
+
+  // تبدیل میلادی به شمسی برای نمایش
+  const toPersian = (gregorianDate) => {
+    if (!gregorianDate) return "";
+
+    // اگر تاریخ میلادی هست (فرمت: YYYY-MM-DD)
+    if (gregorianDate.includes("-")) {
+      const [year, month, day] = gregorianDate.split("-").map(Number);
+
+      // تبدیل ساده میلادی به شمسی (دقت پایین)
+      const persianYear = year - 621;
+
+      // تبدیل اعداد به فارسی
+      const toPersianNum = (num) => {
+        const persianDigits = [
+          "۰",
+          "۱",
+          "۲",
+          "۳",
+          "۴",
+          "۵",
+          "۶",
+          "۷",
+          "۸",
+          "۹",
+        ];
+        return num.toString().replace(/\d/g, (d) => persianDigits[d]);
+      };
+
+      // برای دقت بیشتر نیاز به الگوریتم دقیق‌تری داری
+      // اینجا فقط نمایش می‌دیم
+      return `${toPersianNum(persianYear)}/${toPersianNum(
+        month
+      )}/${toPersianNum(day)}`;
+    }
+
+    // اگر از قبل شمسی هست
+    return gregorianDate;
+  };
+
+  // تبدیل شمسی به میلادی برای ذخیره
+  const toGregorian = (persianDate) => {
+    if (!persianDate || persianDate.length < 10) return "";
+
+    // تبدیل اعداد فارسی به انگلیسی
+    const toEnglish = (str) => {
+      return str.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    };
+
+    const englishDate = toEnglish(persianDate);
+    const [persianYear, persianMonth, persianDay] = englishDate
+      .split("/")
+      .map(Number);
+
+    // تبدیل ساده شمسی به میلادی (دقت پایین)
+    const gregorianYear = persianYear + 621;
+
+    // اینجا نیاز به الگوریتم دقیق‌تری برای تبدیل ماه و روز داری
+    // فعلاً همون ماه و روز رو می‌فرستیم
+    return `${gregorianYear}-${String(persianMonth).padStart(2, "0")}-${String(
+      persianDay
+    ).padStart(2, "0")}`;
+  };
+
+  // مقدار اولیه
+  useEffect(() => {
+    if (value) {
+      setDisplayValue(toPersian(value));
+    } else {
+      setDisplayValue("");
+    }
+  }, [value]);
+
+  const handleChange = (e) => {
+    let input = e.target.value;
+
+    // فقط اعداد فارسی و اسلش مجاز
+    input = input.replace(/[^۰-۹\/]/g, "");
+
+    // فرمت خودکار
+    if (input.length === 4 && !input.includes("/")) {
+      input = input + "/";
+    } else if (input.length === 7 && input.split("/")[1]?.length === 2) {
+      input = input + "/";
+    }
+
+    setDisplayValue(input);
+
+    // اگر کامل وارد شد
+    if (input.length === 10) {
+      const gregorian = toGregorian(input);
+      onChange(gregorian);
+    } else if (input === "") {
+      onChange("");
+    }
+  };
+
+  return (
+    <div className={styles.dateInputContainer}>
+      <input
+        type="text"
+        value={displayValue}
+        onChange={handleChange}
+        className={className}
+        placeholder={placeholder || "۱۳۷۵/۰۵/۱۵"}
+        dir="ltr"
+        maxLength="10"
+      />
+      <div className={styles.dateHint}>فرمت: سال/ماه/روز (شمسی)</div>
+    </div>
+  );
+};
 
 const Signup = () => {
   // States
@@ -75,7 +199,7 @@ const Signup = () => {
     { id: 3, label: "اطلاعات تکمیلی", icon: <FiActivity /> },
   ];
 
-  // Validation Schema
+  // Validation Schema اصلاح شده
   const validationSchema = Yup.object({
     // Step 1 - Required fields
     fullName: Yup.string()
@@ -95,7 +219,32 @@ const Signup = () => {
 
     // Step 3 - Optional fields
     email: Yup.string().email("ایمیل معتبر نیست"),
-    birthDate: Yup.date().max(new Date(), "تاریخ تولد نمی‌تواند در آینده باشد"),
+    birthDate: Yup.string().test(
+      "is-valid-date",
+      "تاریخ تولد باید به فرمت صحیح (۱۳۷۵/۰۵/۱۵) باشد",
+      (value) => {
+        if (!value) return true; // اختیاری
+
+        // اگر تاریخ میلادی هست
+        if (value.includes("-")) {
+          const [year, month, day] = value.split("-").map(Number);
+          // چک کردن محدوده معقول
+          return (
+            year > 1300 &&
+            year < 1500 && // سال‌های شمسی (تقریبی)
+            month >= 1 &&
+            month <= 12 &&
+            day >= 1 &&
+            day <= 31
+          );
+        }
+
+        // اگر شمسی هست
+        const persianDateRegex =
+          /^۱۳[۰-۹]{2}\/(۰[۱-۹]|۱[۰-۲])\/(۰[۱-۹]|[۱۲][۰-۹]|۳[۰۱])$/;
+        return persianDateRegex.test(value);
+      }
+    ),
     gender: Yup.string().oneOf(["male", "female", ""], "جنسیت را انتخاب کنید"),
     job: Yup.string(),
     medicalConditions: Yup.array().of(Yup.string()),
@@ -132,64 +281,29 @@ const Signup = () => {
         console.log("Signup data being sent:", values);
 
         // آماده‌سازی داده برای ارسال به بک‌اند
+        // در onSubmit فرم
         const userData = {
           full_name: values.fullName,
           phone: values.phone,
           password: values.password,
           email: values.email || null,
-          birth_date: values.birthDate || null,
+          birth_date: values.birthDate || null, // این تاریخ میلادی هست
           gender: values.gender || null,
           job: values.job || null,
-          // medical_info رو به صورت object ساده بفرست (نه JSON.stringify)
+          // medical_info باید string باشه
           medical_info:
             values.hasAllergy ||
             values.medicalConditions.length > 0 ||
             values.notes
-              ? {
+              ? JSON.stringify({
                   conditions: values.medicalConditions || [],
                   allergies: values.hasAllergy
                     ? values.allergyDetails || "ندارد"
                     : "ندارد",
                   notes: values.notes || "",
-                }
+                })
               : null,
         };
-
-        // آماده‌سازی داده برای ارسال به بک‌اند
-        // const userData = {
-        //   full_name: values.fullName,
-        //   phone: values.phone,
-        //   password: values.password,
-        //   email: values.email || null,
-        //   birth_date: values.birthDate || null,
-        //   gender: values.gender || null,
-        //   job: values.job || null,
-        //   // medical_info اختیاری
-        //   // medical_info:
-        //   //   values.hasAllergy ||
-        //   //   values.medicalConditions.length > 0 ||
-        //   //   values.notes
-        //   //     ? {
-        //   //         conditions: values.medicalConditions || [],
-        //   //         allergies: values.hasAllergy
-        //   //           ? values.allergyDetails || "ندارد"
-        //   //           : "ندارد",
-        //   //         notes: values.notes || "",
-        //   //       }
-        //   //     : null,
-        //   medical_info:
-        //     values.hasAllergy ||
-        //     values.medicalConditions.length > 0 ||
-        //     values.notes
-        //       ? JSON.stringify({
-        //           conditions: values.medicalConditions || [],
-        //           allergies: values.hasAllergy
-        //             ? values.allergyDetails || "ندارد"
-        //             : "ندارد",
-        //           notes: values.notes || "",
-        //         })
-        //       : null,
-        // };
 
         console.log("Sending to API:", userData);
 
@@ -615,32 +729,29 @@ const Signup = () => {
                       ? styles.inputError
                       : ""
                   }`}
-                  placeholder="شغل خود را وارد کنید"
+                  placeholder="شغل خود را وارد کنید."
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   value={formik.values.job}
                 />
               </div>
 
-              {/* Birth Date */}
               <div className={styles.formGroup}>
                 <label htmlFor="birthDate" className={styles.formLabel}>
                   <FiCalendar className={styles.labelIcon} />
                   تاریخ تولد
                 </label>
-                <input
-                  id="birthDate"
-                  name="birthDate"
-                  type="date"
+                <SimplePersianDateInput
+                  value={formik.values.birthDate}
+                  onChange={(date) => {
+                    formik.setFieldValue("birthDate", date);
+                  }}
                   className={`${styles.formInput} ${
                     formik.touched.birthDate && formik.errors.birthDate
                       ? styles.inputError
                       : ""
                   }`}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  value={formik.values.birthDate}
-                  max={new Date().toISOString().split("T")[0]}
+                  placeholder="۱۳۷۵/۰۵/۱۵"
                 />
                 {formik.touched.birthDate && formik.errors.birthDate && (
                   <div className={styles.errorMessage}>

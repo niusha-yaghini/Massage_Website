@@ -149,7 +149,6 @@ export const userService = {
 
       console.log("Response status:", response.status, response.statusText);
 
-      // اول چک کن response داره یا نه
       const contentType = response.headers.get("content-type");
       let errorData;
 
@@ -229,6 +228,8 @@ export const userService = {
       const response = await fetchWithAuth(`${API_URL}/auth/me`);
       const data = await handleResponse(response);
 
+      console.log("Raw user data from backend:", data.user); // برای دیباگ
+      
       // تضمین ساختار یکسان برای فرانت‌اند
       return {
         success: true,
@@ -240,9 +241,8 @@ export const userService = {
           birth_date: data.user?.birth_date || data.user?.birthDate,
           gender: data.user?.gender,
           created_at: data.user?.created_at || data.user?.membershipDate,
-          medical_info:
-            data.user?.medical_info || data.user?.medicalInfo || null,
-          // سایر فیلدهای مورد نیاز
+          job: data.user?.job || "",
+          medical_info: data.user?.medical_info || null,
         },
       };
     } catch (error) {
@@ -272,9 +272,11 @@ export const userService = {
         email: profileData.email,
         birth_date: profileData.birth_date || profileData.birthDate,
         gender: profileData.gender,
-        job: profileData.job,
+        job: profileData.job || "",
         medical_info: profileData.medical_info || profileData.medicalInfo,
       };
+
+      console.log("Sending update profile:", formattedData); // برای دیباگ
 
       const response = await fetchWithAuth(`${API_URL}/user/profile`, {
         method: "PUT",
@@ -565,6 +567,61 @@ export const userService = {
     } catch (error) {
       handleNetworkError(error);
       console.error("خطا در ثبت نظر:", error);
+      throw error;
+    }
+  },
+
+  // تغییر رمز عبور (فراموشی رمز)
+  async resetPassword(phone, newPassword, confirmPassword) {
+    try {
+      console.log("Calling reset password API with:", { phone });
+
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: getHeaders(false),
+        body: JSON.stringify({
+          phone,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      console.log("Response status:", response.status);
+
+      const data = await handleResponse(response);
+
+      console.log("Reset password successful:", data);
+
+      return {
+        success: true,
+        message: data.message || "رمز عبور با موفقیت تغییر یافت",
+      };
+    } catch (error) {
+      console.error("خطا در تغییر رمز:", error);
+      throw error;
+    }
+  },
+
+  // تغییر رمز عبور از طریق پروفایل
+  async changePassword(currentPassword, newPassword, confirmPassword) {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/user/change-password`, {
+        method: "PUT",
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await handleResponse(response);
+
+      return {
+        success: true,
+        message: data.message || "رمز عبور با موفقیت تغییر یافت",
+      };
+    } catch (error) {
+      console.error("خطا در تغییر رمز:", error);
       throw error;
     }
   },

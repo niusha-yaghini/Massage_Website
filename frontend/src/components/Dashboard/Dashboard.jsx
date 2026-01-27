@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import styles from "./Dashboard.module.css";
 import { userService } from "../../services/userService";
 import {
@@ -22,6 +24,164 @@ import {
   FiActivity,
   FiBriefcase,
 } from "react-icons/fi";
+
+// کامپوننت SimplePersianDateInput
+const SimplePersianDateInput = ({
+  value,
+  onChange,
+  className,
+  placeholder,
+}) => {
+  const [displayValue, setDisplayValue] = useState("");
+
+  // تبدیل میلادی به شمسی برای نمایش
+  const toPersian = (gregorianDate) => {
+    if (!gregorianDate) return "";
+
+    // اگر تاریخ میلادی هست (فرمت: YYYY-MM-DD)
+    if (gregorianDate.includes("-")) {
+      const [year, month, day] = gregorianDate.split("-").map(Number);
+
+      // تبدیل ساده میلادی به شمسی
+      const persianYear = year - 621;
+
+      // تبدیل اعداد به فارسی
+      const toPersianNum = (num) => {
+        const persianDigits = [
+          "۰",
+          "۱",
+          "۲",
+          "۳",
+          "۴",
+          "۵",
+          "۶",
+          "۷",
+          "۸",
+          "۹",
+        ];
+        return num.toString().replace(/\d/g, (d) => persianDigits[d]);
+      };
+
+      return `${toPersianNum(persianYear)}/${toPersianNum(
+        month
+      )}/${toPersianNum(day)}`;
+    }
+
+    // اگر از قبل شمسی هست
+    return gregorianDate;
+  };
+
+  // تبدیل شمسی به میلادی برای ذخیره
+  const toGregorian = (persianDate) => {
+    if (!persianDate || persianDate.length < 10) return "";
+
+    // تبدیل اعداد فارسی به انگلیسی
+    const toEnglish = (str) => {
+      return str.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    };
+
+    const englishDate = toEnglish(persianDate);
+    const [persianYear, persianMonth, persianDay] = englishDate
+      .split("/")
+      .map(Number);
+
+    // تبدیل ساده شمسی به میلادی
+    const gregorianYear = persianYear + 621;
+
+    return `${gregorianYear}-${String(persianMonth).padStart(2, "0")}-${String(
+      persianDay
+    ).padStart(2, "0")}`;
+  };
+
+  // مقدار اولیه
+  useEffect(() => {
+    if (value) {
+      setDisplayValue(toPersian(value));
+    } else {
+      setDisplayValue("");
+    }
+  }, [value]);
+
+  const handleChange = (e) => {
+    let input = e.target.value;
+
+    // فقط اعداد و اسلش مجاز
+    input = input.replace(/[^۰-۹0-9\/]/g, "");
+
+    // فرمت خودکار
+    if (input.length === 4 && !input.includes("/")) {
+      input = input + "/";
+    } else if (input.length === 7 && input.split("/")[1]?.length === 2) {
+      input = input + "/";
+    }
+
+    setDisplayValue(input);
+
+    // اگر کامل وارد شد
+    if (input.length === 10) {
+      const gregorian = toGregorian(input);
+      onChange(gregorian);
+    } else if (input === "") {
+      onChange("");
+    }
+  };
+
+  return (
+    <div style={{ position: "relative", width: "100%" }}>
+      <input
+        type="text"
+        value={displayValue}
+        onChange={handleChange}
+        className={className}
+        placeholder={placeholder || "۱۳۷۵/۰۵/۱۵"}
+        dir="ltr"
+        maxLength="10"
+      />
+    </div>
+  );
+};
+
+// تابع تبدیل میلادی به شمسی برای نمایش
+const formatToPersianDate = (gregorianDate) => {
+  if (!gregorianDate) return "ثبت نشده";
+
+  try {
+    // اگر تاریخ به فرمت میلادی هست
+    if (gregorianDate.includes("-")) {
+      const [year, month, day] = gregorianDate.split("-").map(Number);
+
+      // تبدیل ساده میلادی به شمسی
+      const persianYear = year - 621;
+
+      // تبدیل اعداد به فارسی
+      const toPersianNum = (num) => {
+        const persianDigits = [
+          "۰",
+          "۱",
+          "۲",
+          "۳",
+          "۴",
+          "۵",
+          "۶",
+          "۷",
+          "۸",
+          "۹",
+        ];
+        return num.toString().replace(/\d/g, (d) => persianDigits[d]);
+      };
+
+      return `${toPersianNum(persianYear)}/${toPersianNum(
+        month
+      )}/${toPersianNum(day)}`;
+    }
+
+    // اگر از قبل شمسی هست
+    return gregorianDate;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return gregorianDate || "ثبت نشده";
+  }
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -54,6 +214,8 @@ const Dashboard = () => {
 
         // دریافت اطلاعات کاربر
         const userResponse = await userService.getCurrentUser();
+        console.log("User data received:", userResponse.user);
+        console.log("Birth date:", userResponse.user?.birth_date);
         setUserData(userResponse.user);
 
         // دریافت نوبت‌ها
@@ -145,14 +307,40 @@ const Dashboard = () => {
 
   // ============ توابع کمکی ============
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fa-IR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    if (!dateString) return "ثبت نشده";
+
+    console.log("Formatting date string:", dateString); // برای دیباگ
+
+    // اگر تاریخ شمسی هست (دارای / یا فرمت ۱۳۷۹-۱۲-۰۵)
+    if (dateString.includes("/") || /^13/.test(dateString)) {
+      // تاریخ شمسی - نمایش ساده
+      return dateString.replace(/-/g, "/");
+    }
+
+    // اگر تاریخ میلادی هست (مثل 2024-01-15 یا 2024-01-15T10:30:00.000Z)
+    try {
+      // حذف قسمت زمان اگر وجود دارد
+      const dateOnly = dateString.split("T")[0];
+      const date = new Date(dateOnly);
+
+      if (isNaN(date.getTime())) {
+        // اگر تاریخ معتبر نیست، همون string رو برگردون
+        return dateString;
+      }
+
+      // فقط تاریخ، بدون ساعت
+      return date.toLocaleDateString("fa-IR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return dateString; // اگر خطا خورد، همون string رو برگردون
+    }
   };
 
+  // ============ توابع موجود ============
   const renderStars = (rating) => {
     return Array(5)
       .fill(0)
@@ -584,39 +772,146 @@ const Dashboard = () => {
   };
 
   const Profile = () => {
-    // const [formData, setFormData] = useState(userData);
-    const [formData, setFormData] = useState(userData || {});
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [showMedicalInfo, setShowMedicalInfo] = useState(false);
+    const [medicalForm, setMedicalForm] = useState({
+      allergies: "",
+      conditions: "",
+      notes: "",
+    });
 
     // وقتی userData تغییر کرد، formData رو آپدیت کن
     useEffect(() => {
-      if (userData) {
-        setFormData(userData);
-      }
-    }, [userData]);
+      if (userData && isEditingProfile) {
+        // تنظیم فرم اصلی
+        formik.setValues({
+          full_name: userData.full_name || "",
+          phone: userData.phone || "",
+          email: userData.email || "",
+          birth_date: userData.birth_date || "",
+          gender: userData.gender || "",
+          job: userData.job || "",
+        });
 
-    const handleSave = async () => {
-      try {
-        await userService.updateProfile(formData);
-        setIsEditingProfile(false);
-        alert("پروفایل با موفقیت به‌روزرسانی شد.");
-      } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("خطا در به‌روزرسانی پروفایل.");
+        // تنظیم فرم اطلاعات پزشکی
+        if (userData.medical_info) {
+          setMedicalForm({
+            allergies: userData.medical_info.allergies || "",
+            conditions: Array.isArray(userData.medical_info.conditions)
+              ? userData.medical_info.conditions.join(", ")
+              : userData.medical_info.conditions || "",
+            notes: userData.medical_info.notes || "",
+          });
+        }
       }
-    };
+    }, [userData, isEditingProfile]); // اضافه کردن isEditingProfile به dependency array
+
+    const validationSchema = Yup.object({
+      full_name: Yup.string()
+        .required("نام و نام خانوادگی الزامی است.")
+        .min(3, "نام باید حداقل ۳ کاراکتر باشد."),
+      email: Yup.string()
+        .email("ایمیل معتبر نیست.")
+        .matches(
+          /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+          "فرمت ایمیل صحیح نیست"
+        )
+        .required("ایمیل الزامی است."),
+      phone: Yup.string()
+        .matches(/^09[0-9]{9}$/, "شماره موبایل معتبر نیست (مثال: 09123456789).")
+        .required("شماره موبایل الزامی است."),
+      birth_date: Yup.string()
+        .matches(
+          /^13[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
+          "فرمت تاریخ باید شمسی باشد (مثال: ۱۳۷۹-۱۲-۰۵)"
+        )
+        .nullable()
+        .test("is-valid-date", "تاریخ معتبر نیست", (value) => {
+          if (!value) return true;
+          // اعتبارسنجی ساده تاریخ شمسی
+          const parts = value.split("-");
+          if (parts.length !== 3) return false;
+
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const day = parseInt(parts[2]);
+
+          // بررسی‌های ساده
+          if (year < 1300 || year > 1500) return false;
+          if (month < 1 || month > 12) return false;
+          if (day < 1 || day > 31) return false;
+
+          return true;
+        }),
+      gender: Yup.string()
+        .oneOf(["male", "female"], "لطفاً جنسیت را انتخاب کنید")
+        .required("جنسیت الزامی است."),
+      job: Yup.string().nullable(),
+    });
+
+    // Formik برای فرم اصلی
+    const formik = useFormik({
+      initialValues: {
+        full_name: userData?.full_name || "",
+        phone: userData?.phone || "",
+        email: userData?.email || "",
+        birth_date: userData?.birth_date || "",
+        gender: userData?.gender || "",
+        job: userData?.job || "",
+      },
+      validationSchema,
+      enableReinitialize: true, // این مهمه!
+      onSubmit: async (values) => {
+        try {
+          // اطلاعات کامل برای ارسال
+          const allData = {
+            full_name: values.full_name,
+            phone: values.phone,
+            email: values.email,
+            birth_date: values.birth_date,
+            gender: values.gender,
+            job: values.job,
+            medical_info: {
+              allergies: medicalForm.allergies,
+              conditions: medicalForm.conditions
+                .split(",")
+                .map((item) => item.trim())
+                .filter((item) => item),
+              notes: medicalForm.notes,
+            },
+          };
+
+          console.log("Sending to server:", allData);
+
+          await userService.updateProfile(allData);
+
+          // گرفتن اطلاعات بروز شده از سرور
+          const updatedUserResponse = await userService.getCurrentUser();
+          setUserData(updatedUserResponse.user);
+
+          setIsEditingProfile(false);
+          alert("پروفایل با موفقیت به‌روزرسانی شد.");
+        } catch (err) {
+          console.error("Error updating profile:", err);
+          alert("خطا در به‌روزرسانی پروفایل: " + err.message);
+        }
+      },
+    });
 
     const handleEdit = () => {
       setIsEditingProfile(true);
     };
 
     const handleCancel = () => {
-      setFormData(userData);
+      formik.resetForm();
       setIsEditingProfile(false);
     };
 
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: value }));
+    const handleMedicalInfoChange = (field, value) => {
+      setMedicalForm((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
     };
 
     return (
@@ -634,9 +929,22 @@ const Dashboard = () => {
               </button>
             ) : (
               <div className={styles.editActions}>
-                <button onClick={handleSave} className={styles.saveButton}>
-                  <FiSave />
-                  ذخیره تغییرات
+                <button
+                  onClick={() => formik.handleSubmit()} // اینجا فقط formik.handleSubmit رو صدا بزن
+                  className={styles.saveButton}
+                  disabled={formik.isSubmitting || !formik.isValid}
+                >
+                  {formik.isSubmitting ? (
+                    <>
+                      <span className={styles.spinner}></span>
+                      در حال ذخیره...
+                    </>
+                  ) : (
+                    <>
+                      <FiSave />
+                      ذخیره تغییرات
+                    </>
+                  )}
                 </button>
                 <button onClick={handleCancel} className={styles.cancelButton}>
                   لغو
@@ -656,23 +964,35 @@ const Dashboard = () => {
                 اطلاعات شخصی
               </h3>
 
-              <div className={styles.formGrid}>
+              <form onSubmit={formik.handleSubmit} className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
                     <FiUser />
                     نام و نام خانوادگی
                   </label>
                   {isEditingProfile ? (
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={formData.full_name || ""}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                    />
+                    <>
+                      <input
+                        type="text"
+                        name="full_name"
+                        value={formik.values.full_name}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={`${styles.formInput} ${
+                          formik.touched.full_name && formik.errors.full_name
+                            ? styles.inputError
+                            : ""
+                        }`}
+                      />
+                      {formik.touched.full_name && formik.errors.full_name && (
+                        <div className={styles.errorMessage}>
+                          {formik.errors.full_name}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className={styles.formValue}>
-                      {formData.full_name || ""}
+                      {userData?.full_name || ""}
                     </p>
                   )}
                 </div>
@@ -682,7 +1002,33 @@ const Dashboard = () => {
                     <FiUser />
                     ایمیل
                   </label>
-                  <p className={styles.formValue}>{formData.email || ""}</p>
+                  {isEditingProfile ? (
+                    <>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formik.values.email || ""}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={`${styles.formInput} ${
+                          formik.touched.email && formik.errors.email
+                            ? styles.inputError
+                            : ""
+                        }`}
+                        dir="ltr"
+                        placeholder="example@email.com"
+                      />
+                      {formik.touched.email && formik.errors.email && (
+                        <div className={styles.errorMessage}>
+                          {formik.errors.email}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className={styles.formValue}>
+                      {userData?.email || "ثبت نشده"}
+                    </p>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -691,15 +1037,28 @@ const Dashboard = () => {
                     شماره موبایل
                   </label>
                   {isEditingProfile ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                    />
+                    <>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formik.values.phone}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={`${styles.formInput} ${
+                          formik.touched.phone && formik.errors.phone
+                            ? styles.inputError
+                            : ""
+                        }`}
+                        dir="ltr"
+                      />
+                      {formik.touched.phone && formik.errors.phone && (
+                        <div className={styles.errorMessage}>
+                          {formik.errors.phone}
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <p className={styles.formValue}>{formData.phone || ""}</p>
+                    <p className={styles.formValue}>{userData?.phone || ""}</p>
                   )}
                 </div>
 
@@ -709,17 +1068,20 @@ const Dashboard = () => {
                     شغل
                   </label>
                   {isEditingProfile ? (
-                    <input
-                      type="text"
-                      name="job"
-                      value={formData.job || ""}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                      placeholder="شغل خود را وارد کنید"
-                    />
+                    <>
+                      <input
+                        type="text"
+                        name="job"
+                        value={formik.values.job}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={styles.formInput}
+                        placeholder="شغل خود را وارد کنید."
+                      />
+                    </>
                   ) : (
                     <p className={styles.formValue}>
-                      {formData.job || "ثبت نشده"}
+                      {userData?.job || "ثبت نشده."}
                     </p>
                   )}
                 </div>
@@ -729,29 +1091,81 @@ const Dashboard = () => {
                     <FiUser />
                     تاریخ تولد
                   </label>
-                  <p className={styles.formValue}>
-                    {formData.birth_date ? formatDate(formData.birth_date) : ""}{" "}
-                  </p>
+                  {isEditingProfile ? (
+                    <>
+                      {/* از SimplePersianDateInput استفاده کن */}
+                      <SimplePersianDateInput
+                        value={formik.values.birth_date || ""}
+                        onChange={(date) => {
+                          formik.setFieldValue("birth_date", date);
+                        }}
+                        className={`${styles.formInput} ${
+                          formik.touched.birth_date && formik.errors.birth_date
+                            ? styles.inputError
+                            : ""
+                        }`}
+                        placeholder="۱۳۷۵/۰۵/۱۵"
+                      />
+                      {formik.touched.birth_date &&
+                        formik.errors.birth_date && (
+                          <div className={styles.errorMessage}>
+                            {formik.errors.birth_date}
+                          </div>
+                        )}
+                    </>
+                  ) : (
+                    <p className={styles.formValue}>
+                      {userData?.birth_date
+                        ? formatToPersianDate(userData.birth_date)
+                        : "ثبت نشده"}
+                    </p>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>جنسیت</label>
-                  <p className={styles.formValue}>
-                    {formData.gender === "male"
-                      ? "آقا"
-                      : formData.gender === "female"
-                      ? "خانم"
-                      : ""}
-                  </p>
+                  {isEditingProfile ? (
+                    <>
+                      <select
+                        name="gender"
+                        value={formik.values.gender || ""}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={styles.formSelect}
+                      >
+                        <option value="">انتخاب کنید</option>
+                        <option value="male">آقا</option>
+                        <option value="female">خانم</option>
+                        {/* <option value="other">سایر</option> */}
+                      </select>
+                      {formik.touched.gender && formik.errors.gender && (
+                        <div className={styles.errorMessage}>
+                          {formik.errors.gender}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className={styles.formValue}>
+                      {userData?.gender === "male"
+                        ? "آقا"
+                        : userData?.gender === "female"
+                        ? "خانم"
+                        : userData?.gender === "other"
+                        ? "سایر"
+                        : "ثبت نشده"}
+                    </p>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>تاریخ عضویت</label>
                   <p className={styles.formValue}>
-                    {formData.created_at ? formatDate(formData.created_at) : ""}
+                    {userData?.created_at
+                      ? formatDate(userData.created_at)
+                      : "ثبت نشده"}
                   </p>
                 </div>
-              </div>
+              </form>
             </div>
 
             {/* Medical Information */}
@@ -768,34 +1182,126 @@ const Dashboard = () => {
                   </span>
                 </h3>
               </div>
-              {showMedicalInfo && formData.medical_info && (
+
+              {showMedicalInfo && (
                 <div className={styles.medicalInfo}>
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>آلرژی‌ها:</span>
-                    <span className={styles.medicalValue}>
-                      {formData.medical_info.allergies || "ندارد."}
-                    </span>
-                  </div>
+                  {isEditingProfile ? (
+                    <>
+                      {/* فرم ویرایش اطلاعات پزشکی */}
+                      <div>
+                        <div className={styles.medicalFormGroup}>
+                          <label className={styles.formLabel}>آلرژی‌ها</label>
+                          <input
+                            type="text"
+                            value={medicalForm.allergies}
+                            onChange={(e) =>
+                              handleMedicalInfoChange(
+                                "allergies",
+                                e.target.value
+                              )
+                            }
+                            className={styles.formInput}
+                            placeholder="مثال: گرده گل، بادام زمینی"
+                          />
+                        </div>
 
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>شرایط خاص:</span>
-                    <div className={styles.conditionsList}>
-                      {formData.medical_info.conditions?.map(
-                        (condition, index) => (
-                          <span key={index} className={styles.conditionTag}>
-                            {condition}
-                          </span>
-                        )
+                        <div className={styles.medicalFormGroup}>
+                          <label className={styles.medicalFormLabel}>
+                            شرایط خاص
+                          </label>
+                          <input
+                            type="text"
+                            value={medicalForm.conditions}
+                            onChange={(e) =>
+                              handleMedicalInfoChange(
+                                "conditions",
+                                e.target.value
+                              )
+                            }
+                            className={styles.formInput}
+                            placeholder="مثال: دیابت, فشار خون بالا (با کاما جدا کنید)"
+                          />
+                          <small className={styles.medicalFormHint}>
+                            شرایط پزشکی خود را با کاما جدا کنید. (داروهای مصرفی،
+                            جراحی های ۶ ماه اخیر، ...)
+                          </small>
+                        </div>
+
+                        <div className={styles.medicalFormGroup}>
+                          <label className={styles.medicalFormLabel}>
+                            یادداشت
+                          </label>
+                          <textarea
+                            value={medicalForm.notes}
+                            onChange={(e) =>
+                              handleMedicalInfoChange("notes", e.target.value)
+                            }
+                            className={styles.formTextarea}
+                            placeholder="هرگونه توضیح یا یادداشت پزشکی"
+                            rows="3"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* نمایش اطلاعات پزشکی */}
+                      {userData?.medical_info ? (
+                        <>
+                          <div className={styles.medicalItem}>
+                            <span className={styles.medicalLabel}>
+                              آلرژی‌ها:
+                            </span>
+                            <span className={styles.medicalValue}>
+                              {userData.medical_info.allergies || "ندارد."}
+                            </span>
+                          </div>
+
+                          <div className={styles.medicalItem}>
+                            <span className={styles.medicalLabel}>
+                              شرایط خاص:
+                            </span>
+                            <div className={styles.conditionsList}>
+                              {Array.isArray(
+                                userData.medical_info.conditions
+                              ) &&
+                              userData.medical_info.conditions.length > 0 ? (
+                                userData.medical_info.conditions.map(
+                                  (condition, index) => (
+                                    <span
+                                      key={index}
+                                      className={styles.conditionTag}
+                                    >
+                                      {condition}
+                                    </span>
+                                  )
+                                )
+                              ) : (
+                                <span className={styles.noCondition}>
+                                  ندارد
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className={styles.medicalItem}>
+                            <span className={styles.medicalLabel}>
+                              یادداشت:
+                            </span>
+                            <p className={styles.medicalNote}>
+                              {userData.medical_info.notes ||
+                                "یادداشتی ثبت نشده است."}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={styles.noMedicalInfo}>
+                          <FiInfo className={styles.infoIcon} />
+                          <p>اطلاعات پزشکی ثبت نشده است.</p>
+                        </div>
                       )}
-                    </div>
-                  </div>
-
-                  <div className={styles.medicalItem}>
-                    <span className={styles.medicalLabel}>یادداشت:</span>
-                    <p className={styles.medicalNote}>
-                      {formData.medical_info.notes || "یادداشتی ثبت نشده است."}
-                    </p>
-                  </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -1035,6 +1541,7 @@ const Dashboard = () => {
                             : ""
                         }`}
                         onClick={() => {
+                          // e.preventDefault(); // این خط رو اضافه کن
                           handleBookingChange("selectedDate", dateObj.date);
                           handleBookingChange("selectedTime", "");
                         }}
@@ -1073,9 +1580,10 @@ const Dashboard = () => {
                               ? styles.selected
                               : ""
                           }`}
-                          onClick={() =>
-                            handleBookingChange("selectedTime", time)
-                          }
+                          onClick={(e) => {
+                            // e.preventDefault(); // این خط رو اضافه کن
+                            handleBookingChange("selectedTime", time);
+                          }}
                         >
                           {time}
                         </button>

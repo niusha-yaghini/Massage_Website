@@ -11,8 +11,10 @@ import {
   FiAlertCircle,
   FiLock,
   FiHome,
+  FiLogIn,
 } from "react-icons/fi";
 import Logo from "../../assets/images/Logo_white.png";
+import { userService } from "../../services/userService";
 
 const ForgotPassword = () => {
   // States
@@ -21,14 +23,13 @@ const ForgotPassword = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [userPhone, setUserPhone] = useState(""); // اضافه شد
 
-  // این stateها رو اضافه کن:
   const [codeInputs, setCodeInputs] = useState(["", "", "", ""]);
   const inputRefs = useRef([]);
 
   const navigate = useNavigate();
 
-  // این تابع رو اضافه کن:
   const handleCodeChange = (index, value) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -54,14 +55,12 @@ const ForgotPassword = () => {
     }
   };
 
-  // این تابع رو اضافه کن:
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !codeInputs[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // این تابع رو اضافه کن:
   const clearMessages = () => {
     setError("");
     setSuccess("");
@@ -84,12 +83,13 @@ const ForgotPassword = () => {
       try {
         console.log("ارسال کد تایید به:", values.phone);
 
+        // ذخیره شماره تلفن در state
+        setUserPhone(values.phone);
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         setSuccess(`کد تایید به شماره ${values.phone} ارسال شد.`);
         setStep(2);
-
-        // تایمر ۲ دقیقه‌ای برای ارسال مجدد
         setCountdown(120);
       } catch (err) {
         setError("خطا در ارسال کد تایید. لطفاً مجدداً تلاش کنید.");
@@ -135,7 +135,7 @@ const ForgotPassword = () => {
     },
   });
 
-  // فرم مرحله ۳: وارد کردن رمز جدید
+  // فرم مرحله ۳
   const formikStep3 = useFormik({
     initialValues: {
       newPassword: "",
@@ -159,19 +159,27 @@ const ForgotPassword = () => {
       setError("");
 
       try {
-        // شبیه‌سازی تغییر رمز
-        console.log("تغییر رمز به:", values.newPassword);
+        // استفاده از شماره تلفن ذخیره شده
+        const phone = userPhone;
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log("Attempting to reset password for:", phone);
 
-        setSuccess("رمز عبور با موفقیت تغییر یافت.");
+        // فراخوانی سرویس واقعی
+        const result = await userService.resetPassword(
+          phone,
+          values.newPassword,
+          values.confirmPassword
+        );
+
+        setSuccess(result.message || "رمز عبور با موفقیت تغییر یافت.");
 
         // هدایت به صفحه لاگین بعد از ۲ ثانیه
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       } catch (err) {
-        setError("خطا در تغییر رمز عبور");
+        console.error("Reset password error:", err);
+        setError(err.message || "خطا در تغییر رمز عبور");
       } finally {
         setLoading(false);
       }
@@ -226,6 +234,17 @@ const ForgotPassword = () => {
             </Link>
           </div>
 
+          {/* <div className={styles.headerActions}>
+            <Link to="/" className={styles.backHome}>
+              <FiHome />
+              <span>بازگشت به صفحه اصلی</span>
+            </Link>
+            <Link to="/login" className={styles.loginLink}>
+              <FiLogIn />
+              <span>ورود</span>
+            </Link>
+          </div> */}
+
           <div className={styles.logo}>
             <span className={styles.logospa}>فرشاد ماساژ</span>
             <img src={Logo} alt="فرشاد ماساژ" className={styles.logoImage} />
@@ -233,6 +252,12 @@ const ForgotPassword = () => {
           </div>
         </div>
       </header>
+
+      {/* <div className={styles.backgroundAnimation}>
+        <div className={styles.bubble}></div>
+        <div className={styles.bubble}></div>
+        <div className={styles.bubble}></div>
+      </div> */}
 
       {/* Main Content */}
       <main className={styles.forgotMain}>

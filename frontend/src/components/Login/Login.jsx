@@ -62,7 +62,7 @@ const Login = () => {
         console.log("نتیجه از userService:", result);
 
         if (result.success) {
-          setSuccess(`خوش آمدید ${result.user?.full_name || ""}!`);
+          setSuccess(` خوش آمدید ${result.user?.full_name || ""}!`);
 
           setTimeout(() => {
             navigate("/dashboard");

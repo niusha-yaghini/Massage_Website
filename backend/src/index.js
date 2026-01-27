@@ -172,8 +172,8 @@ app.post("/api/auth/login", async (req, res) => {
         job: user.job,
         medical_info: user.medical_info,
         role: user.role,
-        membership_level: user.membership_level,
-        points: user.points,
+        // membership_level: user.membership_level,
+        // points: user.points,
         is_verified: user.is_verified,
       },
       token: token,
@@ -187,7 +187,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// احراز هویت - ثبت‌نام (اصلاح شده)
+// احراز هویت - ثبت‌نام
 app.post("/api/auth/register", async (req, res) => {
   try {
     const {
@@ -256,9 +256,10 @@ app.post("/api/auth/register", async (req, res) => {
       birth_date: birth_date || null,
       gender: gender || null,
       medical_info: processedMedicalInfo, // استفاده از processed version
-      membership_date: new Date(),
-      membership_level: "regular",
-      points: 0,
+      // membership_date: new Date(),
+      created_at: new Date(),
+      // membership_level: "regular",
+      // points: 0,
       is_verified: false,
     });
 
@@ -273,8 +274,8 @@ app.post("/api/auth/register", async (req, res) => {
       gender: user.gender,
       medical_info: user.medical_info,
       role: user.role,
-      membership_level: user.membership_level,
-      points: user.points,
+      // membership_level: user.membership_level,
+      // points: user.points,
     };
 
     console.log("User created successfully:", userResponse); // برای دیباگ
@@ -294,93 +295,73 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-// احراز هویت - ثبت‌نام (موقت)
-// app.post("/api/auth/register", async (req, res) => {
-//   try {
-//     const {
-//       full_name,
-//       email,
-//       phone,
-//       password,
-//       birth_date,
-//       gender,
-//       medical_info,
-//     } = req.body;
+// ============ فراموشی رمز عبور ============
+// تغییر رمز عبور (بدون نیاز به لاگین)
+app.post("/api/auth/reset-password", async (req, res) => {
+  try {
+    const { phone, newPassword, confirmPassword } = req.body;
 
-//     // بررسی وجود کاربر با شماره تلفن
-//     const existingUser = await User.findOne({
-//       where: {
-//         phone,
-//       },
-//     });
+    console.log("Reset password request:", { phone }); // برای دیباگ
 
-//     if (existingUser) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "این شماره تماس قبلاً ثبت شده است.",
-//       });
-//     }
+    // اعتبارسنجی داده‌ها
+    if (!phone || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "لطفاً همه فیلدها را پر کنید.",
+      });
+    }
 
-//     // اگر ایمیل ارسال شده، چک کن تکراری نباشه
-//     if (email) {
-//       const existingEmail = await User.findOne({ where: { email } });
-//       if (existingEmail) {
-//         return res.status(400).json({
-//           success: false,
-//           error: "این ایمیل قبلاً ثبت شده است.",
-//         });
-//       }
-//     }
+    // بررسی مطابقت رمزها
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "رمز عبور و تأیید آن یکسان نیستند.",
+      });
+    }
 
-//     // ایجاد کاربر جدید
-//     const user = await User.create({
-//       full_name,
-//       email: email || null,
-//       phone,
-//       password,
-//       birth_date: birth_date || null,
-//       gender: gender || null,
-//       // medical_info: medical_info || {
-//       //   allergies: "ندارد",
-//       //   conditions: [],
-//       //   notes: "",
-//       // },
-//       medical_info: medical_info || null,
-//       membership_date: new Date(),
-//       membership_level: "regular",
-//       points: 0,
-//       is_verified: false,
-//     });
+    // بررسی طول رمز
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: "رمز عبور باید حداقل ۶ کاراکتر باشد.",
+      });
+    }
 
-//     // ساخت JWT token
-//     const token = generateToken(user.id);
+    // پیدا کردن کاربر (فقط کاربران active)
+    const user = await User.findOne({
+      where: {
+        phone,
+        is_active: true,
+      },
+    });
 
-//     const userResponse = {
-//       id: user.id,
-//       full_name: user.full_name,
-//       email: user.email,
-//       phone: user.phone,
-//       gender: user.gender,
-//       medical_info: user.medical_info,
-//       role: user.role,
-//       membership_level: user.membership_level,
-//       points: user.points,
-//     };
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "کاربری با این شماره تلفن یافت نشد.",
+      });
+    }
 
-//     res.status(201).json({
-//       success: true,
-//       message: "ثبت‌نام موفقیت‌آمیز بود. لطفاً شماره تلفن خود را تأیید کنید.",
-//       user: userResponse,
-//       token: token,
-//     });
-//   } catch (error) {
-//     console.error("Register error:", error);
-//     res.status(500).json({
-//       success: false,
-//       error: "خطا در ثبت‌نام",
-//     });
-//   }
-// });
+    console.log("User found for password reset:", user.id); // برای دیباگ
+
+    // تغییر رمز عبور
+    user.password = newPassword;
+    await user.save();
+
+    console.log("Password reset successful for user:", user.id); // برای دیباگ
+
+    res.json({
+      success: true,
+      message: "رمز عبور با موفقیت تغییر یافت. اکنون می‌توانید وارد شوید.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      error: "خطا در تغییر رمز عبور: " + error.message,
+    });
+  }
+});
 
 // ============ Routes جدید ============
 // دریافت اطلاعات کاربر جاری
@@ -396,9 +377,6 @@ app.get("/api/auth/me", authMiddleware, async (req, res) => {
         "gender",
         "job",
         "medical_info",
-        "membership_date",
-        "membership_level",
-        "points",
         "role",
         "is_verified",
         "created_at",
@@ -410,6 +388,20 @@ app.get("/api/auth/me", authMiddleware, async (req, res) => {
         success: false,
         error: "کاربر پیدا نشد.",
       });
+    }
+
+    // تبدیل medical_info از string به object
+    let medicalInfo = {};
+    if (user.medical_info) {
+      try {
+        medicalInfo =
+          typeof user.medical_info === "string"
+            ? JSON.parse(user.medical_info)
+            : user.medical_info;
+      } catch (error) {
+        console.error("Error parsing medical_info:", error);
+        medicalInfo = {};
+      }
     }
 
     // محاسبه آمار کاربر
@@ -432,14 +424,24 @@ app.get("/api/auth/me", authMiddleware, async (req, res) => {
       past_appointments: pastAppointments,
       total_appointments: upcomingAppointments + pastAppointments,
       membership_days: Math.floor(
-        (new Date() - new Date(user.membership_date)) / (1000 * 60 * 60 * 24)
+        (new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24)
       ),
     };
 
     res.json({
       success: true,
       user: {
-        ...user.toJSON(),
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        birth_date: user.birth_date,
+        gender: user.gender,
+        job: user.job,
+        medical_info: medicalInfo,
+        created_at: user.created_at,
+        role: user.role,
+        is_verified: user.is_verified,
         stats: userStats,
       },
     });
@@ -562,7 +564,7 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "نوبت با موفقیت رزرو شد",
+      message: "نوبت با موفقیت رزرو شد.",
       appointment: {
         id: fullAppointment.id,
         appointment_code: fullAppointment.appointment_code,
@@ -860,7 +862,18 @@ app.get(
 // آپدیت پروفایل کاربر
 app.put("/api/user/profile", authMiddleware, async (req, res) => {
   try {
-    const { full_name, phone, email, birth_date, gender, job } = req.body;
+    const { full_name, phone, email, birth_date, gender, job, medical_info } =
+      req.body;
+
+    console.log("Update profile request:", {
+      full_name,
+      phone,
+      email,
+      birth_date,
+      gender,
+      job,
+      medical_info,
+    }); // برای دیباگ
 
     const user = await User.findByPk(req.userId);
 
@@ -879,7 +892,35 @@ app.put("/api/user/profile", authMiddleware, async (req, res) => {
     if (gender !== undefined) user.gender = gender;
     if (job !== undefined) user.job = job;
 
+    // اضافه کردن medical_info
+    if (medical_info !== undefined) {
+      let processedMedicalInfo = medical_info;
+
+      // اگر medical_info object هست، JSON.stringify کن
+      if (medical_info && typeof medical_info === "object") {
+        try {
+          processedMedicalInfo = JSON.stringify(medical_info);
+        } catch (stringifyError) {
+          console.error("Error stringifying medical_info:", stringifyError);
+          processedMedicalInfo = "{}";
+        }
+      }
+
+      user.medical_info = processedMedicalInfo;
+    }
+
     await user.save();
+
+    // برای response، medical_info رو parse کن
+    let medicalInfoForResponse = user.medical_info;
+    if (medicalInfoForResponse && typeof medicalInfoForResponse === "string") {
+      try {
+        medicalInfoForResponse = JSON.parse(medicalInfoForResponse);
+      } catch (parseError) {
+        console.error("Error parsing medical_info for response:", parseError);
+        medicalInfoForResponse = {};
+      }
+    }
 
     res.json({
       success: true,
@@ -892,14 +933,72 @@ app.put("/api/user/profile", authMiddleware, async (req, res) => {
         birth_date: user.birth_date,
         gender: user.gender,
         job: user.job,
-        medical_info: user.medical_info,
+
+        medical_info: medicalInfoForResponse,
       },
     });
   } catch (error) {
     console.error("Update profile error:", error);
     res.status(500).json({
       success: false,
-      error: "خطا در به‌روزرسانی پروفایل",
+      error: "خطا در به‌روزرسانی پروفایل: " + error.message,
+    });
+  }
+});
+
+// تغییر رمز عبور از طریق پروفایل (برای کاربر لاگین کرده)
+app.put("/api/user/change-password", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // اعتبارسنجی داده‌ها
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "لطفاً همه فیلدها را پر کنید.",
+      });
+    }
+
+    // بررسی مطابقت رمزها
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "رمز عبور جدید و تأیید آن یکسان نیستند.",
+      });
+    }
+
+    // پیدا کردن کاربر
+    const user = await User.findByPk(req.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "کاربر پیدا نشد.",
+      });
+    }
+
+    // بررسی رمز عبور فعلی
+    const isValid = await user.comparePassword(currentPassword);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        error: "رمز عبور فعلی اشتباه است.",
+      });
+    }
+
+    // تغییر رمز عبور
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "رمز عبور با موفقیت تغییر یافت.",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      success: false,
+      error: "خطا در تغییر رمز عبور",
     });
   }
 });
