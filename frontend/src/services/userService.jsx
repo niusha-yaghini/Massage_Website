@@ -402,6 +402,43 @@ export const userService = {
     }
   },
 
+  // در userService.jsx، بعد از bookAppointment اضافه کن:
+
+  // آپدیت نوبت (تغییر زمان)
+  async updateAppointment(appointmentId, updateData) {
+    try {
+      const formattedData = {
+        appointment_date:
+          updateData.appointment_date || updateData.selectedDate,
+        appointment_time:
+          updateData.appointment_time || updateData.selectedTime,
+        notes: updateData.notes,
+      };
+
+      console.log("🔄 Updating appointment:", appointmentId, formattedData);
+
+      const response = await fetchWithAuth(
+        `${API_URL}/appointments/${appointmentId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(formattedData),
+        }
+      );
+
+      const data = await handleResponse(response);
+
+      return {
+        success: true,
+        appointment: data.appointment,
+        message: data.message || "نوبت با موفقیت به‌روزرسانی شد",
+      };
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("خطا در آپدیت نوبت:", error);
+      throw error;
+    }
+  },
+
   async cancelAppointment(appointmentId) {
     try {
       const response = await fetchWithAuth(

@@ -17,6 +17,13 @@ const Booking = ({
   isEditing = false,
   editingAppointmentId = null,
 }) => {
+  console.log("🎯 Booking component rendered with props:", {
+    isEditing,
+    editingAppointmentId,
+    initialData,
+    massageTypesLength: massageTypes?.length,
+  });
+
   const [bookingStep, setBookingStep] = useState(1);
   const [bookingData, setBookingData] = useState({
     selectedMassage: initialData?.selectedMassage || null,
@@ -28,6 +35,19 @@ const Booking = ({
   const [allSlots, setAllSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    console.log(
+      "🔄 Booking useEffect - isEditing:",
+      isEditing,
+      "initialData:",
+      initialData
+    );
+    if (isEditing && initialData) {
+      console.log("✏️ Setting booking step to 2 for editing");
+      setBookingStep(2);
+    }
+  }, [isEditing, initialData]);
 
   // بارگذاری تاریخ‌های available (فقط یک بار)
   useEffect(() => {
@@ -68,10 +88,67 @@ const Booking = ({
     }
   };
 
+  // const handleSubmit = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError("");
+
+  //     if (isEditing && editingAppointmentId) {
+  //       // آپدیت نوبت موجود
+  //       const updateData = {
+  //         appointment_date: bookingData.selectedDate,
+  //         appointment_time: bookingData.selectedTime,
+  //         notes: bookingData.notes,
+  //       };
+  //       await userService.updateAppointment(editingAppointmentId, updateData);
+  //       alert("زمان نوبت با موفقیت تغییر کرد!");
+  //     } else {
+  //       // رزرو نوبت جدید
+  //       const appointmentData = {
+  //         service_id: bookingData.selectedMassage.id,
+  //         appointment_date: bookingData.selectedDate,
+  //         appointment_time: bookingData.selectedTime,
+  //         notes: bookingData.notes,
+  //         price: bookingData.selectedMassage.price,
+  //       };
+  //       await userService.bookAppointment(appointmentData);
+  //       alert("نوبت با موفقیت رزرو شد!");
+  //     }
+
+  //     // ریست فرم
+  //     setBookingStep(1);
+  //     setBookingData({
+  //       selectedMassage: null,
+  //       selectedDate: "",
+  //       selectedTime: "",
+  //       notes: "",
+  //     });
+
+  //     // خبر دادن به والد (Dashboard) برای آپدیت لیست نوبت‌ها
+  //     if (onBookingSuccess) {
+  //       onBookingSuccess();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     setError(error.message || "خطا در انجام عملیات. لطفاً دوباره تلاش کنید.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
       setError("");
+
+      console.log("📝 Submitting with:", {
+        isEditing,
+        editingAppointmentId,
+        selectedDate: bookingData.selectedDate,
+        selectedTime: bookingData.selectedTime,
+        notes: bookingData.notes,
+        selectedMassage: bookingData.selectedMassage,
+      });
 
       if (isEditing && editingAppointmentId) {
         // آپدیت نوبت موجود
@@ -80,6 +157,19 @@ const Booking = ({
           appointment_time: bookingData.selectedTime,
           notes: bookingData.notes,
         };
+
+        console.log(
+          "🔄 Updating appointment:",
+          editingAppointmentId,
+          updateData
+        );
+
+        // مطمئن شو که userService.updateAppointment وجود داره
+        if (!userService.updateAppointment) {
+          console.error("❌ userService.updateAppointment is not defined!");
+          throw new Error("تابع آپدیت نوبت در سرویس وجود ندارد");
+        }
+
         await userService.updateAppointment(editingAppointmentId, updateData);
         alert("زمان نوبت با موفقیت تغییر کرد!");
       } else {
@@ -91,6 +181,8 @@ const Booking = ({
           notes: bookingData.notes,
           price: bookingData.selectedMassage.price,
         };
+
+        console.log("📅 Creating new appointment:", appointmentData);
         await userService.bookAppointment(appointmentData);
         alert("نوبت با موفقیت رزرو شد!");
       }
@@ -104,12 +196,12 @@ const Booking = ({
         notes: "",
       });
 
-      // خبر دادن به والد (Dashboard) برای آپدیت لیست نوبت‌ها
+      // خبر دادن به والد
       if (onBookingSuccess) {
         onBookingSuccess();
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("❌ Error in handleSubmit:", error);
       setError(error.message || "خطا در انجام عملیات. لطفاً دوباره تلاش کنید.");
     } finally {
       setLoading(false);

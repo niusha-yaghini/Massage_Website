@@ -6,6 +6,7 @@ require("dotenv").config();
 // Import دیتابیس و مدل‌ها
 const { sequelize, testConnection } = require("./config/database");
 const { User, Service, Appointment, Review } = require("./models");
+const { Op } = require("sequelize"); // اضافه کن
 
 const app = express();
 
@@ -548,18 +549,30 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
     // ✅ اعتبارسنجی قیمت (اختیاری ولی خوبه)
     // می‌تونی چک کنی قیمت ارسالی با قیمت سرویس مطابقت داره یا نه
     // این کار از تقلب جلوگیری می‌کنه
+    // if (price && service.price) {
+    //   if ((priceDiff = !service.price)) {
+    //     console.warn("⚠️ Price mismatch detected:", {
+    //       sent_price: price,
+    //       actual_price: service.price,
+    //       diff: priceDiff,
+    //     });
+    //     // می‌تونی خطا بدی یا فقط لاگ کنی
+    //     // return res.status(400).json({
+    //     //   success: false,
+    //     //   error: "قیمت ارسالی معتبر نیست"
+    //     // });
+    //   }
+    // }
+
+    // اگر می‌خوای فقط لاگ کنی:
     if (price && service.price) {
-      if ((priceDiff = !service.price)) {
-        console.warn("⚠️ Price mismatch detected:", {
+      const priceDiff = Math.abs(price - service.price);
+      if (priceDiff > 0) {
+        console.warn("⚠️ Price difference detected:", {
           sent_price: price,
           actual_price: service.price,
           diff: priceDiff,
         });
-        // می‌تونی خطا بدی یا فقط لاگ کنی
-        // return res.status(400).json({
-        //   success: false,
-        //   error: "قیمت ارسالی معتبر نیست"
-        // });
       }
     }
 
@@ -636,6 +649,124 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       error: "خطا در رزرو نوبت",
+    });
+  }
+});
+
+// اضافه کردن مسیر آپدیت نوبت (PUT)
+app.put("/api/appointments/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { appointment_date, appointment_time, notes } = req.body;
+
+    console.log("🔄 Updating appointment:", {
+      id,
+      appointment_date,
+      appointment_time,
+      notes,
+    });
+
+    // پیدا کردن نوبت
+    const appointment = await Appointment.findOne({
+      where: {
+        id: id,
+        user_id: req.userId,
+      },
+    });
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        error: "نوبت مورد نظر یافت نشد.",
+      });
+    }
+
+    // بررسی اینکه نوبت قابل تغییر هست یا نه
+    if (appointment.status === "completed") {
+      return res.status(400).json({
+        success: false,
+        error: "نوبت‌های انجام شده قابل تغییر نیستند.",
+      });
+    }
+
+    if (appointment.status === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        error: "نوبت‌های لغو شده قابل تغییر نیستند.",
+      });
+    }
+
+    // بررسی تداخل زمانی با نوبت‌های دیگر (به جز خود این نوبت)
+    if (appointment_date && appointment_time) {
+      const existingAppointment = await Appointment.findOne({
+        where: {
+          appointment_date,
+          appointment_time,
+          status: ["pending", "confirmed"],
+          id: {
+            // [Op.ne]: id, // Sequelize عملگر not equal
+            [Op.ne]: parseInt(id), // تبدیل به عدد
+          },
+        },
+      });
+
+      if (existingAppointment) {
+        return res.status(400).json({
+          success: false,
+          error: "این زمان قبلاً رزرو شده است. لطفاً زمان دیگری انتخاب کنید.",
+        });
+      }
+    }
+
+    // آپدیت نوبت
+    if (appointment_date) appointment.appointment_date = appointment_date;
+    if (appointment_time) appointment.appointment_time = appointment_time;
+    if (notes !== undefined) appointment.notes = notes;
+
+    await appointment.save();
+
+    // دریافت اطلاعات کامل نوبت
+    const updatedAppointment = await Appointment.findByPk(id, {
+      include: [
+        {
+          model: Service,
+          as: "service",
+          attributes: ["id", "name", "duration_minutes", "price", "category"],
+        },
+      ],
+    });
+
+    res.json({
+      success: true,
+      message: "نوبت با موفقیت به‌روزرسانی شد.",
+      appointment: {
+        id: updatedAppointment.id,
+        appointment_code: updatedAppointment.appointment_code,
+        date: updatedAppointment.appointment_date,
+        time: updatedAppointment.appointment_time,
+        status: updatedAppointment.status,
+        status_text: updatedAppointment.getStatusText(),
+        notes: updatedAppointment.notes,
+        price: updatedAppointment.price,
+        // service: updatedAppointment.service,
+        service: updatedAppointment.service
+          ? {
+              id: updatedAppointment.service.id,
+              name: updatedAppointment.service.name,
+              duration: `${updatedAppointment.service.duration_minutes} دقیقه`,
+              price:
+                new Intl.NumberFormat("fa-IR").format(
+                  updatedAppointment.service.price
+                ) + " تومان",
+            }
+          : null,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Update appointment error:", error);
+    res.status(500).json({
+      success: false,
+      error: "خطا در به‌روزرسانی نوبت: " + error.message,
     });
   }
 });
