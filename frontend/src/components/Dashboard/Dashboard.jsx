@@ -198,7 +198,7 @@ const Dashboard = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [editingAppointment, setEditingAppointment] = useState(null); // ✅ اضافه کن
+  const [editingAppointment, setEditingAppointment] = useState(null);
 
   // ============ useEffect برای بارگذاری داده‌ها ============
   useEffect(() => {
@@ -252,7 +252,7 @@ const Dashboard = () => {
         : serviceInfo.price // عددی
         ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
         : "۰ تومان",
-      priceValue: apt.price || serviceInfo.price || 0, // ✅ برای محاسبات
+      priceValue: apt.price || serviceInfo.price || 0, // برای محاسبات
       rating: apt.rating || 0,
       therapistNotes: apt.therapist_notes || "",
       status: apt.status,
@@ -1505,36 +1505,11 @@ const Dashboard = () => {
         <div className={styles.contentArea}>
           {activeTab === "dashboard" && <DashboardHome />}
           {activeTab === "profile" && <Profile />}
-          {/* {activeTab === "booking" && (
-            <Booking
-              massageTypes={massageTypes}
-              onBookingSuccess={async () => {
-                // بعد از رزرو موفق، نوبت‌ها رو دوباره بگیر
-                const appointmentsResponse =
-                  await userService.getAppointments();
-                setAppointments(appointmentsResponse.appointments || []);
-                setEditingAppointment(null); // ریست حالت ویرایش
-              }}
-              initialData={
-                editingAppointment
-                  ? {
-                      selectedMassage: editingAppointment.service,
-                      selectedDate: editingAppointment.date,
-                      selectedTime: editingAppointment.time,
-                      notes: editingAppointment.notes || "",
-                    }
-                  : null
-              }
-              isEditing={!!editingAppointment}
-              editingAppointmentId={editingAppointment?.id}
-            />
-          )} */}
-
           {activeTab === "booking" && (
             <Booking
               massageTypes={massageTypes}
               onBookingSuccess={async () => {
-                console.log("✅ Booking success callback triggered");
+                console.log("Booking success callback triggered");
                 const appointmentsResponse =
                   await userService.getAppointments();
                 setAppointments(appointmentsResponse.appointments || []);

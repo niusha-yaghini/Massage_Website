@@ -5,6 +5,7 @@ const User = require("./User");
 const Service = require("./Service");
 const Appointment = require("./Appointment");
 const Review = require("./Review");
+const Notification = require("./Notification");
 
 // تعریف رابطه‌ها
 const models = {
@@ -12,6 +13,7 @@ const models = {
   Service,
   Appointment,
   Review,
+  Notification,
 };
 
 // تعریف همه associations
@@ -37,5 +39,6 @@ module.exports = {
   Service,
   Appointment,
   Review,
+  Notification,
   syncDatabase,
 };

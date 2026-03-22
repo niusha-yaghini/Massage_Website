@@ -359,17 +359,6 @@ export const userService = {
   // رزرو نوبت جدید
   async bookAppointment(appointmentData) {
     try {
-      // فرمت‌دهی داده‌ها برای بک‌اند
-      // const formattedData = {
-      //   service_id:
-      //     appointmentData.service_id || appointmentData.selectedMassage?.id,
-      //   appointment_date:
-      //     appointmentData.appointment_date || appointmentData.selectedDate,
-      //   appointment_time:
-      //     appointmentData.appointment_time || appointmentData.selectedTime,
-      //   notes: appointmentData.notes,
-      // };
-
       const formattedData = {
         service_id:
           appointmentData.service_id || appointmentData.selectedMassage?.id,
@@ -712,4 +701,370 @@ export const userService = {
   },
 };
 
-export default userService;
+// frontend/src/services/userService.jsx
+// در انتهای فایل، قبل از export default، این بخش رو اضافه کن:
+
+// ==================== ADMIN SERVICES (همان ماساژتراپیست) ====================
+export const adminService = {
+  // دریافت آمار داشبورد
+  async getStats() {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/admin/stats`);
+      const data = await handleResponse(response);
+      return data.stats;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching admin stats:", error);
+      throw error;
+    }
+  },
+
+  // دریافت لیست کاربران
+  async getUsers(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/users?${queryParams}`
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching users:", error);
+      throw error;
+    }
+  },
+
+  // آپدیت کاربر (تغییر نقش، فعال/غیرفعال)
+  async updateUser(userId, userData) {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/admin/users/${userId}`, {
+        method: "PUT",
+        body: JSON.stringify(userData),
+      });
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error updating user:", error);
+      throw error;
+    }
+  },
+
+  // دریافت لیست نوبت‌ها
+  async getAppointments(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/appointments?${queryParams}`
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching appointments:", error);
+      throw error;
+    }
+  },
+
+  // تغییر وضعیت نوبت
+  async updateAppointmentStatus(appointmentId, status, therapist_notes = null) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/appointments/${appointmentId}/status`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ status, therapist_notes }),
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error updating appointment status:", error);
+      throw error;
+    }
+  },
+
+  // دریافت لیست خدمات
+  async getServices() {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/admin/services`);
+      const data = await handleResponse(response);
+      return data.services;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching services:", error);
+      throw error;
+    }
+  },
+
+  // ایجاد سرویس جدید
+  async createService(serviceData) {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/admin/services`, {
+        method: "POST",
+        body: JSON.stringify(serviceData),
+      });
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error creating service:", error);
+      throw error;
+    }
+  },
+
+  // آپدیت سرویس
+  async updateService(serviceId, serviceData) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/services/${serviceId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(serviceData),
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error updating service:", error);
+      throw error;
+    }
+  },
+
+  // حذف سرویس
+  async deleteService(serviceId) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/services/${serviceId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error deleting service:", error);
+      throw error;
+    }
+  },
+
+  // دریافت نظرات
+  async getReviews(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/reviews?${queryParams}`
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching reviews:", error);
+      throw error;
+    }
+  },
+
+  // تایید/رد نظر
+  async approveReview(reviewId, is_approved) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/reviews/${reviewId}/approve`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ is_approved }),
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error approving review:", error);
+      throw error;
+    }
+  },
+
+  // ============ کارهای ماساژتراپیست ============
+
+  // دریافت لیست مراجعین
+  async getClients() {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/admin/clients`);
+      const data = await handleResponse(response);
+      return data.clients;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching clients:", error);
+      throw error;
+    }
+  },
+
+  // دریافت جزئیات یک مشتری
+  async getClientDetails(clientId) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/clients/${clientId}`
+      );
+      const data = await handleResponse(response);
+      return data.client;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching client details:", error);
+      throw error;
+    }
+  },
+
+  // دریافت نوبت‌های تقویم
+  async getCalendar(start_date = null, end_date = null) {
+    try {
+      let url = `${API_URL}/admin/calendar`;
+      const params = [];
+      if (start_date) params.push(`start_date=${start_date}`);
+      if (end_date) params.push(`end_date=${end_date}`);
+      if (params.length) url += `?${params.join("&")}`;
+
+      const response = await fetchWithAuth(url);
+      const data = await handleResponse(response);
+      return data.appointments;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching calendar:", error);
+      throw error;
+    }
+  },
+
+  // ثبت نظر تراپیست برای نوبت
+  async addTherapistNotes(appointmentId, therapist_notes) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/appointments/${appointmentId}/notes`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ therapist_notes }),
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error adding therapist notes:", error);
+      throw error;
+    }
+  },
+
+  // حذف نوبت توسط ادمین (با ارسال نوتیفیکیشن)
+  async cancelAppointmentByAdmin(appointmentId) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/appointments/${appointmentId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error cancelling appointment:", error);
+      throw error;
+    }
+  },
+
+  // دریافت آمار overview
+  async getOverview() {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/admin/overview`);
+      const data = await handleResponse(response);
+      return data.overview;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching overview:", error);
+      throw error;
+    }
+  },
+};
+
+// ==================== NOTIFICATION SERVICES ====================
+export const notificationService = {
+  // دریافت لیست نوتیفیکیشن‌ها
+  async getNotifications(page = 1, limit = 20, unreadOnly = false) {
+    try {
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        unread_only: unreadOnly,
+      }).toString();
+      const response = await fetchWithAuth(
+        `${API_URL}/notifications?${queryParams}`
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching notifications:", error);
+      throw error;
+    }
+  },
+
+  // علامت زدن یک نوتیفیکیشن به عنوان خوانده شده
+  async markAsRead(notificationId) {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/notifications/${notificationId}/read`,
+        {
+          method: "PUT",
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error marking notification as read:", error);
+      throw error;
+    }
+  },
+
+  // علامت زدن همه نوتیفیکیشن‌ها به عنوان خوانده شده
+  async markAllAsRead() {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/notifications/read-all`,
+        {
+          method: "PUT",
+        }
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error marking all notifications as read:", error);
+      throw error;
+    }
+  },
+
+  // دریافت تعداد نوتیفیکیشن‌های خوانده نشده
+  async getUnreadCount() {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/notifications?unread_only=true&limit=1`
+      );
+      const data = await handleResponse(response);
+      return data.unread_count || 0;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching unread count:", error);
+      return 0;
+    }
+  },
+};
+
+export default {
+  ...userService,
+  admin: adminService,
+  notifications: notificationService,
+};
+
+// export default userService;

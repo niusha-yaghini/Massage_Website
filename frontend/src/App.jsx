@@ -13,8 +13,9 @@ import "./styles/fonts.css";
 import Landing from "./components/Landing/Landing";
 import Login from "./components/Login/Login";
 import SignUp from "./components/SignUp/SignUp";
-import Dashboard from "./components/Dashboard/Dashboard";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
+import Dashboard from "./components/Dashboard/Dashboard";
+import AdminPanel from "./components/AdminPanel/AdminPanel";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </Router>
   );
