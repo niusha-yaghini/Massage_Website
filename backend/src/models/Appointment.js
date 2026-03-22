@@ -56,7 +56,7 @@ const Appointment = sequelize.define(
         min: 1,
         max: 5,
       },
-      allowNull: true, // اضافه شد
+      allowNull: true,
     },
     user_review: {
       type: DataTypes.TEXT,
@@ -65,7 +65,7 @@ const Appointment = sequelize.define(
     },
     therapist_id: {
       type: DataTypes.INTEGER,
-      allowNull: true, // اضافه شد
+      allowNull: true,
       references: {
         model: "users",
         key: "id",
@@ -77,6 +77,12 @@ const Appointment = sequelize.define(
       type: DataTypes.STRING(20),
       unique: true,
       field: "appointment_code",
+    },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      comment: "قیمت نهایی نوبت (در زمان رزرو ذخیره می‌شود)",
     },
   },
   {

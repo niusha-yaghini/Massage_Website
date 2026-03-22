@@ -484,6 +484,7 @@ app.get("/api/appointments", authMiddleware, async (req, res) => {
       therapist_notes: apt.therapist_notes,
       rating: apt.rating,
       user_review: apt.user_review,
+      price: apt.price,
       service: apt.service
         ? {
             id: apt.service.id,
@@ -514,7 +515,26 @@ app.get("/api/appointments", authMiddleware, async (req, res) => {
 // رزرو نوبت جدید
 app.post("/api/appointments", authMiddleware, async (req, res) => {
   try {
-    const { service_id, appointment_date, appointment_time, notes } = req.body;
+    // const { service_id, appointment_date, appointment_time, notes } = req.body;
+    const { service_id, appointment_date, appointment_time, notes, price } =
+      req.body;
+
+    // console.log("Booking request received:", {
+    //   service_id,
+    //   appointment_date,
+    //   appointment_time,
+    //   notes,
+    //   userId: req.userId,
+    // });
+
+    // بررسی وجود سرویس
+    // const service = await Service.findByPk(service_id);
+    // if (!service) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     error: "سرویس مورد نظر یافت نشد",
+    //   });
+    // }
 
     // بررسی وجود سرویس
     const service = await Service.findByPk(service_id);
@@ -524,6 +544,31 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
         error: "سرویس مورد نظر یافت نشد",
       });
     }
+
+    // ✅ اعتبارسنجی قیمت (اختیاری ولی خوبه)
+    // می‌تونی چک کنی قیمت ارسالی با قیمت سرویس مطابقت داره یا نه
+    // این کار از تقلب جلوگیری می‌کنه
+    if (price && service.price) {
+      if ((priceDiff = !service.price)) {
+        console.warn("⚠️ Price mismatch detected:", {
+          sent_price: price,
+          actual_price: service.price,
+          diff: priceDiff,
+        });
+        // می‌تونی خطا بدی یا فقط لاگ کنی
+        // return res.status(400).json({
+        //   success: false,
+        //   error: "قیمت ارسالی معتبر نیست"
+        // });
+      }
+    }
+
+    // console.log("✅ Service found:", {
+    //   id: service.id,
+    //   name: service.name,
+    //   price: service.price,
+    //   duration: service.duration_minutes,
+    // });
 
     // بررسی اینکه آیا نوبت برای این زمان قبلاً رزرو شده
     const existingAppointment = await Appointment.findOne({
@@ -549,6 +594,8 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
       appointment_time,
       notes: notes || "",
       status: "pending",
+      // price: service.price,
+      price: price || service.price,
     });
 
     // گرفتن اطلاعات کامل نوبت
@@ -572,6 +619,7 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
         time: fullAppointment.appointment_time,
         status: fullAppointment.status,
         status_text: fullAppointment.getStatusText(),
+        price: fullAppointment.price,
         service: {
           id: fullAppointment.service.id,
           name: fullAppointment.service.name,
@@ -764,23 +812,23 @@ app.get(
     try {
       const { date } = req.query;
 
+      // ساعت‌های کاری کلینیک
+      const allSlots = [
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+      ];
+
       // اگر تاریخ مشخص شده، ساعت‌های اون تاریخ رو برگردون
       if (date) {
-        // ساعت‌های کاری کلینیک
-        const allSlots = [
-          "08:00",
-          "09:00",
-          "10:00",
-          "11:00",
-          "12:00",
-          "14:00",
-          "15:00",
-          "16:00",
-          "17:00",
-          "18:00",
-          "19:00",
-        ];
-
         // نوبت‌های رزرو شده برای این تاریخ
         const bookedAppointments = await Appointment.findAll({
           where: {
@@ -815,39 +863,55 @@ app.get(
       for (let i = 1; i <= 7; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
+        const dateStr = date.toISOString().split("T")[0];
 
-        // فقط روزهای غیرجمعه (می‌تونی تغییر بدی)
-        if (date.getDay() !== 5) {
-          // 5 = جمعه
-          const dateStr = date.toISOString().split("T")[0];
+        // تعداد نوبت‌های این تاریخ
+        const appointmentCount = await Appointment.count({
+          where: {
+            appointment_date: dateStr,
+            status: ["pending", "confirmed"],
+          },
+        });
 
-          // تعداد نوبت‌های این تاریخ
-          const appointmentCount = await Appointment.count({
+        // اگر کمتر از ۱۱ نوبت باشه (تعداد کل slots)، تاریخ available هست
+        if (appointmentCount < 11) {
+          // همه ساعت‌ها
+          const bookedAppointments = await Appointment.findAll({
             where: {
               appointment_date: dateStr,
               status: ["pending", "confirmed"],
             },
+            attributes: ["appointment_time"],
           });
 
-          // اگر کمتر از ۱۱ نوبت باشه (تعداد کل slots)، تاریخ available هست
-          if (appointmentCount < 11) {
-            availableDates.push({
-              date: dateStr,
-              display: date.toLocaleDateString("fa-IR", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              }),
-              dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
-              available_slots: 11 - appointmentCount,
-            });
-          }
+          const bookedTimes = bookedAppointments.map(
+            (apt) => apt.appointment_time
+          );
+
+          const availableSlots = allSlots.filter(
+            (slot) => !bookedTimes.includes(slot)
+          );
+
+          availableDates.push({
+            date: dateStr,
+            display: date.toLocaleDateString("fa-IR", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            }),
+            dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
+            all_slots: allSlots,
+            available_slots: availableSlots,
+            booked_slots: bookedTimes,
+            total_available: availableSlots.length,
+          });
         }
       }
 
       res.json({
         success: true,
         available_dates: availableDates,
+        all_slots: allSlots,
       });
     } catch (error) {
       console.error("Get available slots error:", error);

@@ -84,58 +84,11 @@ const fetchWithAuth = async (url, options = {}) => {
 
   const response = await fetch(url, defaultOptions);
 
-  // اگر توکن منقضی شده، می‌توانید اینجا رفرش کنید (اختیاری)
-  // if (response.status === 401 && getRefreshToken()) {
-  //   await refreshAuthToken();
-  //   return fetchWithAuth(url, options);
-  // }
-
   return response;
 };
 
 // ==================== سرویس اصلی ====================
 export const userService = {
-  // async register(userData) {
-  //   try {
-  //     console.log("Registering user with data:", userData);
-  //     const response = await fetch(`${API_URL}/auth/register`, {
-  //       method: "POST",
-  //       headers: getHeaders(false),
-  //       body: JSON.stringify(userData),
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json();
-  //       throw new Error(
-  //         errorData.error || errorData.message || "خطا در ثبت‌نام"
-  //       );
-  //     }
-
-  //     const data = await response.json();
-
-  //     if (data.token) {
-  //       setToken(data.token);
-  //     }
-  //     if (data.refresh_token) {
-  //       setRefreshToken(data.refresh_token);
-  //     }
-
-  //     return {
-  //       success: true,
-  //       user: data.user,
-  //       message: data.message || "ثبت‌نام با موفقیت انجام شد",
-  //     };
-  //   } catch (error) {
-  //     console.error("خطا در ثبت‌نام:", error);
-  //     if (error.message.includes("Failed to fetch")) {
-  //       throw new Error(
-  //         "خطا در ارتباط با سرور. لطفاً اتصال اینترنت را بررسی کنید."
-  //       );
-  //     }
-  //     throw error;
-  //   }
-  // },
-
   async register(userData) {
     try {
       console.log("Registering user with data:", userData);
@@ -229,7 +182,7 @@ export const userService = {
       const data = await handleResponse(response);
 
       console.log("Raw user data from backend:", data.user); // برای دیباگ
-      
+
       // تضمین ساختار یکسان برای فرانت‌اند
       return {
         success: true,
@@ -320,6 +273,8 @@ export const userService = {
       });
       const data = await handleResponse(response);
 
+      console.log("📦 Services from backend:", data); // ✅ این لاگ رو اضافه کن
+
       return data.map((service) => ({
         id: service.id,
         name: service.name,
@@ -376,6 +331,8 @@ export const userService = {
             date: apt.date || apt.appointment_date,
             time: apt.time || apt.appointment_time,
             status: apt.status,
+            notes: apt.notes || "",
+            price: apt.price || 0,
             service: apt.service
               ? {
                   id: apt.service.id,
@@ -403,6 +360,16 @@ export const userService = {
   async bookAppointment(appointmentData) {
     try {
       // فرمت‌دهی داده‌ها برای بک‌اند
+      // const formattedData = {
+      //   service_id:
+      //     appointmentData.service_id || appointmentData.selectedMassage?.id,
+      //   appointment_date:
+      //     appointmentData.appointment_date || appointmentData.selectedDate,
+      //   appointment_time:
+      //     appointmentData.appointment_time || appointmentData.selectedTime,
+      //   notes: appointmentData.notes,
+      // };
+
       const formattedData = {
         service_id:
           appointmentData.service_id || appointmentData.selectedMassage?.id,
@@ -411,7 +378,10 @@ export const userService = {
         appointment_time:
           appointmentData.appointment_time || appointmentData.selectedTime,
         notes: appointmentData.notes,
+        price: appointmentData.price, // ✅ اضافه کردن price به داده‌های ارسالی
       };
+
+      console.log("📤 Booking payload:", formattedData); // برای دیباگ
 
       const response = await fetchWithAuth(`${API_URL}/appointments`, {
         method: "POST",
@@ -432,7 +402,6 @@ export const userService = {
     }
   },
 
-  // لغو نوبت
   async cancelAppointment(appointmentId) {
     try {
       const response = await fetchWithAuth(
@@ -446,7 +415,7 @@ export const userService = {
 
       return {
         success: true,
-        message: data.message || "نوبت با موفقیت لغو شد",
+        message: data.message || "نوبت با موفقیت لغو شد.",
       };
     } catch (error) {
       handleNetworkError(error);
@@ -482,25 +451,75 @@ export const userService = {
     }
   },
 
-  // دریافت زمان‌های موجود برای رزرو
+  // دریافت زمان‌های موجود برای رزرو - نسخه نهایی
   async getAvailableSlots(date = null) {
     try {
-      const url = date
-        ? `${API_URL}/appointments/available-slots?date=${date}`
-        : `${API_URL}/appointments/available-slots`;
+      let url = `${API_URL}/appointments/available-slots`;
 
-      const response = await fetchWithAuth(url);
+      if (date) {
+        url += `?date=${date}`;
+      }
+
+      console.log("Fetching available slots from:", url);
+
+      // استفاده از fetchWithAuth که خودت تعریف کردی
+      const response = await fetchWithAuth(url, {
+        requireAuth: true, // نیاز به احراز هویت داره
+      });
+
+      // استفاده از handleResponse که خودت تعریف کردی
       const data = await handleResponse(response);
 
+      console.log("Available slots data received:", data);
+
+      // اگر API موفق نبوده
+      if (!data.success) {
+        throw new Error(data.error || "خطا در دریافت زمان‌های موجود");
+      }
+
+      // برگرداندن تمام اطلاعات
       return {
         success: true,
         available_dates: data.available_dates || [],
         available_slots: data.available_slots || [],
+        all_slots: data.all_slots || [
+          "08:00",
+          "09:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "14:00",
+          "15:00",
+          "16:00",
+          "17:00",
+          "18:00",
+          "19:00",
+        ], // fallback
+        booked_slots: data.booked_slots || [],
       };
     } catch (error) {
-      handleNetworkError(error);
-      console.error("خطا در دریافت زمان‌های موجود:", error);
-      throw error;
+      console.error("Error fetching available slots:", error);
+
+      // در صورت خطا، داده‌های پیش‌فرض برگردون
+      return {
+        success: false,
+        available_dates: [],
+        available_slots: [],
+        all_slots: [
+          "08:00",
+          "09:00",
+          "10:00",
+          "11:00",
+          "12:00",
+          "14:00",
+          "15:00",
+          "16:00",
+          "17:00",
+          "18:00",
+          "19:00",
+        ],
+        error: error.message,
+      };
     }
   },
 

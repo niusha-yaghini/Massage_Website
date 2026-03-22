@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import styles from "./Dashboard.module.css";
+import Booking from "./Booking";
 import { userService } from "../../services/userService";
 import {
   FiUser,
@@ -190,14 +191,14 @@ const Dashboard = () => {
   const [showMedicalInfo, setShowMedicalInfo] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState([]);
-  const [bookingStep, setBookingStep] = useState(1);
-  const [bookingData, setBookingData] = useState({
-    selectedMassage: null,
-    selectedTherapist: null,
-    selectedDate: "",
-    selectedTime: "",
-    notes: "",
-  });
+  // const [bookingStep, setBookingStep] = useState(1);
+  // const [bookingData, setBookingData] = useState({
+  //   selectedMassage: null,
+  //   selectedTherapist: null,
+  //   selectedDate: "",
+  //   selectedTime: "",
+  //   notes: "",
+  // });
 
   // ============ stateهای جدید برای داده‌های واقعی ============
   const [userData, setUserData] = useState(null);
@@ -205,6 +206,7 @@ const Dashboard = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingAppointment, setEditingAppointment] = useState(null); // ✅ اضافه کن
 
   // ============ useEffect برای بارگذاری داده‌ها ============
   useEffect(() => {
@@ -241,25 +243,79 @@ const Dashboard = () => {
     fetchData();
   }, [navigate]);
 
-  // ============ تغییر توابع برای استفاده از داده‌های واقعی ============
-  const massageHistory = appointments.map((apt) => ({
-    id: apt.id,
-    date: apt.date,
-    time: apt.time,
-    type: apt.service?.name || "ماساژ عمومی",
-    duration: apt.service?.duration || "۶۰ دقیقه",
-    price: apt.service?.price || "۰ تومان",
-    rating: apt.rating || 0,
-    therapistNotes: apt.therapist_notes || "",
-    status:
-      apt.status === "completed"
-        ? "completed"
-        : apt.status === "cancelled"
-        ? "cancelled"
-        : "upcoming",
-    userRating: apt.rating,
-    userReview: apt.user_review,
-  }));
+  // ============ تبدیل appointments به massageHistory ============
+  // const massageHistory = appointments.map((apt) => {
+  //   console.log("Processing appointment:", apt); // برای دیباگ
+
+  //   // اگر service وجود داره، از اون استفاده کن
+  //   const serviceInfo = apt.service || {};
+
+  //   return {
+  //     id: apt.id,
+  //     date: apt.date || apt.appointment_date,
+  //     time: apt.time || apt.appointment_time,
+  //     type: serviceInfo.name || "ماساژ عمومی",
+  //     duration: serviceInfo.duration_minutes
+  //       ? `${serviceInfo.duration_minutes} دقیقه`
+  //       : serviceInfo.duration || "۶۰ دقیقه",
+  //     // price: serviceInfo.price
+  //     //   ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
+  //     //   : "۰ تومان",
+  //     price: apt.price // از price مستقیم استفاده کن
+  //       ? new Intl.NumberFormat("fa-IR").format(apt.price) + " تومان"
+  //       : serviceInfo.price // اگر مستقیم نبود از service بگیر
+  //       ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
+  //       : "۰ تومان",
+  //     rating: apt.rating || 0,
+  //     therapistNotes: apt.therapist_notes || "",
+  //     status: apt.status,
+  //     userRating: apt.rating,
+  //     userReview: apt.user_review,
+  //     // ذخیره اطلاعات سرویس برای استفاده بعدی
+  //     service: serviceInfo,
+  //   };
+  // });
+
+  const massageHistory = appointments.map((apt) => {
+    const serviceInfo = apt.service || {};
+
+    return {
+      id: apt.id,
+      date: apt.date || apt.appointment_date,
+      time: apt.time || apt.appointment_time,
+      type: serviceInfo.name || "ماساژ عمومی",
+      duration: serviceInfo.duration_minutes
+        ? `${serviceInfo.duration_minutes} دقیقه`
+        : serviceInfo.duration || "۶۰ دقیقه",
+      price: apt.price // عددی
+        ? new Intl.NumberFormat("fa-IR").format(apt.price) + " تومان"
+        : serviceInfo.price // عددی
+        ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
+        : "۰ تومان",
+      priceValue: apt.price || serviceInfo.price || 0, // ✅ برای محاسبات
+      rating: apt.rating || 0,
+      therapistNotes: apt.therapist_notes || "",
+      status: apt.status,
+      userRating: apt.rating,
+      userReview: apt.user_review,
+      service: serviceInfo,
+    };
+  });
+
+  // انواع ماساژ برای رزرو (از services واقعی)
+  // const massageTypes = services.map((service) => ({
+  //   id: service.id,
+  //   name: service.name,
+  //   description: service.description,
+  //   duration: service.duration_minutes
+  //     ? `${service.duration_minutes} دقیقه`
+  //     : "۶۰ دقیقه",
+  //   // price: service.price,
+  //   price: service.price
+  //     ? new Intl.NumberFormat("fa-IR").format(service.price) + " تومان"
+  //     : "۰ تومان",
+  //   category: service.category || "آرامش‌بخش",
+  // }));
 
   // انواع ماساژ برای رزرو (از services واقعی)
   const massageTypes = services.map((service) => ({
@@ -269,11 +325,15 @@ const Dashboard = () => {
     duration: service.duration_minutes
       ? `${service.duration_minutes} دقیقه`
       : "۶۰ دقیقه",
-    price: service.price
+    price: service.price, // ✅ این باید عدد باشه نه فرمت شده
+    priceFormatted: service.price
       ? new Intl.NumberFormat("fa-IR").format(service.price) + " تومان"
       : "۰ تومان",
     category: service.category || "آرامش‌بخش",
   }));
+
+  // ✅ لاگ برای چک کردن
+  console.log("Massage Types:", massageTypes);
 
   // ساعات کاری
   const availableSlots = [
@@ -358,24 +418,31 @@ const Dashboard = () => {
     );
   };
 
-  const handleBookingChange = (field, value) => {
-    setBookingData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  // const handleBookingChange = (field, value) => {
+  //   setBookingData((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // };
 
-  const handleNextBookingStep = () => {
-    if (bookingStep < 3) {
-      setBookingStep(bookingStep + 1);
-    }
-  };
+  // const handleBookingChange = useCallback((field, value) => {
+  //   setBookingData((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // }, []);
 
-  const handlePrevBookingStep = () => {
-    if (bookingStep > 1) {
-      setBookingStep(bookingStep - 1);
-    }
-  };
+  // const handleNextBookingStep = () => {
+  //   if (bookingStep < 3) {
+  //     setBookingStep(bookingStep + 1);
+  //   }
+  // };
+
+  // const handlePrevBookingStep = () => {
+  //   if (bookingStep > 1) {
+  //     setBookingStep(bookingStep - 1);
+  //   }
+  // };
 
   const handleLogout = () => {
     navigate("/");
@@ -421,7 +488,6 @@ const Dashboard = () => {
   );
 
   const DashboardHome = () => {
-    // استفاده از appointments واقعی
     const upcomingAppointments = appointments.filter(
       (apt) => apt.status === "pending" || apt.status === "confirmed"
     );
@@ -429,6 +495,54 @@ const Dashboard = () => {
     const completedAppointments = appointments.filter(
       (apt) => apt.status === "completed"
     );
+
+    const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+
+    // تابع لغو نوبت
+    const handleCancelAppointment = async (appointmentId) => {
+      if (
+        window.confirm("آیا مطمئن هستید که می‌خواهید این نوبت را لغو کنید؟")
+      ) {
+        try {
+          await userService.cancelAppointment(appointmentId);
+
+          // آپدیت لیست نوبت‌ها
+          const appointmentsResponse = await userService.getAppointments();
+          setAppointments(appointmentsResponse.appointments || []);
+
+          alert("نوبت با موفقیت لغو شد.");
+        } catch (error) {
+          console.error("Error cancelling appointment:", error);
+          alert("خطا در لغو نوبت. لطفاً دوباره تلاش کنید.");
+        }
+      }
+    };
+
+    // تابع تغییر زمان نوبت
+    // const handleReschedule = (appointment) => {
+    //   // به صفحه رزرو برو و اطلاعات رو پر کن
+    //   setActiveTab("booking");
+    //   setBookingStep(2);
+    //   setBookingData({
+    //     selectedMassage:
+    //       massageTypes.find((m) => m.id === appointment.service?.id) || null,
+    //     selectedDate: appointment.date || appointment.appointment_date,
+    //     selectedTime: appointment.time || appointment.appointment_time,
+    //     notes: "",
+    //   });
+
+    //   // نمایش پیام
+    //   alert("لطفاً زمان جدید را انتخاب کنید. زمان فعلی در فرم پر شده است.");
+    // };
+
+    // تابع تغییر زمان نوبت
+    const handleReschedule = (appointment) => {
+      // ذخیره اطلاعات نوبت در حال ویرایش
+      setEditingAppointment(appointment);
+
+      // به صفحه رزرو برو
+      setActiveTab("booking");
+    };
 
     const stats = [
       {
@@ -444,6 +558,15 @@ const Dashboard = () => {
         color: "#9C27B0",
       },
     ];
+
+    // همه نوبت‌های آینده رو مرتب کن (از نزدیک‌ترین به دورترین)
+    const sortedUpcomingAppointments = [...upcomingAppointments].sort(
+      (a, b) => {
+        const dateA = new Date(a.date || a.appointment_date);
+        const dateB = new Date(b.date || b.appointment_date);
+        return dateA - dateB;
+      }
+    );
 
     const upcomingAppointment = upcomingAppointments[0] || null;
 
@@ -522,12 +645,15 @@ const Dashboard = () => {
         <div className={styles.upcomingCard}>
           <h2 className={styles.sectionTitle}>
             <FiCalendar className={styles.sectionIcon} />
-            نوبت بعدی شما
+            {upcomingAppointments.length > 0
+              ? `نوبت‌های آینده شما:`
+              : "نوبت آینده:"}
           </h2>
+
           <div className={styles.appointmentDetails}>
-            <div className={styles.appointmentInfo}>
-              {upcomingAppointment ? (
-                <>
+            {upcomingAppointment ? (
+              <>
+                <div className={styles.appointmentInfo}>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>تاریخ:</span>
                     <span className={styles.infoValue}>
@@ -543,26 +669,157 @@ const Dashboard = () => {
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>نوع ماساژ:</span>
                     <span className={styles.infoValue}>
-                      {upcomingAppointment.type}
+                      {upcomingAppointment.type ||
+                        upcomingAppointment.service?.name ||
+                        "ماساژ عمومی"}
                     </span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>مدت زمان:</span>
                     <span className={styles.infoValue}>
-                      {upcomingAppointment.duration}
+                      {upcomingAppointment.duration ||
+                        (upcomingAppointment.service?.duration_minutes
+                          ? `${upcomingAppointment.service.duration_minutes} دقیقه`
+                          : "۶۰ دقیقه")}
                     </span>
                   </div>
+                  {/* <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>قیمت:</span>
+                    <span className={styles.infoValue}>
+                      {upcomingAppointment.price}
+                    </span>
+                  </div> */}
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>قیمت:</span>
+                    <span className={styles.infoValue}>
+                      {upcomingAppointment.price // از price مستقیم استفاده کن
+                        ? new Intl.NumberFormat("fa-IR").format(
+                            upcomingAppointment.price
+                          ) + " تومان"
+                        : upcomingAppointment.service?.price || "۰ تومان"}
+                    </span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>یادداشت ها:</span>
+                    <span className={styles.infoValue}>
+                      {upcomingAppointment.notes}
+                    </span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className={styles.noAppointment}>
+                <FiInfo className={styles.infoIcon} />
+                <p>نوبت آینده‌ای ندارید.</p>
+                <button
+                  className={styles.bookNowButton}
+                  onClick={() => setActiveTab("booking")}
+                >
+                  رزرو نوبت جدید
+                </button>
+              </div>
+            )}
+          </div>
+          {upcomingAppointments.length > 1 && (
+            <button
+              className={styles.toggleButton}
+              onClick={() => setShowAllUpcoming(!showAllUpcoming)}
+            >
+              {showAllUpcoming ? (
+                <>
+                  <FiChevronUp />
+                  بستن لیست نوبت‌ها
                 </>
               ) : (
-                <div className={styles.noAppointment}>
-                  <FiInfo className={styles.infoIcon} />
-                  <p>نوبت آینده‌ای ندارید.</p>
-                </div>
+                <>
+                  <FiChevronDown />
+                  مشاهده همه نوبت‌ها ({upcomingAppointments.length})
+                </>
               )}
+            </button>
+          )}
+
+          {showAllUpcoming && upcomingAppointments.length > 1 && (
+            <div className={styles.allAppointmentsList}>
+              <h4 className={styles.listTitle}>
+                <FiCalendar />
+                همه نوبت‌های آینده شما
+              </h4>
+
+              <div className={styles.appointmentsGrid}>
+                {sortedUpcomingAppointments.map((apt, index) => (
+                  <div
+                    key={apt.id}
+                    className={`${styles.appointmentItem} ${
+                      index === 0 ? styles.currentAppointment : ""
+                    }`}
+                  >
+                    <div className={styles.appointmentHeader}>
+                      <div className={styles.appointmentNumber}>
+                        نوبت #{index + 1}
+                        {index === 0 && (
+                          <span className={styles.currentBadge}>جاری</span>
+                        )}
+                      </div>
+                      <div className={styles.appointmentDateTime}>
+                        <span className={styles.date}>
+                          <FiCalendar /> {formatDate(apt.date)}
+                        </span>
+                        <span className={styles.time}>
+                          <FiClock /> {apt.time}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={styles.appointmentContent}>
+                      <div className={styles.serviceInfo}>
+                        <h5>
+                          {apt.type || apt.service?.name || "ماساژ عمومی"}
+                        </h5>
+                        <div className={styles.serviceDetails}>
+                          <span>
+                            <FiClock />{" "}
+                            {apt.duration ||
+                              (apt.service?.duration_minutes
+                                ? `${apt.service.duration_minutes} دقیقه`
+                                : "۶۰ دقیقه")}
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {apt.price ||
+                              (apt.service?.price
+                                ? new Intl.NumberFormat("fa-IR").format(
+                                    apt.service.price
+                                  ) + " تومان"
+                                : "۰ تومان")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles.appointmentActions}>
+                        <button
+                          className={styles.cancelSingleButton}
+                          onClick={() => handleCancelAppointment(apt.id)}
+                        >
+                          <FiX />
+                          لغو این نوبت
+                        </button>
+                        <button
+                          className={styles.rescheduleButton}
+                          onClick={() => handleReschedule(apt)}
+                        >
+                          <FiCalendar />
+                          تغییر زمان
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <button className={styles.actionButtonSecondary}>لغو نوبت</button>
-          </div>
+          )}
         </div>
+
         <div className={styles.recentHistory}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>
@@ -1311,457 +1568,502 @@ const Dashboard = () => {
     );
   };
 
-  const Booking = () => {
-    const [availableDates, setAvailableDates] = useState([]);
-    const [availableSlots, setAvailableSlots] = useState([]);
-    const [loadingDates, setLoadingDates] = useState(false);
-    const [loadingSlots, setLoadingSlots] = useState(false);
+  // const Booking = () => {
+  //   const [availableDates, setAvailableDates] = useState([]);
+  //   const [allSlots, setAllSlots] = useState([]);
+  //   const [loading, setLoading] = useState(false);
 
-    // بارگذاری تاریخ‌های available
-    useEffect(() => {
-      const fetchAvailableDates = async () => {
-        try {
-          setLoadingDates(true);
-          const response = await userService.getAvailableSlots();
-          if (response.success) {
-            setAvailableDates(response.available_dates || []);
-          }
-        } catch (error) {
-          console.error("Error fetching available dates:", error);
-          setAvailableDates([]);
-        } finally {
-          setLoadingDates(false);
-        }
-      };
+  //   // بارگذاری تاریخ‌های available
+  //   useEffect(() => {
+  //     const fetchAvailableDates = async () => {
+  //       try {
+  //         setLoading(true);
+  //         const response = await userService.getAvailableSlots();
+  //         console.log("Available dates response:", response); // برای دیباگ
 
-      fetchAvailableDates();
-    }, []);
+  //         if (response.success) {
+  //           setAvailableDates(response.available_dates || []);
+  //           setAllSlots(response.all_slots || []);
+  //         } else {
+  //           console.error("Failed to fetch available slots:", response.error);
+  //           setAvailableDates([]);
+  //           setAllSlots([]);
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching available dates:", error);
+  //         setAvailableDates([]);
+  //         setAllSlots([]);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
 
-    // وقتی تاریخ انتخاب شد، ساعت‌های اون تاریخ رو بگیر
-    useEffect(() => {
-      const fetchAvailableSlots = async () => {
-        if (bookingData.selectedDate) {
-          try {
-            setLoadingSlots(true);
-            const response = await userService.getAvailableSlots(
-              bookingData.selectedDate
-            );
-            if (response.success) {
-              setAvailableSlots(response.available_slots || []);
-            }
-          } catch (error) {
-            console.error("Error fetching available slots:", error);
-            setAvailableSlots([]);
-          } finally {
-            setLoadingSlots(false);
-          }
-        } else {
-          setAvailableSlots([]);
-        }
-      };
+  //     fetchAvailableDates();
+  //   }, []);
 
-      fetchAvailableSlots();
-    }, [bookingData.selectedDate]);
+  //   // پیدا کردن تاریخ انتخاب شده
+  //   const selectedDateInfo = availableDates.find(
+  //     (d) => d.date === bookingData.selectedDate
+  //   );
 
-    // تابع handleSubmitBooking رو آپدیت کن
-    const handleSubmitBooking = async () => {
-      try {
-        if (
-          !bookingData.selectedMassage ||
-          !bookingData.selectedDate ||
-          !bookingData.selectedTime
-        ) {
-          alert("لطفاً تمام اطلاعات لازم را وارد کنید.");
-          return;
-        }
+  //   const handleSubmitBooking = async () => {
+  //     try {
+  //       if (
+  //         !bookingData.selectedMassage ||
+  //         !bookingData.selectedDate ||
+  //         !bookingData.selectedTime
+  //       ) {
+  //         alert("لطفاً تمام اطلاعات لازم را وارد کنید.");
+  //         return;
+  //       }
 
-        const appointmentData = {
-          service_id: bookingData.selectedMassage.id,
-          appointment_date: bookingData.selectedDate,
-          appointment_time: bookingData.selectedTime,
-          notes: bookingData.notes,
-        };
+  //       // console.log("📝 Submitting booking with data:", {
+  //       //   selectedMassage: bookingData.selectedMassage,
+  //       //   selectedDate: bookingData.selectedDate,
+  //       //   selectedTime: bookingData.selectedTime,
+  //       //   notes: bookingData.notes,
+  //       // });
 
-        const response = await userService.bookAppointment(appointmentData);
+  //       // ✅ لاگ برای چک کردن selectedMassage
+  //       console.log("🔍 Selected Massage:", bookingData.selectedMassage);
+  //       console.log("🔍 Price value:", bookingData.selectedMassage.price);
+  //       console.log("🔍 Price type:", typeof bookingData.selectedMassage.price);
 
-        if (response.success) {
-          alert(
-            `نوبت شما برای ${bookingData.selectedMassage.name} با موفقیت رزرو شد!`
-          );
+  //       let finalPrice = bookingData.selectedMassage.price;
 
-          // ریست فرم
-          setBookingStep(1);
-          setBookingData({
-            selectedMassage: null,
-            selectedDate: "",
-            selectedTime: "",
-            notes: "",
-          });
+  //       // مثال: اگر کاربر کد تخفیف داره
+  //       // if (discountCode) {
+  //       //   finalPrice = finalPrice * 0.9;
+  //       // }
 
-          // refresh تاریخ‌های available
-          const datesResponse = await userService.getAvailableSlots();
-          if (datesResponse.success) {
-            setAvailableDates(datesResponse.available_dates || []);
-          }
+  //       // مثال: اگر کاربر انتخاب کرده ماساژ با روغن اضافه
+  //       // if (bookingData.extraOil) {
+  //       //   finalPrice += 50000;
+  //       // }
 
-          // به داشبورد برگرد
-          setActiveTab("dashboard");
-        }
-      } catch (error) {
-        console.error("Error booking appointment:", error);
-        alert("خطا در رزرو نوبت. لطفاً دوباره تلاش کنید.");
-      }
-    };
+  //       // اگر price عدد نیست یا NaN هست
+  //       if (!finalPrice || isNaN(finalPrice)) {
+  //         console.warn("⚠️ Price is invalid, using default 0");
+  //         finalPrice = 0;
+  //       }
 
-    return (
-      <div className={styles.bookingPage}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>
-            <FiCalendar className={styles.titleIcon} />
-            رزرو وقت ماساژ
-          </h1>
+  //       const appointmentData = {
+  //         service_id: bookingData.selectedMassage.id,
+  //         appointment_date: bookingData.selectedDate,
+  //         appointment_time: bookingData.selectedTime,
+  //         notes: bookingData.notes,
+  //         price: finalPrice,
+  //       };
 
-          <div className={styles.bookingSteps}>
-            <div
-              className={`${styles.step} ${
-                bookingStep >= 1 ? styles.active : ""
-              }`}
-            >
-              <div className={styles.stepNumber}>۱</div>
-              <div className={styles.stepLabel}>انتخاب ماساژ</div>
-            </div>
+  //       console.log("📤 Sending to server:", appointmentData);
 
-            <div
-              className={`${styles.step} ${
-                bookingStep >= 2 ? styles.active : ""
-              }`}
-            >
-              <div className={styles.stepNumber}>۲</div>
-              <div className={styles.stepLabel}>تاریخ و ساعت</div>
-            </div>
+  //       // نام متغیر: bookingResponse
+  //       const bookingResponse = await userService.bookAppointment(
+  //         appointmentData
+  //       );
 
-            <div
-              className={`${styles.step} ${
-                bookingStep >= 3 ? styles.active : ""
-              }`}
-            >
-              <div className={styles.stepNumber}>۳</div>
-              <div className={styles.stepLabel}>تأیید نهایی</div>
-            </div>
-          </div>
-        </div>
+  //       if (bookingResponse.success) {
+  //         alert(
+  //           `نوبت شما برای ${bookingData.selectedMassage.name} با موفقیت رزرو شد!`
+  //         );
 
-        <div className={styles.bookingContent}>
-          {/* Step 1: Select Massage Type */}
-          {bookingStep === 1 && (
-            <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>نوع ماساژ را انتخاب کنید.</h2>
-              <p className={styles.stepDescription}>
-                بر اساس نیاز خود، یکی از انواع ماساژ را انتخاب نمایید. جهت
-                مشاوره برای انتخاب مناسب می توانید در واتس اپ به ماساژتراپیست
-                پیام دهید.
-              </p>
+  //         // 🔵 نام متفاوت: slotsResponse
+  //         // const slotsResponse = await userService.getAvailableSlots();
+  //         // if (slotsResponse.success) {
+  //         //   setAvailableDates(slotsResponse.available_dates || []);
+  //         //   setAllSlots(slotsResponse.all_slots || []);
+  //         // }
 
-              <div className={styles.massageGrid}>
-                {massageTypes.map((massage) => (
-                  <div
-                    key={massage.id}
-                    className={`${styles.massageCard} ${
-                      bookingData.selectedMassage?.id === massage.id
-                        ? styles.selected
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleBookingChange("selectedMassage", massage)
-                    }
-                  >
-                    <div className={styles.massageHeader}>
-                      <div className={styles.massageCategory}>
-                        {massage.category}
-                      </div>
-                      {bookingData.selectedMassage?.id === massage.id && (
-                        <FiCheck className={styles.checkIcon} />
-                      )}
-                    </div>
+  //         const appointmentsResponse = await userService.getAppointments();
+  //         console.log("Updated appointments:", appointmentsResponse);
+  //         setAppointments(appointmentsResponse.appointments || []);
 
-                    <h3 className={styles.massageName}>{massage.name}</h3>
-                    <p className={styles.massageDescription}>
-                      {massage.description}
-                    </p>
+  //         // ریست فرم
+  //         setBookingStep(1);
+  //         setBookingData({
+  //           selectedMassage: null,
+  //           selectedDate: "",
+  //           selectedTime: "",
+  //           notes: "",
+  //         });
 
-                    <div className={styles.massageDetails}>
-                      <div className={styles.detailItem}>
-                        <span>{massage.duration}</span>
-                      </div>
-                      <span>-</span>
-                      <div className={styles.detailItem}>
-                        <span>{massage.price}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+  //         // به داشبورد برگرد
+  //         setActiveTab("dashboard");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error booking appointment:", error);
+  //       alert("خطا در رزرو نوبت. لطفاً دوباره تلاش کنید.");
+  //     }
+  //   };
 
-              <div className={styles.stepActions}>
-                <button
-                  onClick={handleNextBookingStep}
-                  disabled={!bookingData.selectedMassage}
-                  className={styles.nextButton}
-                >
-                  ادامه
-                  <FiChevronLeft className={styles.buttonIcon} />
-                </button>
-              </div>
-            </div>
-          )}
+  //   // رندر ساعت‌ها
+  //   const renderTimeSlots = () => {
+  //     if (!bookingData.selectedDate) {
+  //       return (
+  //         <div className={styles.timePlaceholder}>
+  //           <FiInfo className={styles.infoIcon} />
+  //           <p>لطفا ابتدا تاریخ را انتخاب کنید</p>
+  //         </div>
+  //       );
+  //     }
 
-          {/* Step 2: Select Date & Time */}
-          {bookingStep === 2 && (
-            <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>تاریخ و ساعت را انتخاب کنید.</h2>
-              <p className={styles.stepDescription}>
-                زمان مناسب خود را برای دریافت ماساژ انتخاب نمایید.
-              </p>
+  //     if (!selectedDateInfo) {
+  //       return (
+  //         <div className={styles.timePlaceholder}>
+  //           <FiInfo className={styles.infoIcon} />
+  //           <p>تاریخ انتخاب شده معتبر نیست</p>
+  //         </div>
+  //       );
+  //     }
 
-              <div className={styles.datetimeSection}>
-                {/* Date Selection */}
-                <div className={styles.dateSection}>
-                  <h3 className={styles.sectionTitle}>
-                    <FiCalendar className={styles.sectionIcon} />
-                    انتخاب تاریخ
-                  </h3>
+  //     return (
+  //       <div className={styles.timeGrid}>
+  //         {allSlots.map((time) => {
+  //           const isAvailable = selectedDateInfo.available_slots.includes(time);
+  //           const isSelected = bookingData.selectedTime === time;
 
-                  <div className={styles.dateGrid}>
-                    {availableDates.map((dateObj, index) => (
-                      <div
-                        key={index}
-                        className={`${styles.dateCard} ${
-                          bookingData.selectedDate === dateObj.date
-                            ? styles.selected
-                            : ""
-                        }`}
-                        onClick={() => {
-                          // e.preventDefault(); // این خط رو اضافه کن
-                          handleBookingChange("selectedDate", dateObj.date);
-                          handleBookingChange("selectedTime", "");
-                        }}
-                      >
-                        <div className={styles.dayName}>{dateObj.dayName}</div>
-                        <div className={styles.dateDisplay}>
-                          {dateObj.display}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+  //           return (
+  //             <button
+  //               key={time}
+  //               className={`${styles.timeSlot} ${
+  //                 isSelected ? styles.selected : ""
+  //               } ${!isAvailable ? styles.unavailable : ""}`}
+  //               onClick={() => {
+  //                 if (isAvailable) {
+  //                   handleBookingChange("selectedTime", time);
+  //                 }
+  //               }}
+  //               disabled={!isAvailable}
+  //             >
+  //               {time}
+  //               {!isAvailable && <span className={styles.bookedBadge}>پر</span>}
+  //             </button>
+  //           );
+  //         })}
+  //       </div>
+  //     );
+  //   };
 
-                {/* Time Selection */}
-                <div className={styles.timeSection}>
-                  <h3 className={styles.sectionTitle}>
-                    <FiClock className={styles.sectionIcon} />
-                    انتخاب ساعت
-                    {bookingData.selectedDate && (
-                      <span className={styles.selectedDate}>
-                        برای{" "}
-                        {new Date(bookingData.selectedDate).toLocaleDateString(
-                          "fa-IR"
-                        )}
-                      </span>
-                    )}
-                  </h3>
+  //   return (
+  //     <div className={styles.bookingPage}>
+  //       <div className={styles.pageHeader}>
+  //         <h1 className={styles.pageTitle}>
+  //           <FiCalendar className={styles.titleIcon} />
+  //           رزرو وقت ماساژ
+  //         </h1>
 
-                  {bookingData.selectedDate ? (
-                    <div className={styles.timeGrid}>
-                      {availableSlots.map((time, index) => (
-                        <button
-                          key={index}
-                          className={`${styles.timeSlot} ${
-                            bookingData.selectedTime === time
-                              ? styles.selected
-                              : ""
-                          }`}
-                          onClick={(e) => {
-                            // e.preventDefault(); // این خط رو اضافه کن
-                            handleBookingChange("selectedTime", time);
-                          }}
-                        >
-                          {time}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className={styles.timePlaceholder}>
-                      <FiInfo className={styles.infoIcon} />
-                      <p>لطفا ابتدا تاریخ را انتخاب کنید</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+  //         <div className={styles.bookingSteps}>
+  //           <div
+  //             className={`${styles.step} ${
+  //               bookingStep >= 1 ? styles.active : ""
+  //             }`}
+  //           >
+  //             <div className={styles.stepNumber}>۱</div>
+  //             <div className={styles.stepLabel}>انتخاب ماساژ</div>
+  //           </div>
 
-              {/* Additional Notes */}
-              <div className={styles.notesSection}>
-                <h3 className={styles.sectionTitle}>یادداشت‌های اضافی</h3>
-                <textarea
-                  value={bookingData.notes}
-                  onChange={(e) => handleBookingChange("notes", e.target.value)}
-                  placeholder="هرگونه نکته خاص یا درخواست ویژه برای ماساژتراپیست (اختیاری) ..."
-                  className={styles.notesTextarea}
-                  rows="3"
-                />
-              </div>
+  //           <div
+  //             className={`${styles.step} ${
+  //               bookingStep >= 2 ? styles.active : ""
+  //             }`}
+  //           >
+  //             <div className={styles.stepNumber}>۲</div>
+  //             <div className={styles.stepLabel}>تاریخ و ساعت</div>
+  //           </div>
 
-              <div className={styles.stepActions}>
-                <button
-                  onClick={handlePrevBookingStep}
-                  className={styles.prevButton}
-                >
-                  مرحله قبل
-                </button>
-                <button
-                  onClick={handleNextBookingStep}
-                  disabled={
-                    !bookingData.selectedDate || !bookingData.selectedTime
-                  }
-                  className={styles.nextButton}
-                >
-                  ادامه
-                  <FiChevronLeft className={styles.buttonIcon} />
-                </button>
-              </div>
-            </div>
-          )}
+  //           <div
+  //             className={`${styles.step} ${
+  //               bookingStep >= 3 ? styles.active : ""
+  //             }`}
+  //           >
+  //             <div className={styles.stepNumber}>۳</div>
+  //             <div className={styles.stepLabel}>تأیید نهایی</div>
+  //           </div>
+  //         </div>
+  //       </div>
 
-          {/* Step 3: Confirmation */}
-          {bookingStep === 3 && (
-            <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>تأیید نهایی</h2>
-              <p className={styles.stepDescription}>
-                لطفا اطلاعات رزرو خود را بررسی و تأیید کنید.
-              </p>
+  //       <div className={styles.bookingContent}>
+  //         {/* Step 1: Select Massage Type */}
+  //         {bookingStep === 1 && (
+  //           <div className={styles.stepContent}>
+  //             <h2 className={styles.stepTitle}>نوع ماساژ را انتخاب کنید.</h2>
+  //             <p className={styles.stepDescription}>
+  //               بر اساس نیاز خود، یکی از انواع ماساژ را انتخاب نمایید. جهت
+  //               مشاوره برای انتخاب مناسب می توانید در واتس اپ به ماساژتراپیست
+  //               پیام دهید.
+  //             </p>
 
-              <div className={styles.confirmationCard}>
-                <div className={styles.confirmationHeader}>
-                  <h3>خلاصه رزرو</h3>
-                  <div className={styles.bookingId}>
-                    کد رزرو: <span>#SPA-{Date.now().toString().slice(-6)}</span>
-                  </div>
-                </div>
+  //             <div className={styles.massageGrid}>
+  //               {massageTypes.map((massage) => (
+  //                 <div
+  //                   key={massage.id}
+  //                   className={`${styles.massageCard} ${
+  //                     bookingData.selectedMassage?.id === massage.id
+  //                       ? styles.selected
+  //                       : ""
+  //                   }`}
+  //                   onClick={() =>
+  //                     handleBookingChange("selectedMassage", massage)
+  //                   }
+  //                 >
+  //                   <div className={styles.massageHeader}>
+  //                     <div className={styles.massageCategory}>
+  //                       {massage.category}
+  //                     </div>
+  //                     {bookingData.selectedMassage?.id === massage.id && (
+  //                       <FiCheck className={styles.checkIcon} />
+  //                     )}
+  //                   </div>
 
-                <div className={styles.confirmationDetails}>
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>نوع ماساژ:</span>
-                    <span className={styles.detailValue}>
-                      {bookingData.selectedMassage?.name}
-                    </span>
-                  </div>
+  //                   <h3 className={styles.massageName}>{massage.name}</h3>
+  //                   <p className={styles.massageDescription}>
+  //                     {massage.description}
+  //                   </p>
 
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>تاریخ:</span>
-                    <span className={styles.detailValue}>
-                      {new Date(bookingData.selectedDate).toLocaleDateString(
-                        "fa-IR"
-                      )}
-                    </span>
-                  </div>
+  //                   <div className={styles.massageDetails}>
+  //                     <div className={styles.detailItem}>
+  //                       <span>{massage.duration}</span>
+  //                     </div>
+  //                     <span>-</span>
+  //                     <div className={styles.detailItem}>
+  //                       <span>{massage.price}</span>
+  //                     </div>
+  //                   </div>
+  //                 </div>
+  //               ))}
+  //             </div>
 
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>ساعت:</span>
-                    <span className={styles.detailValue}>
-                      {bookingData.selectedTime}
-                    </span>
-                  </div>
+  //             <div className={styles.stepActions}>
+  //               <button
+  //                 onClick={handleNextBookingStep}
+  //                 disabled={!bookingData.selectedMassage}
+  //                 className={styles.nextButton}
+  //               >
+  //                 ادامه
+  //                 <FiChevronLeft className={styles.buttonIcon} />
+  //               </button>
+  //             </div>
+  //           </div>
+  //         )}
 
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>مدت زمان:</span>
-                    <span className={styles.detailValue}>
-                      {bookingData.selectedMassage?.duration}
-                    </span>
-                  </div>
+  //         {/* Step 2: Select Date & Time */}
+  //         {bookingStep === 2 && (
+  //           <div className={styles.stepContent}>
+  //             <h2 className={styles.stepTitle}>تاریخ و ساعت را انتخاب کنید.</h2>
+  //             <p className={styles.stepDescription}>
+  //               زمان مناسب خود را برای دریافت ماساژ انتخاب نمایید.
+  //             </p>
 
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>هزینه:</span>
-                    <span className={styles.detailValuePrice}>
-                      {bookingData.selectedMassage?.price}
-                    </span>
-                  </div>
+  //             <div className={styles.datetimeSection}>
+  //               {/* Date Selection */}
+  //               <div className={styles.dateSection}>
+  //                 <h3 className={styles.sectionTitle}>
+  //                   <FiCalendar className={styles.sectionIcon} />
+  //                   انتخاب تاریخ
+  //                   {loading && (
+  //                     <span className={styles.loadingText}>
+  //                       در حال بارگذاری...
+  //                     </span>
+  //                   )}
+  //                 </h3>
 
-                  {bookingData.notes && (
-                    <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>یادداشت:</span>
-                      <span className={styles.detailValue}>
-                        {bookingData.notes}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
+  //                 <div className={styles.dateGrid}>
+  //                   {availableDates.map((dateObj, index) => (
+  //                     <div
+  //                       key={index}
+  //                       className={`${styles.dateCard} ${
+  //                         bookingData.selectedDate === dateObj.date
+  //                           ? styles.selected
+  //                           : ""
+  //                       }`}
+  //                       onClick={() => {
+  //                         handleBookingChange("selectedDate", dateObj.date);
+  //                         handleBookingChange("selectedTime", "");
+  //                       }}
+  //                     >
+  //                       <div className={styles.dayName}>{dateObj.dayName}</div>
+  //                       <div className={styles.dateDisplay}>
+  //                         {dateObj.display}
+  //                       </div>
+  //                     </div>
+  //                   ))}
+  //                 </div>
+  //               </div>
 
-              <div className={styles.stepActions}>
-                <button
-                  onClick={handlePrevBookingStep}
-                  className={styles.prevButton}
-                >
-                  مرحله قبل
-                </button>
-                <button
-                  onClick={handleSubmitBooking}
-                  className={styles.submitButton}
-                >
-                  <FiCheck className={styles.buttonIcon} />
-                  تأیید و رزرو نهایی
-                </button>
-              </div>
-            </div>
-          )}
+  //               {/* Time Selection */}
+  //               <div className={styles.timeSection}>
+  //                 <h3 className={styles.sectionTitle}>
+  //                   <FiClock className={styles.sectionIcon} />
+  //                   انتخاب ساعت:
+  //                 </h3>
+  //                 {renderTimeSlots()}
+  //               </div>
+  //             </div>
 
-          {/* Booking Summary Sidebar */}
-          <div className={styles.bookingSummary}>
-            <h3 className={styles.summaryTitle}>خلاصه رزرو</h3>
+  //             {/* Additional Notes */}
+  //             <div className={styles.notesSection}>
+  //               <h3 className={styles.sectionTitle}>یادداشت‌های اضافی</h3>
+  //               <textarea
+  //                 value={bookingData.notes}
+  //                 onChange={(e) => handleBookingChange("notes", e.target.value)}
+  //                 placeholder="هرگونه نکته خاص یا درخواست ویژه برای ماساژتراپیست (اختیاری) ..."
+  //                 className={styles.notesTextarea}
+  //                 rows="3"
+  //               />
+  //             </div>
 
-            {bookingData.selectedMassage && (
-              <div className={styles.summaryItem}>
-                <div className={styles.summaryLabel}>ماساژ انتخاب شده:</div>
-                <div className={styles.summaryValue}>
-                  {bookingData.selectedMassage.name}
-                </div>
-                <div className={styles.summarySubtext}>
-                  {bookingData.selectedMassage.duration} •{" "}
-                  {bookingData.selectedMassage.price}
-                </div>
-              </div>
-            )}
+  //             <div className={styles.stepActions}>
+  //               <button
+  //                 onClick={handlePrevBookingStep}
+  //                 className={styles.prevButton}
+  //               >
+  //                 مرحله قبل
+  //               </button>
+  //               <button
+  //                 onClick={handleNextBookingStep}
+  //                 disabled={
+  //                   !bookingData.selectedDate || !bookingData.selectedTime
+  //                 }
+  //                 className={styles.nextButton}
+  //               >
+  //                 ادامه
+  //                 <FiChevronLeft className={styles.buttonIcon} />
+  //               </button>
+  //             </div>
+  //           </div>
+  //         )}
 
-            {bookingData.selectedDate && (
-              <div className={styles.summaryItem}>
-                <div className={styles.summaryLabel}>تاریخ:</div>
-                <div className={styles.summaryValue}>
-                  {new Date(bookingData.selectedDate).toLocaleDateString(
-                    "fa-IR"
-                  )}
-                </div>
-              </div>
-            )}
+  //         {/* Step 3: Confirmation */}
+  //         {bookingStep === 3 && (
+  //           <div className={styles.stepContent}>
+  //             <h2 className={styles.stepTitle}>تأیید نهایی</h2>
+  //             <p className={styles.stepDescription}>
+  //               لطفا اطلاعات رزرو خود را بررسی و تأیید کنید.
+  //             </p>
 
-            {bookingData.selectedTime && (
-              <div className={styles.summaryItem}>
-                <div className={styles.summaryLabel}>ساعت:</div>
-                <div className={styles.summaryValue}>
-                  {bookingData.selectedTime}
-                </div>
-              </div>
-            )}
+  //             <div className={styles.confirmationCard}>
+  //               <div className={styles.confirmationHeader}>
+  //                 <h3>خلاصه رزرو</h3>
+  //                 <div className={styles.bookingId}>
+  //                   کد رزرو: <span>#SPA-{Date.now().toString().slice(-6)}</span>
+  //                 </div>
+  //               </div>
 
-            <div className={styles.summaryTotal}>
-              <div className={styles.totalLabel}>مجموع:</div>
-              <div className={styles.totalValue}>
-                {bookingData.selectedMassage?.price || "۰ تومان"}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  //               <div className={styles.confirmationDetails}>
+  //                 <div className={styles.detailRow}>
+  //                   <span className={styles.detailLabel}>نوع ماساژ:</span>
+  //                   <span className={styles.detailValue}>
+  //                     {bookingData.selectedMassage?.name}
+  //                   </span>
+  //                 </div>
+
+  //                 <div className={styles.detailRow}>
+  //                   <span className={styles.detailLabel}>تاریخ:</span>
+  //                   <span className={styles.detailValue}>
+  //                     {new Date(bookingData.selectedDate).toLocaleDateString(
+  //                       "fa-IR"
+  //                     )}
+  //                   </span>
+  //                 </div>
+
+  //                 <div className={styles.detailRow}>
+  //                   <span className={styles.detailLabel}>ساعت:</span>
+  //                   <span className={styles.detailValue}>
+  //                     {bookingData.selectedTime}
+  //                   </span>
+  //                 </div>
+
+  //                 <div className={styles.detailRow}>
+  //                   <span className={styles.detailLabel}>مدت زمان:</span>
+  //                   <span className={styles.detailValue}>
+  //                     {bookingData.selectedMassage?.duration}
+  //                   </span>
+  //                 </div>
+
+  //                 <div className={styles.detailRow}>
+  //                   <span className={styles.detailLabel}>هزینه:</span>
+  //                   <span className={styles.detailValuePrice}>
+  //                     {bookingData.selectedMassage?.price}
+  //                   </span>
+  //                 </div>
+
+  //                 {bookingData.notes && (
+  //                   <div className={styles.detailRow}>
+  //                     <span className={styles.detailLabel}>یادداشت:</span>
+  //                     <span className={styles.detailValue}>
+  //                       {bookingData.notes}
+  //                     </span>
+  //                   </div>
+  //                 )}
+  //               </div>
+  //             </div>
+
+  //             <div className={styles.stepActions}>
+  //               <button
+  //                 onClick={handlePrevBookingStep}
+  //                 className={styles.prevButton}
+  //               >
+  //                 مرحله قبل
+  //               </button>
+  //               <button
+  //                 onClick={handleSubmitBooking}
+  //                 className={styles.submitButton}
+  //               >
+  //                 <FiCheck className={styles.buttonIcon} />
+  //                 تأیید و رزرو نهایی
+  //               </button>
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {/* Booking Summary Sidebar */}
+  //         <div className={styles.bookingSummary}>
+  //           <h3 className={styles.summaryTitle}>خلاصه رزرو</h3>
+
+  //           {bookingData.selectedMassage && (
+  //             <div className={styles.summaryItem}>
+  //               <div className={styles.summaryLabel}>ماساژ انتخاب شده:</div>
+  //               <div className={styles.summaryValue}>
+  //                 {bookingData.selectedMassage.name}
+  //               </div>
+  //               <div className={styles.summarySubtext}>
+  //                 {bookingData.selectedMassage.duration} •{" "}
+  //                 {bookingData.selectedMassage.price}
+  //               </div>
+  //             </div>
+  //           )}
+
+  //           {bookingData.selectedDate && (
+  //             <div className={styles.summaryItem}>
+  //               <div className={styles.summaryLabel}>تاریخ:</div>
+  //               <div className={styles.summaryValue}>
+  //                 {new Date(bookingData.selectedDate).toLocaleDateString(
+  //                   "fa-IR"
+  //                 )}
+  //               </div>
+  //             </div>
+  //           )}
+
+  //           {bookingData.selectedTime && (
+  //             <div className={styles.summaryItem}>
+  //               <div className={styles.summaryLabel}>ساعت:</div>
+  //               <div className={styles.summaryValue}>
+  //                 {bookingData.selectedTime}
+  //               </div>
+  //             </div>
+  //           )}
+
+  //           <div className={styles.summaryTotal}>
+  //             <div className={styles.totalLabel}>مجموع:</div>
+  //             <div className={styles.totalValue}>
+  //               {bookingData.selectedMassage?.price || "۰ تومان"}
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   // ============ رندر اصلی ============
   return (
@@ -1772,7 +2074,57 @@ const Dashboard = () => {
         <div className={styles.contentArea}>
           {activeTab === "dashboard" && <DashboardHome />}
           {activeTab === "profile" && <Profile />}
-          {activeTab === "booking" && <Booking />}
+
+          {/* {activeTab === "booking" && <Booking />} */}
+
+          {/* {activeTab === "booking" && (
+            <Booking
+              massageTypes={massageTypes}
+              onBookingSuccess={async () => {
+                // بعد از رزرو موفق، نوبت‌ها رو دوباره بگیر
+                const appointmentsResponse =
+                  await userService.getAppointments();
+                setAppointments(appointmentsResponse.appointments || []);
+              }}
+              initialData={
+                editingAppointment
+                  ? {
+                      selectedMassage: editingAppointment.service,
+                      selectedDate: editingAppointment.date,
+                      selectedTime: editingAppointment.time,
+                      notes: editingAppointment.notes || "",
+                    }
+                  : null
+              }
+              isEditing={!!editingAppointment}
+              editingAppointmentId={editingAppointment?.id}
+            />
+          )} */}
+
+          {activeTab === "booking" && (
+            <Booking
+              massageTypes={massageTypes}
+              onBookingSuccess={async () => {
+                // بعد از رزرو موفق، نوبت‌ها رو دوباره بگیر
+                const appointmentsResponse =
+                  await userService.getAppointments();
+                setAppointments(appointmentsResponse.appointments || []);
+                setEditingAppointment(null); // ✅ ریست حالت ویرایش
+              }}
+              initialData={
+                editingAppointment
+                  ? {
+                      selectedMassage: editingAppointment.service,
+                      selectedDate: editingAppointment.date,
+                      selectedTime: editingAppointment.time,
+                      notes: editingAppointment.notes || "",
+                    }
+                  : null
+              }
+              isEditing={!!editingAppointment}
+              editingAppointmentId={editingAppointment?.id}
+            />
+          )}
         </div>
       </main>
     </div>

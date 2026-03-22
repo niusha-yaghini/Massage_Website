@@ -31,7 +31,7 @@ const seedDatabase = async () => {
       {
         name: "ماساژ تایلندی",
         description: "کشش یوگا و تکنیک‌های انرژی‌بخش",
-        duration_minutes: 90,
+        duration_minutes: 60,
         price: 2200000,
         category: "انرژی‌بخش",
         icon: "FiActivity",
@@ -41,7 +41,7 @@ const seedDatabase = async () => {
       {
         name: "ماساژ ورزشی",
         description: "مخصوص ورزشکاران حرفه‌ای",
-        duration_minutes: 75,
+        duration_minutes: 60,
         price: 2000000,
         category: "درمانی",
         icon: "FiActivity",
@@ -61,7 +61,7 @@ const seedDatabase = async () => {
       {
         name: "ماساژ درمانی",
         description: "درمان دردهای عضلانی و گرفتگی‌ها",
-        duration_minutes: 90,
+        duration_minutes: 60,
         price: 2400000,
         category: "درمانی",
         icon: "FiStar",
@@ -71,7 +71,7 @@ const seedDatabase = async () => {
       {
         name: "ماساژ VIP",
         description: "لوکس‌ترین پکیج همراه با رایحه‌درمانی",
-        duration_minutes: 120,
+        duration_minutes: 60,
         price: 3000000,
         category: "ویژه",
         icon: "FiShield",
