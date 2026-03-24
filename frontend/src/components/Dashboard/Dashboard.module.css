@@ -570,7 +570,6 @@ body {
 
 /* استایل‌های جدید برای بخش نوبت‌ها */
 
-
 .cancelButton {
   background-color: #ffebee;
   color: #d32f2f;
@@ -2366,22 +2365,43 @@ body {
   padding: 1.5rem;
 }
 
-.dateGrid {
+/* .dateGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
+} */
+
+.dateGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* از 5 به 4 تغییر دهید */
+  gap: 12px;
+  /* margin-bottom: 24px; */
 }
 
 .dateCard {
   background: var(--white);
   border: 1px solid #dee2e6;
   border-radius: var(--border-radius);
-  padding: 1rem;
+  /* padding: 1rem; */
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* وسط‌چین عمودی */
+  align-items: center; /* وسط‌چین افقی */
+  /* text-align: center; */
+  /* padding: 10px 8px; */
+  /* background: #fff; */
+  /* border-radius: 12px; */
+  /* border: 1px solid #e2e8f0; */
+  /* cursor: pointer; */
+  /* transition: all 0.2s; */
+  min-height: 100px; /* ارتفاع حداقل */
 }
+
 
 .dateCard:hover {
   border-color: var(--accent);
@@ -2394,9 +2414,16 @@ body {
 }
 
 .dayName {
+  display: flex;
   font-size: 0.9rem;
   color: #6c757d;
   margin-bottom: 0.3rem;
+}
+
+.separator {
+  color: #cbd5e1;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .dateCard.selected .dayName {
@@ -2718,6 +2745,64 @@ body {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--success);
+}
+
+.dateHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.weekNavigation {
+  display: flex;
+  gap: 8px;
+}
+
+.weekNavButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.weekNavButton:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.weekNavButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.todayBadge {
+  font-size: 0.7rem;
+  background: #f59e0b;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  /* margin-top: 6px; */
+}
+
+.unavailableBadge {
+  font-size: 0.7rem;
+  background: #e2e8f0;
+  color: #64748b;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-top: 6px;
+}
+
+.dateCard.unavailable {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f8fafc;
 }
 
 /* ============ Responsive Design ============ */

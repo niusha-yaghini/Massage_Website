@@ -1,10 +1,10 @@
+// frontend/src/Dashboard/Booking.jsx
 import React, { useState, useEffect } from "react";
 import {
   FiCalendar,
   FiClock,
   FiCheck,
   FiChevronLeft,
-  FiChevronRight,
   FiInfo,
 } from "react-icons/fi";
 import { userService } from "../../services/userService";
@@ -35,10 +35,6 @@ const Booking = ({
   const [allSlots, setAllSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // State برای هفته جاری
-  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
-  const [displayDates, setDisplayDates] = useState([]);
 
   useEffect(() => {
     console.log(
@@ -73,83 +69,6 @@ const Booking = ({
     fetchAvailableDates();
   }, []);
 
-  // تولید تاریخ‌های ۲ هفته با قابلیت جابجایی هفته
-  useEffect(() => {
-    const generateDates = () => {
-      const dates = [];
-      const today = new Date();
-
-      // شروع از امروز
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() + currentWeekOffset * 7);
-
-      // ۱۴ روز از تاریخ شروع
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-
-        const dateStr = date.toISOString().split("T")[0];
-        const isToday = i === 0 && currentWeekOffset === 0;
-
-        // پیدا کردن اطلاعات available از API
-        const availableInfo = availableDates.find((d) => d.date === dateStr);
-
-        dates.push({
-          date: dateStr,
-          display: date.toLocaleDateString("fa-IR", {
-            // weekday: "long",
-            month: "long",
-            day: "numeric",
-          }),
-          dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
-          dayNumber: date.getDate(),
-          month: date.getMonth(),
-          isToday: isToday,
-          isAvailable: availableInfo ? availableInfo.total_available > 0 : true,
-          availableSlots: availableInfo?.available_slots || allSlots,
-        });
-      }
-
-      setDisplayDates(dates);
-    };
-
-    generateDates();
-  }, [currentWeekOffset, availableDates, allSlots]);
-
-  // بررسی اینکه ساعت انتخاب شده از ۱ ساعت آینده باشد (برای امروز)
-  const isTimeValidForToday = (time, dateStr) => {
-    const today = new Date().toISOString().split("T")[0];
-    if (dateStr !== today) return true;
-
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-
-    const [hour, minute] = time.split(":").map(Number);
-
-    // اگر ساعت بزرگتر از ساعت فعلی باشد
-    if (hour > currentHour) return true;
-    // اگر ساعت برابر است، باید دقیقه از ۱ ساعت آینده باشد
-    if (hour === currentHour) {
-      return minute >= currentMinute + 60;
-    }
-    return false;
-  };
-
-  // دریافت ساعت‌های available برای یک تاریخ خاص
-  const getAvailableSlotsForDate = (dateStr) => {
-    const dateInfo = availableDates.find((d) => d.date === dateStr);
-    let slots = dateInfo?.available_slots || allSlots;
-
-    // اگر تاریخ امروز است، فقط ساعت‌های ۱ ساعت آینده به بعد را نمایش بده
-    const today = new Date().toISOString().split("T")[0];
-    if (dateStr === today) {
-      slots = slots.filter((time) => isTimeValidForToday(time, dateStr));
-    }
-
-    return slots;
-  };
-
   const handleBookingChange = (field, value) => {
     setBookingData((prev) => ({
       ...prev,
@@ -169,6 +88,54 @@ const Booking = ({
     }
   };
 
+  // const handleSubmit = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError("");
+
+  //     if (isEditing && editingAppointmentId) {
+  //       // آپدیت نوبت موجود
+  //       const updateData = {
+  //         appointment_date: bookingData.selectedDate,
+  //         appointment_time: bookingData.selectedTime,
+  //         notes: bookingData.notes,
+  //       };
+  //       await userService.updateAppointment(editingAppointmentId, updateData);
+  //       alert("زمان نوبت با موفقیت تغییر کرد!");
+  //     } else {
+  //       // رزرو نوبت جدید
+  //       const appointmentData = {
+  //         service_id: bookingData.selectedMassage.id,
+  //         appointment_date: bookingData.selectedDate,
+  //         appointment_time: bookingData.selectedTime,
+  //         notes: bookingData.notes,
+  //         price: bookingData.selectedMassage.price,
+  //       };
+  //       await userService.bookAppointment(appointmentData);
+  //       alert("نوبت با موفقیت رزرو شد!");
+  //     }
+
+  //     // ریست فرم
+  //     setBookingStep(1);
+  //     setBookingData({
+  //       selectedMassage: null,
+  //       selectedDate: "",
+  //       selectedTime: "",
+  //       notes: "",
+  //     });
+
+  //     // خبر دادن به والد (Dashboard) برای آپدیت لیست نوبت‌ها
+  //     if (onBookingSuccess) {
+  //       onBookingSuccess();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     setError(error.message || "خطا در انجام عملیات. لطفاً دوباره تلاش کنید.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -184,6 +151,7 @@ const Booking = ({
       });
 
       if (isEditing && editingAppointmentId) {
+        // آپدیت نوبت موجود
         const updateData = {
           appointment_date: bookingData.selectedDate,
           appointment_time: bookingData.selectedTime,
@@ -196,6 +164,7 @@ const Booking = ({
           updateData
         );
 
+        // مطمئن شو که userService.updateAppointment وجود داره
         if (!userService.updateAppointment) {
           console.error("❌ userService.updateAppointment is not defined!");
           throw new Error("تابع آپدیت نوبت در سرویس وجود ندارد");
@@ -204,6 +173,7 @@ const Booking = ({
         await userService.updateAppointment(editingAppointmentId, updateData);
         alert("زمان نوبت با موفقیت تغییر کرد!");
       } else {
+        // رزرو نوبت جدید
         const appointmentData = {
           service_id: bookingData.selectedMassage.id,
           appointment_date: bookingData.selectedDate,
@@ -217,6 +187,7 @@ const Booking = ({
         alert("نوبت با موفقیت رزرو شد!");
       }
 
+      // ریست فرم
       setBookingStep(1);
       setBookingData({
         selectedMassage: null,
@@ -225,6 +196,7 @@ const Booking = ({
         notes: "",
       });
 
+      // خبر دادن به والد
       if (onBookingSuccess) {
         onBookingSuccess();
       }
@@ -236,6 +208,10 @@ const Booking = ({
     }
   };
 
+  const selectedDateInfo = availableDates.find(
+    (d) => d.date === bookingData.selectedDate
+  );
+
   const renderTimeSlots = () => {
     if (!bookingData.selectedDate) {
       return (
@@ -246,13 +222,11 @@ const Booking = ({
       );
     }
 
-    const availableSlots = getAvailableSlotsForDate(bookingData.selectedDate);
-
-    if (availableSlots.length === 0) {
+    if (!selectedDateInfo) {
       return (
         <div className={styles.timePlaceholder}>
           <FiInfo className={styles.infoIcon} />
-          <p>هیچ ساعت خالی برای این تاریخ وجود ندارد</p>
+          <p>تاریخ انتخاب شده معتبر نیست</p>
         </div>
       );
     }
@@ -260,7 +234,8 @@ const Booking = ({
     return (
       <div className={styles.timeGrid}>
         {allSlots.map((time) => {
-          const isAvailable = availableSlots.includes(time);
+          const isAvailable =
+            selectedDateInfo.available_slots?.includes(time) ?? true;
           const isSelected = bookingData.selectedTime === time;
 
           return (
@@ -381,56 +356,23 @@ const Booking = ({
             <h2 className={styles.stepTitle}>تاریخ و ساعت را انتخاب کنید.</h2>
 
             <div className={styles.dateSection}>
-              <div className={styles.dateHeader}>
-                <h3>انتخاب تاریخ</h3>
-                <div className={styles.weekNavigation}>
-                  <button
-                    className={styles.weekNavButton}
-                    onClick={() => setCurrentWeekOffset(currentWeekOffset - 1)}
-                    disabled={currentWeekOffset === 0}
-                  >
-                    <FiChevronRight />
-                    هفته قبل
-                  </button>
-                  <button
-                    className={styles.weekNavButton}
-                    onClick={() => setCurrentWeekOffset(currentWeekOffset + 1)}
-                  >
-                    هفته بعد
-                    <FiChevronLeft />
-                  </button>
-                </div>
-              </div>
+              <h3>انتخاب تاریخ</h3>
               <div className={styles.dateGrid}>
-                {displayDates.map((dateObj) => (
+                {availableDates.map((dateObj) => (
                   <div
                     key={dateObj.date}
                     className={`${styles.dateCard} ${
                       bookingData.selectedDate === dateObj.date
                         ? styles.selected
                         : ""
-                    } ${!dateObj.isAvailable ? styles.unavailable : ""}`}
+                    }`}
                     onClick={() => {
-                      if (dateObj.isAvailable) {
-                        handleBookingChange("selectedDate", dateObj.date);
-                        handleBookingChange("selectedTime", "");
-                      }
+                      handleBookingChange("selectedDate", dateObj.date);
+                      handleBookingChange("selectedTime", "");
                     }}
                   >
-                    <div className={styles.dayName}>
-                      {dateObj.dayName}
-                      {dateObj.isToday && (
-                        <>
-                          <span className={styles.separator}>-</span>
-                          <span className={styles.todayBadge}>امروز</span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className={styles.dateDisplay}>{dateObj.display}</div>
-                    {!dateObj.isAvailable && (
-                      <div className={styles.unavailableBadge}>تکمیل</div>
-                    )}
+                    <div className={styles.dayName}>{dateObj.dayName}</div>
+                    <div>{dateObj.display}</div>
                   </div>
                 ))}
               </div>

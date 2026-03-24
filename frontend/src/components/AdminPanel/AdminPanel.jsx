@@ -526,14 +526,14 @@ const AdminPanel = () => {
                     onClick={handleMarkAllNotificationsRead}
                     className={styles.markAllRead}
                   >
-                    همه را خوانده شد
+                    همه پیام ها خوانده شدند.
                   </button>
                 )}
               </div>
               <div className={styles.dropdownList}>
                 {notifications.length === 0 ? (
                   <div className={styles.emptyNotifications}>
-                    نوتیفیکیشنی وجود ندارد
+                    نوتیفیکیشنی وجود ندارد.
                   </div>
                 ) : (
                   notifications.slice(0, 10).map((notif) => (
@@ -569,7 +569,7 @@ const AdminPanel = () => {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
-        <p>در حال بارگذاری...</p>
+        <p>در حال بارگذاری ...</p>
       </div>
     );
   }
@@ -580,7 +580,7 @@ const AdminPanel = () => {
       <main className={styles.mainContent}>
         <Header />
         <div className={styles.content}>
-          {/* بخش Dashboard */}
+          {/* Dashboard Section */}
           {activeTab === "dashboard" && (
             <div className={styles.dashboard}>
               {/* کارت‌های آماری */}
@@ -1229,8 +1229,8 @@ const AdminPanel = () => {
                       <span>
                         <FiClock /> {service.duration_minutes} دقیقه
                       </span>
+                      {"."}
                       <span>
-                        <FiDollarSign />{" "}
                         {service.price?.toLocaleString("fa-IR")} تومان
                       </span>
                     </div>
