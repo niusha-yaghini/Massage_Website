@@ -163,6 +163,11 @@ export const userService = {
         setRefreshToken(data.refresh_token);
       }
 
+      // ذخیره اطلاعات کاربر در localStorage
+      if (data.user) {
+        localStorage.setItem("spa_user", JSON.stringify(data.user));
+      }
+
       return {
         success: true,
         user: data.user,
@@ -183,6 +188,11 @@ export const userService = {
 
       console.log("Raw user data from backend:", data.user); // برای دیباگ
 
+      // ذخیره اطلاعات کاربر در localStorage
+      if (data.user) {
+        localStorage.setItem("spa_user", JSON.stringify(data.user));
+      }
+
       // تضمین ساختار یکسان برای فرانت‌اند
       return {
         success: true,
@@ -196,6 +206,7 @@ export const userService = {
           created_at: data.user?.created_at || data.user?.membershipDate,
           job: data.user?.job || "",
           medical_info: data.user?.medical_info || null,
+          role: data.user?.role || "user",
         },
       };
     } catch (error) {
@@ -208,11 +219,20 @@ export const userService = {
   // خروج از حساب
   logout() {
     removeTokens();
+    localStorage.removeItem("spa_user");
     return Promise.resolve({
       success: true,
       message: "با موفقیت خارج شدید",
     });
   },
+
+  // logout() {
+  //   removeTokens();
+  //   return Promise.resolve({
+  //     success: true,
+  //     message: "با موفقیت خارج شدید",
+  //   });
+  // },
 
   // ==================== پروفایل کاربر ====================
   // آپدیت پروفایل کاربر
@@ -1066,5 +1086,3 @@ export default {
   admin: adminService,
   notifications: notificationService,
 };
-
-// export default userService;

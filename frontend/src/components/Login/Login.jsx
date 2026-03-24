@@ -19,14 +19,12 @@ import {
 import Logo from "../../assets/images/Logo_white.png";
 
 const Login = () => {
-  // ======== اضافه کردن stateها ========
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  // ======== تعریف validationSchema ========
   const validationSchema = Yup.object({
     phone: Yup.string()
       .matches(/^09[0-9]{9}$/, "شماره موبایل معتبر نیست")
@@ -37,7 +35,6 @@ const Login = () => {
     rememberMe: Yup.boolean(),
   });
 
-  // ======== تابع formik ========
   const formik = useFormik({
     initialValues: {
       phone: "",
@@ -53,7 +50,6 @@ const Login = () => {
       try {
         console.log("تلاش برای ورود با شماره:", values.phone);
 
-        // استفاده از userService با شماره تماس
         const result = await userService.loginWithPhone(
           values.phone,
           values.password
@@ -64,9 +60,21 @@ const Login = () => {
         if (result.success) {
           setSuccess(` خوش آمدید ${result.user?.full_name || ""}!`);
 
+          // ذخیره اطلاعات کاربر در localStorage برای بررسی نقش
+          if (result.user) {
+            localStorage.setItem("spa_user", JSON.stringify(result.user));
+          }
+
+          // بر اساس نقش کاربر، به صفحه مناسب هدایت کن
           setTimeout(() => {
-            navigate("/dashboard");
-          }, 2000);
+            if (result.user?.role === "admin") {
+              // اگر ادمین هست، به پنل مدیریت بره
+              navigate("/admin");
+            } else {
+              // اگر کاربر عادی هست، به داشبورد بره
+              navigate("/dashboard");
+            }
+          }, 1500);
         } else {
           setError(result.error || "خطا در ورود");
         }
@@ -152,7 +160,6 @@ const Login = () => {
             <h2>ورود به حساب کاربری</h2>
           </div>
 
-          {/* نمایش خطا */}
           {error && (
             <div className={styles.errorAlert}>
               <FiAlertCircle />
@@ -160,7 +167,6 @@ const Login = () => {
             </div>
           )}
 
-          {/* نمایش موفقیت */}
           {success && (
             <div className={styles.successAlert}>
               <FiCheckCircle />
