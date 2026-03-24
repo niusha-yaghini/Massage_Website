@@ -2365,43 +2365,25 @@ body {
   padding: 1.5rem;
 }
 
-/* .dateGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-} */
-
 .dateGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr); /* از 5 به 4 تغییر دهید */
   gap: 12px;
-  /* margin-bottom: 24px; */
 }
 
 .dateCard {
   background: var(--white);
   border: 1px solid #dee2e6;
   border-radius: var(--border-radius);
-  /* padding: 1rem; */
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
-
   display: flex;
   flex-direction: column;
   justify-content: center; /* وسط‌چین عمودی */
   align-items: center; /* وسط‌چین افقی */
-  /* text-align: center; */
-  /* padding: 10px 8px; */
-  /* background: #fff; */
-  /* border-radius: 12px; */
-  /* border: 1px solid #e2e8f0; */
-  /* cursor: pointer; */
-  /* transition: all 0.2s; */
-  min-height: 100px; /* ارتفاع حداقل */
+  min-height: 100px;
 }
-
 
 .dateCard:hover {
   border-color: var(--accent);

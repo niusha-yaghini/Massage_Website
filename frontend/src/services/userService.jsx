@@ -226,14 +226,6 @@ export const userService = {
     });
   },
 
-  // logout() {
-  //   removeTokens();
-  //   return Promise.resolve({
-  //     success: true,
-  //     message: "با موفقیت خارج شدید",
-  //   });
-  // },
-
   // ==================== پروفایل کاربر ====================
   // آپدیت پروفایل کاربر
   async updateProfile(profileData) {

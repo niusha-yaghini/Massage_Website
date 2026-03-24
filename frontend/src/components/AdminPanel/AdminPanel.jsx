@@ -1,4 +1,3 @@
-// frontend/src/components/Admin/AdminPanel.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AdminPanel.module.css";
@@ -149,6 +148,13 @@ const AdminPanel = () => {
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // اضافه کردن useEffect برای دریافت مجدد تقویم وقتی selectedDate تغییر می‌کند
+  useEffect(() => {
+    if (activeTab === "calendar") {
+      fetchCalendar();
+    }
+  }, [selectedDate, activeTab]);
 
   // ============ توابع دریافت داده‌ها ============
   const fetchDashboardData = async () => {
@@ -574,6 +580,33 @@ const AdminPanel = () => {
     );
   }
 
+  // تابع تولید روزهای هفته
+  const generateWeekDays = (currentDate) => {
+    const weekDays = [];
+    const startOfWeek = new Date(currentDate);
+
+    // تنظیم به اولین روز هفته (شنبه در تقویم ایران)
+    const dayOfWeek = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, ...
+    const daysToSaturday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startOfWeek.setDate(startOfWeek.getDate() - daysToSaturday);
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      const today = new Date();
+
+      weekDays.push({
+        dateStr: date.toISOString().split("T")[0],
+        dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
+        dayNumber: date.getDate(),
+        month: date.toLocaleDateString("fa-IR", { month: "long" }),
+        isToday: date.toDateString() === today.toDateString(),
+      });
+    }
+
+    return weekDays;
+  };
+
   return (
     <div className={styles.adminPanel}>
       <Sidebar />
@@ -729,7 +762,195 @@ const AdminPanel = () => {
             </div>
           )}
 
-          {/* بخش مدیریت نوبت‌ها */}
+          {/* Calendare Section */}
+          {activeTab === "calendar" && (
+            <div className={styles.calendarSection}>
+              {/* کنترل‌های تقویم */}
+              <div className={styles.calendarControls}>
+                <div className={styles.calendarNav}>
+                  <button
+                    className={styles.calendarNavBtn}
+                    onClick={() => {
+                      const newDate = new Date(selectedDate);
+                      newDate.setDate(selectedDate.getDate() - 7);
+                      setSelectedDate(newDate);
+                    }}
+                  >
+                    <FiChevronRight />
+                    هفته قبل
+                  </button>
+
+                  <button
+                    className={styles.calendarNavBtn}
+                    onClick={() => {
+                      const newDate = new Date(selectedDate);
+                      newDate.setDate(selectedDate.getDate() + 7);
+                      setSelectedDate(newDate);
+                    }}
+                  >
+                    هفته بعد
+                    <FiChevronLeft />
+                  </button>
+
+                  <button
+                    className={styles.calendarTodayBtn}
+                    onClick={() => setSelectedDate(new Date())}
+                  >
+                    امروز
+                  </button>
+                </div>
+
+                <div className={styles.calendarMonth}>
+                  {selectedDate.toLocaleDateString("fa-IR", {
+                    year: "numeric",
+                    month: "long",
+                  })}
+                </div>
+              </div>
+
+              {/* تقویم هفتگی */}
+              <div className={styles.calendarWeek}>
+                {generateWeekDays(selectedDate).map((day) => {
+                  const dayAppointments = calendarAppointments.filter(
+                    (apt) => apt.date === day.dateStr
+                  );
+                  const isToday = day.isToday;
+
+                  return (
+                    <div
+                      key={day.dateStr}
+                      className={`${styles.calendarDay} ${
+                        isToday ? styles.today : ""
+                      }`}
+                    >
+                      <div className={styles.calendarDayHeader}>
+                        <div className={styles.calendarDayName}>
+                          {day.dayName}
+                        </div>
+                        <div className={styles.calendarDayNumber}>
+                          {day.dayNumber}
+                        </div>
+                      </div>
+
+                      <div className={styles.calendarAppointments}>
+                        {dayAppointments.length === 0 ? (
+                          <div className={styles.calendarEmpty}>
+                            <FiCalendar />
+                            <span>بدون نوبت</span>
+                          </div>
+                        ) : (
+                          dayAppointments.map((apt) => {
+                            const status =
+                              statusConfig[apt.status] || statusConfig.pending;
+                            const StatusIcon = status.icon;
+
+                            return (
+                              <div
+                                key={apt.id}
+                                className={`${styles.calendarAppointment} ${
+                                  styles[apt.status]
+                                }`}
+                                onClick={() => {
+                                  setSelectedAppointment(apt);
+                                  setShowNotesModal(true);
+                                }}
+                              >
+                                <div className={styles.calendarAppointmentTime}>
+                                  <FiClock className={styles.timeIcon} />
+                                  {apt.time}
+                                </div>
+                                <div
+                                  className={styles.calendarAppointmentClient}
+                                >
+                                  <strong>{apt.client.name}</strong>
+                                  <span
+                                    className={
+                                      styles.calendarAppointmentService
+                                    }
+                                  >
+                                    {apt.service.name}
+                                  </span>
+                                </div>
+                                <div
+                                  className={styles.calendarAppointmentStatus}
+                                  style={{
+                                    backgroundColor: status.bg,
+                                    color: status.color,
+                                  }}
+                                >
+                                  <StatusIcon />
+                                  {status.label}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* خلاصه وضعیت نوبت‌ها */}
+              <div className={styles.calendarSummary}>
+                <div className={styles.summaryTitle}>وضعیت نوبت‌ها</div>
+                <div className={styles.summaryStats}>
+                  {Object.entries(statusConfig).map(([key, config]) => {
+                    const count = calendarAppointments.filter(
+                      (apt) => apt.status === key
+                    ).length;
+                    return (
+                      <div key={key} className={styles.summaryStat}>
+                        <div
+                          className={styles.summaryDot}
+                          style={{ backgroundColor: config.color }}
+                        />
+                        <span>{config.label}</span>
+                        <span className={styles.summaryCount}>{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Clients section */}
+          {activeTab === "clients" && (
+            <div className={styles.clientsSection}>
+              <div className={styles.clientsList}>
+                {clients.map((client) => (
+                  <div key={client.id} className={styles.clientCard}>
+                    <div className={styles.clientAvatar}>
+                      {client.full_name?.charAt(0) || "M"}
+                    </div>
+                    <div className={styles.clientInfo}>
+                      <h3>{client.full_name}</h3>
+                      <p className={styles.clientPhone}>{client.phone}</p>
+                      <div className={styles.clientStats}>
+                        <span>
+                          <FiCalendar /> {client.total_appointments} نوبت
+                        </span>
+                        <span>
+                          <FiDollarSign />{" "}
+                          {client.total_spent?.toLocaleString("fa-IR")} تومان
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      className={styles.viewClientBtn}
+                      onClick={() => handleViewClient(client.id)}
+                    >
+                      <FiEye />
+                      مشاهده جزئیات
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Appointment Management Section */}
           {activeTab === "appointments" && (
             <div className={styles.appointmentsSection}>
               {/* فیلترها */}
@@ -1043,151 +1264,7 @@ const AdminPanel = () => {
             </div>
           )}
 
-          {/* بخش کاربران */}
-          {activeTab === "users" && (
-            <div className={styles.usersSection}>
-              <div className={styles.filtersBar}>
-                <div className={styles.searchBox}>
-                  <FiSearch />
-                  <input
-                    type="text"
-                    placeholder="جستجوی کاربر..."
-                    value={usersSearch}
-                    onChange={(e) => setUsersSearch(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && fetchUsers()}
-                  />
-                </div>
-                <select
-                  className={styles.filterSelect}
-                  value={usersRoleFilter}
-                  onChange={(e) => setUsersRoleFilter(e.target.value)}
-                >
-                  <option value="all">همه نقش‌ها</option>
-                  <option value="user">کاربر عادی</option>
-                  <option value="admin">ادمین</option>
-                </select>
-                <button className={styles.searchBtn} onClick={fetchUsers}>
-                  جستجو
-                </button>
-              </div>
-
-              <div className={styles.tableWrapper}>
-                <table className={styles.dataTable}>
-                  <thead>
-                    <tr>
-                      <th>نام و نام خانوادگی</th>
-                      <th>شماره تماس</th>
-                      <th>ایمیل</th>
-                      <th>نقش</th>
-                      <th>تاریخ عضویت</th>
-                      <th>وضعیت</th>
-                      <th>عملیات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.full_name}</td>
-                        <td>{user.phone}</td>
-                        <td>{user.email || "-"}</td>
-                        <td>
-                          <span
-                            className={`${styles.roleBadge} ${
-                              user.role === "admin"
-                                ? styles.adminRole
-                                : styles.userRole
-                            }`}
-                          >
-                            {user.role === "admin" ? "ادمین" : "کاربر"}
-                          </span>
-                        </td>
-                        <td>
-                          {new Date(user.created_at).toLocaleDateString(
-                            "fa-IR"
-                          )}
-                        </td>
-                        <td>
-                          <button
-                            className={`${styles.statusToggle} ${
-                              user.is_active ? styles.active : styles.inactive
-                            }`}
-                            onClick={() =>
-                              handleUpdateUserStatus(user.id, !user.is_active)
-                            }
-                          >
-                            {user.is_active ? "فعال" : "غیرفعال"}
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            className={styles.viewBtn}
-                            onClick={() => handleViewClient(user.id)}
-                          >
-                            <FiEye />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {usersTotal > 20 && (
-                <div className={styles.pagination}>
-                  <button
-                    disabled={usersPage === 1}
-                    onClick={() => setUsersPage(usersPage - 1)}
-                  >
-                    <FiChevronRight />
-                  </button>
-                  <span>صفحه {usersPage}</span>
-                  <button
-                    disabled={usersPage * 20 >= usersTotal}
-                    onClick={() => setUsersPage(usersPage + 1)}
-                  >
-                    <FiChevronLeft />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* بخش مراجعین */}
-          {activeTab === "clients" && (
-            <div className={styles.clientsSection}>
-              <div className={styles.clientsList}>
-                {clients.map((client) => (
-                  <div key={client.id} className={styles.clientCard}>
-                    <div className={styles.clientAvatar}>
-                      {client.full_name?.charAt(0) || "M"}
-                    </div>
-                    <div className={styles.clientInfo}>
-                      <h3>{client.full_name}</h3>
-                      <p className={styles.clientPhone}>{client.phone}</p>
-                      <div className={styles.clientStats}>
-                        <span>
-                          <FiCalendar /> {client.total_appointments} نوبت
-                        </span>
-                        <span>
-                          <FiDollarSign />{" "}
-                          {client.total_spent?.toLocaleString("fa-IR")} تومان
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      className={styles.viewClientBtn}
-                      onClick={() => handleViewClient(client.id)}
-                    >
-                      <FiEye />
-                      مشاهده جزئیات
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* بخش خدمات */}
+          {/* Services Section */}
           {activeTab === "services" && (
             <div className={styles.servicesSection}>
               <div className={styles.sectionHeader}>
@@ -1525,6 +1602,115 @@ const AdminPanel = () => {
                     )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Users Section */}
+          {activeTab === "users" && (
+            <div className={styles.usersSection}>
+              <div className={styles.filtersBar}>
+                <div className={styles.searchBox}>
+                  <FiSearch />
+                  <input
+                    type="text"
+                    placeholder="جستجوی کاربر..."
+                    value={usersSearch}
+                    onChange={(e) => setUsersSearch(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && fetchUsers()}
+                  />
+                </div>
+                <select
+                  className={styles.filterSelect}
+                  value={usersRoleFilter}
+                  onChange={(e) => setUsersRoleFilter(e.target.value)}
+                >
+                  <option value="all">همه نقش‌ها</option>
+                  <option value="user">کاربر عادی</option>
+                  <option value="admin">ادمین</option>
+                </select>
+                <button className={styles.searchBtn} onClick={fetchUsers}>
+                  جستجو
+                </button>
+              </div>
+
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>نام و نام خانوادگی</th>
+                      <th>شماره تماس</th>
+                      <th>ایمیل</th>
+                      <th>نقش</th>
+                      <th>تاریخ عضویت</th>
+                      <th>وضعیت</th>
+                      <th>عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id}>
+                        <td>{user.full_name}</td>
+                        <td>{user.phone}</td>
+                        <td>{user.email || "-"}</td>
+                        <td>
+                          <span
+                            className={`${styles.roleBadge} ${
+                              user.role === "admin"
+                                ? styles.adminRole
+                                : styles.userRole
+                            }`}
+                          >
+                            {user.role === "admin" ? "ادمین" : "کاربر"}
+                          </span>
+                        </td>
+                        <td>
+                          {new Date(user.created_at).toLocaleDateString(
+                            "fa-IR"
+                          )}
+                        </td>
+                        <td>
+                          <button
+                            className={`${styles.statusToggle} ${
+                              user.is_active ? styles.active : styles.inactive
+                            }`}
+                            onClick={() =>
+                              handleUpdateUserStatus(user.id, !user.is_active)
+                            }
+                          >
+                            {user.is_active ? "فعال" : "غیرفعال"}
+                          </button>
+                        </td>
+                        <td>
+                          <button
+                            className={styles.viewBtn}
+                            onClick={() => handleViewClient(user.id)}
+                          >
+                            <FiEye />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {usersTotal > 20 && (
+                <div className={styles.pagination}>
+                  <button
+                    disabled={usersPage === 1}
+                    onClick={() => setUsersPage(usersPage - 1)}
+                  >
+                    <FiChevronRight />
+                  </button>
+                  <span>صفحه {usersPage}</span>
+                  <button
+                    disabled={usersPage * 20 >= usersTotal}
+                    onClick={() => setUsersPage(usersPage + 1)}
+                  >
+                    <FiChevronLeft />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
