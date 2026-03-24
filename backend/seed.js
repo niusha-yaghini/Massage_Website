@@ -81,48 +81,6 @@ const seedDatabase = async () => {
     ]);
     console.log(`✅ ${services.length} services created`);
 
-    // ایجاد کاربر ادمین
-    // const admin = await User.create({
-    //   full_name: "ادمین اسپا",
-    //   email: "admin@spa.com",
-    //   phone: "09123456789",
-    //   password: "123456",
-    //   birth_date: "1990-01-01",
-    //   gender: "male",
-    //   job: "مدیر",
-    //   medical_info: {
-    //     allergies: "ندارد",
-    //     conditions: [],
-    //     notes: "",
-    //   },
-    //   role: "admin",
-    //   // membership_level: "premium",
-    //   // points: 100,
-    //   is_verified: true,
-    // });
-
-    // ایجاد کاربر تست
-    // const testUser = await User.create({
-    //   full_name: "کاربر تست",
-    //   email: "test@spa.com",
-    //   phone: "09129876543",
-    //   password: "123456",
-    //   birth_date: "1995-05-15",
-    //   gender: "male",
-    //   job: "مهندس نرم‌افزار",
-    //   medical_info: {
-    //     allergies: "گل محمدی",
-    //     conditions: ["میگرن", "آرتروز"],
-    //     notes: "ترجیح می‌دهم ماساژ ملایم باشد",
-    //   },
-    //   role: "user",
-    //   // membership_level: "regular",
-    //   // points: 50,
-    //   is_verified: true,
-    // });
-    // console.log("✅ 2 users created (admin@spa.com / test@spa.com)");
-
-    // backend/seed.js - قسمت ایجاد کاربران
     // ایجاد کاربر ادمین (که همون ماساژتراپیست هست)
     const admin = await User.create({
       full_name: "ادمین اسپا",
