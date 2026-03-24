@@ -31,6 +31,11 @@ import {
   FiPlus,
   FiSave,
   FiX,
+  FiMail,
+  FiUser,
+  FiBriefcase,
+  FiInfo,
+  FiActivity,
 } from "react-icons/fi";
 import { userService } from "../../services/userService";
 
@@ -60,6 +65,12 @@ const AdminPanel = () => {
   const [appointmentsStatusFilter, setAppointmentsStatusFilter] =
     useState("all");
   const [appointmentsDateFilter, setAppointmentsDateFilter] = useState("");
+
+  // Appointments Management Section
+  const [appointmentsSearch, setAppointmentsSearch] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [therapistNotes, setTherapistNotes] = useState("");
 
   // Services
   const [services, setServices] = useState([]);
@@ -718,6 +729,320 @@ const AdminPanel = () => {
             </div>
           )}
 
+          {/* بخش مدیریت نوبت‌ها */}
+          {activeTab === "appointments" && (
+            <div className={styles.appointmentsSection}>
+              {/* فیلترها */}
+              <div className={styles.filtersBar}>
+                <div className={styles.searchBox}>
+                  <FiSearch />
+                  <input
+                    type="text"
+                    placeholder="جستجوی مشتری..."
+                    value={appointmentsSearch}
+                    onChange={(e) => setAppointmentsSearch(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && fetchAppointments()}
+                  />
+                </div>
+
+                <select
+                  className={styles.filterSelect}
+                  value={appointmentsStatusFilter}
+                  onChange={(e) => {
+                    setAppointmentsStatusFilter(e.target.value);
+                    setAppointmentsPage(1);
+                  }}
+                >
+                  <option value="all">همه وضعیت‌ها</option>
+                  <option value="pending">در انتظار تأیید</option>
+                  <option value="confirmed">تأیید شده</option>
+                  <option value="completed">انجام شده</option>
+                  <option value="cancelled">لغو شده</option>
+                </select>
+
+                {/* 
+                <input
+                  type="date"
+                  className={styles.dateFilter}
+                  value={appointmentsDateFilter}
+                  onChange={(e) => {
+                    setAppointmentsDateFilter(e.target.value);
+                    setAppointmentsPage(1);
+                  }}
+                /> */}
+
+                <button
+                  className={styles.searchBtn}
+                  onClick={fetchAppointments}
+                >
+                  <FiRefreshCw />
+                  <span> بروزرسانی</span>
+                </button>
+              </div>
+
+              {/* جدول نوبت‌ها */}
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>ردیف</th>
+                      <th>کد نوبت</th>
+                      <th>تاریخ و ساعت</th>
+                      <th>مشتری</th>
+                      <th>خدمت</th>
+                      <th>قیمت</th>
+                      <th>وضعیت</th>
+                      <th>عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {appointments.map((apt, index) => {
+                      const status =
+                        statusConfig[apt.status] || statusConfig.pending;
+                      const StatusIcon = status.icon;
+
+                      return (
+                        <tr key={apt.id}>
+                          <td className={styles.rowNumber}>{index + 1}</td>
+                          <td className={styles.appointmentCode}>
+                            {apt.appointment_code || `#${apt.id}`}
+                          </td>
+                          <td>
+                            <div className={styles.appointmentDateTime}>
+                              <span className={styles.appointmentDate}>
+                                {new Date(
+                                  apt.appointment_date
+                                ).toLocaleDateString("fa-IR")}
+                              </span>
+                              <span className={styles.appointmentTime}>
+                                {apt.appointment_time}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className={styles.clientInfo}>
+                              <strong>{apt.user?.full_name || "نامشخص"}</strong>
+                              <span className={styles.clientPhone}>
+                                {apt.user?.phone}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className={styles.serviceInfo}>
+                              <span>{apt.service?.name || "نامشخص"}</span>
+                              <span className={styles.serviceDuration}>
+                                {apt.service?.duration_minutes} دقیقه
+                              </span>
+                            </div>
+                          </td>
+                          <td className={styles.priceCell}>
+                            {apt.price?.toLocaleString("fa-IR")} تومان
+                          </td>
+                          <td>
+                            <span
+                              className={styles.statusBadge}
+                              style={{
+                                backgroundColor: status.bg,
+                                color: status.color,
+                              }}
+                            >
+                              <StatusIcon className={styles.statusIcon} />
+                              {status.label}
+                            </span>
+                          </td>
+                          <td>
+                            <div className={styles.actionButtons}>
+                              {/* تغییر وضعیت */}
+                              {apt.status === "pending" && (
+                                <button
+                                  className={styles.confirmBtn}
+                                  onClick={() =>
+                                    handleUpdateAppointmentStatus(
+                                      apt.id,
+                                      "confirmed"
+                                    )
+                                  }
+                                  title="تأیید نوبت"
+                                >
+                                  <FiCheckCircle />
+                                </button>
+                              )}
+
+                              {apt.status === "confirmed" && (
+                                <button
+                                  className={styles.completeBtn}
+                                  onClick={() =>
+                                    handleUpdateAppointmentStatus(
+                                      apt.id,
+                                      "completed"
+                                    )
+                                  }
+                                  title="انجام شد"
+                                >
+                                  <FiCheck />
+                                </button>
+                              )}
+
+                              {/* یادداشت تراپیست */}
+                              <button
+                                className={styles.noteBtn}
+                                onClick={() => {
+                                  setSelectedAppointment(apt);
+                                  setShowNotesModal(true);
+                                }}
+                                title="یادداشت تراپیست"
+                              >
+                                <FiMessageSquare />
+                              </button>
+
+                              {/* لغو نوبت */}
+                              {(apt.status === "pending" ||
+                                apt.status === "confirmed") && (
+                                <button
+                                  className={styles.cancelBtn}
+                                  onClick={() =>
+                                    handleCancelAppointment(apt.id)
+                                  }
+                                  title="لغو نوبت"
+                                >
+                                  <FiXCircle />
+                                </button>
+                              )}
+
+                              {/* مشاهده جزئیات */}
+                              <button
+                                className={styles.viewBtn}
+                                onClick={() => handleViewClient(apt.user?.id)}
+                                title="مشاهده مشتری"
+                              >
+                                <FiEye />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {appointments.length === 0 && (
+                  <div className={styles.emptyState}>
+                    <FiCalendar className={styles.emptyIcon} />
+                    <p>نوبتی یافت نشد</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Pagination */}
+              {appointmentsTotal > 20 && (
+                <div className={styles.pagination}>
+                  <button
+                    disabled={appointmentsPage === 1}
+                    onClick={() => {
+                      setAppointmentsPage(appointmentsPage - 1);
+                      fetchAppointments();
+                    }}
+                  >
+                    <FiChevronRight />
+                  </button>
+                  <span>صفحه {appointmentsPage}</span>
+                  <button
+                    disabled={appointmentsPage * 20 >= appointmentsTotal}
+                    onClick={() => {
+                      setAppointmentsPage(appointmentsPage + 1);
+                      fetchAppointments();
+                    }}
+                  >
+                    <FiChevronLeft />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* مودال یادداشت تراپیست */}
+          {showNotesModal && selectedAppointment && (
+            <div
+              className={styles.modalOverlay}
+              onClick={() => setShowNotesModal(false)}
+            >
+              <div
+                className={styles.modal}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={styles.modalHeader}>
+                  <h3>
+                    <FiMessageSquare />
+                    یادداشت تراپیست
+                  </h3>
+                  <button
+                    className={styles.closeModal}
+                    onClick={() => setShowNotesModal(false)}
+                  >
+                    <FiX />
+                  </button>
+                </div>
+                <div className={styles.modalBody}>
+                  <div className={styles.appointmentInfoBox}>
+                    <p>
+                      <strong>مشتری:</strong>{" "}
+                      {selectedAppointment.user?.full_name}
+                    </p>
+                    <p>
+                      <strong>خدمت:</strong> {selectedAppointment.service?.name}
+                    </p>
+                    <p>
+                      <strong>تاریخ و ساعت:</strong>{" "}
+                      {new Date(
+                        selectedAppointment.appointment_date
+                      ).toLocaleDateString("fa-IR")}{" "}
+                      - {selectedAppointment.appointment_time}
+                    </p>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>یادداشت تراپیست</label>
+                    <textarea
+                      value={therapistNotes}
+                      onChange={(e) => setTherapistNotes(e.target.value)}
+                      rows="5"
+                      placeholder="نکات مربوط به این جلسه، وضعیت مشتری، توصیه‌ها و ..."
+                    />
+                  </div>
+
+                  {selectedAppointment.therapist_notes && (
+                    <div className={styles.existingNotes}>
+                      <strong>یادداشت قبلی:</strong>
+                      <p>{selectedAppointment.therapist_notes}</p>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.modalFooter}>
+                  <button
+                    className={styles.cancelBtn}
+                    onClick={() => setShowNotesModal(false)}
+                  >
+                    انصراف
+                  </button>
+                  <button
+                    className={styles.saveBtn}
+                    onClick={async () => {
+                      await handleAddTherapistNotes(
+                        selectedAppointment.id,
+                        therapistNotes
+                      );
+                      setShowNotesModal(false);
+                      setTherapistNotes("");
+                    }}
+                  >
+                    <FiSave />
+                    ذخیره یادداشت
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* بخش کاربران */}
           {activeTab === "users" && (
             <div className={styles.usersSection}>
@@ -1095,6 +1420,15 @@ const AdminPanel = () => {
                     </div>
                     <div className={styles.clientBasicInfo}>
                       <h2>{selectedClient.full_name}</h2>
+                      <p>
+                        <FiCalendar /> تاریخ تولد:{" "}
+                        {new Date(selectedClient.birth_date).toLocaleDateString(
+                          "fa-IR"
+                        )}
+                      </p>
+                      <p>
+                        <FiBriefcase /> شغل: {selectedClient.job}
+                      </p>
                       <p>
                         <FiUser /> {selectedClient.phone}
                       </p>

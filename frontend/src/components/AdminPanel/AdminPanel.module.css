@@ -619,6 +619,179 @@
   background: #fef3c7;
 }
 
+/* ============ Appointments Management ============ */
+.appointmentsSection {
+  width: 100%;
+}
+
+.dateFilter {
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.appointmentCode {
+  font-family: monospace;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.appointmentDateTime {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.appointmentDate {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.appointmentTime {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.clientInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clientPhone {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.serviceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.serviceDuration {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.priceCell {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.statusIcon {
+  font-size: 0.8rem;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.confirmBtn,
+.completeBtn,
+.noteBtn,
+.cancelBtn,
+.viewBtn {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.confirmBtn {
+  color: #10b981;
+}
+.confirmBtn:hover {
+  background: #d1fae5;
+}
+
+.completeBtn {
+  color: #3b82f6;
+}
+.completeBtn:hover {
+  background: #dbeafe;
+}
+
+.noteBtn {
+  color: #f59e0b;
+}
+.noteBtn:hover {
+  background: #fef3c7;
+}
+
+.cancelBtn {
+  color: #ef4444;
+}
+.cancelBtn:hover {
+  background: #fee2e2;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.appointmentInfoBox {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.appointmentInfoBox p {
+  margin: 8px 0;
+}
+
+.existingNotes {
+  margin-top: 20px;
+  padding: 12px;
+  background: #fef3c7;
+  border-radius: 8px;
+}
+
+.existingNotes strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #d97706;
+}
+
+.existingNotes p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #92400e;
+}
+
+.rowNumber {
+  width: 60px;
+  text-align: center;
+  font-weight: 500;
+  color: #64748b;
+}
+
 /* ============ Clients ============ */
 .clientsList {
   display: grid;

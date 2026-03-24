@@ -1632,10 +1632,16 @@ app.get("/api/admin/clients", adminMiddleware, async (req, res) => {
       const completedAppointments = appointments.filter(
         (a) => a.status === "completed"
       );
-      const totalSpent = completedAppointments.reduce(
-        (sum, apt) => sum + (apt.price || 0),
-        0
-      );
+
+      // const totalSpent = completedAppointments.reduce(
+      //   (sum, apt) => sum + (apt.price || 0),
+      //   0
+      // );
+
+      const totalSpent = completedAppointments.reduce((sum, apt) => {
+        const price = apt.price ? Number(apt.price) : 0;
+        return sum + price;
+      }, 0);
 
       return {
         id: client.id,
@@ -1715,10 +1721,16 @@ app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
     const completedAppointments = appointments.filter(
       (a) => a.status === "completed"
     );
-    const totalSpent = completedAppointments.reduce(
-      (sum, apt) => sum + (apt.price || 0),
-      0
-    );
+
+    // اصلاح: استفاده از Number() و مقدار پیش‌فرض 0
+    const totalSpent = completedAppointments.reduce((sum, apt) => {
+      const price = apt.price
+        ? Number(apt.price)
+        : apt.service?.price
+        ? Number(apt.service.price)
+        : 0;
+      return sum + price;
+    }, 0);
 
     res.json({
       success: true,
@@ -1737,7 +1749,7 @@ app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
           date: apt.appointment_date,
           time: apt.appointment_time,
           status: apt.status,
-          status_text: apt.getStatusText(),
+          status_text: apt.getStatusText ? apt.getStatusText() : apt.status,
           service: apt.service
             ? {
                 name: apt.service.name,
@@ -1745,7 +1757,11 @@ app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
                 price: apt.service.price,
               }
             : null,
-          price: apt.price,
+          price: apt.price
+            ? Number(apt.price)
+            : apt.service?.price
+            ? Number(apt.service.price)
+            : 0,
           rating: apt.rating,
           user_review: apt.user_review,
           therapist_notes: apt.therapist_notes,
@@ -1767,12 +1783,112 @@ app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error("Get client details error:", error);
+    console.error("Error details:", error.message);
     res.status(500).json({
       success: false,
-      error: "خطا در دریافت اطلاعات مشتری",
+      error: "خطا در دریافت اطلاعات مشتری: " + error.message,
     });
   }
 });
+
+// app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
+//   try {
+//     const { clientId } = req.params;
+
+//     const client = await User.findByPk(clientId, {
+//       attributes: { exclude: ["password"] },
+//       include: [
+//         {
+//           model: Appointment,
+//           as: "appointments",
+//           required: false,
+//           include: [
+//             {
+//               model: Service,
+//               as: "service",
+//               attributes: [
+//                 "id",
+//                 "name",
+//                 "duration_minutes",
+//                 "price",
+//                 "category",
+//               ],
+//             },
+//           ],
+//           order: [["appointment_date", "DESC"]],
+//         },
+//       ],
+//     });
+
+//     if (!client) {
+//       return res.status(404).json({
+//         success: false,
+//         error: "مشتری پیدا نشد.",
+//       });
+//     }
+
+//     const appointments = client.appointments || [];
+//     const completedAppointments = appointments.filter(
+//       (a) => a.status === "completed"
+//     );
+//     const totalSpent = completedAppointments.reduce(
+//       (sum, apt) => sum + (apt.price || 0),
+//       0
+//     );
+
+//     res.json({
+//       success: true,
+//       client: {
+//         id: client.id,
+//         full_name: client.full_name,
+//         phone: client.phone,
+//         email: client.email,
+//         birth_date: client.birth_date,
+//         gender: client.gender,
+//         job: client.job,
+//         medical_info: client.medical_info,
+//         joined_date: client.created_at,
+//         appointments: appointments.map((apt) => ({
+//           id: apt.id,
+//           date: apt.appointment_date,
+//           time: apt.appointment_time,
+//           status: apt.status,
+//           status_text: apt.getStatusText(),
+//           service: apt.service
+//             ? {
+//                 name: apt.service.name,
+//                 duration: apt.service.duration_minutes,
+//                 price: apt.service.price,
+//               }
+//             : null,
+//           price: apt.price,
+//           rating: apt.rating,
+//           user_review: apt.user_review,
+//           therapist_notes: apt.therapist_notes,
+//           created_at: apt.created_at,
+//         })),
+//         stats: {
+//           total_appointments: appointments.length,
+//           completed_appointments: completedAppointments.length,
+//           total_spent: totalSpent,
+//           avg_rating:
+//             completedAppointments.length > 0
+//               ? completedAppointments.reduce(
+//                   (sum, apt) => sum + (apt.rating || 0),
+//                   0
+//                 ) / completedAppointments.length
+//               : 0,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get client details error:", error);
+//     res.status(500).json({
+//       success: false,
+//       error: "خطا در دریافت اطلاعات مشتری",
+//     });
+//   }
+// });
 
 app.get("/api/admin/calendar", adminMiddleware, async (req, res) => {
   try {

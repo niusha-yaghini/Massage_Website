@@ -170,4 +170,28 @@ User.prototype.verifyCode = function (code) {
   return this.verification_code === code;
 };
 
+// در انتهای فایل User.js، قبل از module.exports، این کد را اضافه کنید:
+
+// تعریف رابطه‌ها
+User.associate = (models) => {
+  User.hasMany(models.Appointment, {
+    foreignKey: "user_id",
+    as: "appointments",
+  });
+  User.hasMany(models.Appointment, {
+    foreignKey: "therapist_id",
+    as: "therapist_appointments",
+  });
+  User.hasMany(models.Review, {
+    foreignKey: "user_id",
+    as: "reviews",
+  });
+  User.hasMany(models.Notification, {
+    foreignKey: "user_id",
+    as: "notifications",
+  });
+};
+
+module.exports = User;
+
 module.exports = User;
