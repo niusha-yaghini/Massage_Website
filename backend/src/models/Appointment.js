@@ -38,7 +38,7 @@ const Appointment = sequelize.define(
       field: "appointment_time",
     },
     status: {
-      type: DataTypes.ENUM("pending", "confirmed", "completed", "cancelled"),
+      type: DataTypes.ENUM("pending", "confirmed", "completed", "cancelled", "expired"),
       defaultValue: "pending",
     },
     notes: {
@@ -129,6 +129,7 @@ Appointment.prototype.getStatusText = function () {
     confirmed: "تأیید شده",
     completed: "انجام شده",
     cancelled: "لغو شده",
+    expired: "تأیید نشده - منقضی شده",
   };
   return statusMap[this.status] || this.status;
 };

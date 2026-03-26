@@ -600,8 +600,8 @@
 }
 
 .statusToggle.inactive {
-  background: #ef4444;
-  color: #fff;
+  background: #e2e8f0;
+  color: #475569;
 }
 
 .viewBtn {
@@ -1199,9 +1199,21 @@
 
 .serviceStatus {
   font-size: 0.7rem;
-  padding: 4px 8px;
-  background: #e2e8f0;
+  padding: 4px 12px;
   border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+/* وضعیت فعال - سبز */
+.serviceStatus.activeStatus {
+  background: #10b981;
+  color: #fff;
+}
+
+/* وضعیت غیرفعال - خاکستری */
+.serviceStatus.inactiveStatus {
+  background: #e2e8f0;
   color: #475569;
 }
 
@@ -1367,6 +1379,17 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.isActive label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.isActive input {
+  margin-right: 5%;
 }
 
 .formGroup {

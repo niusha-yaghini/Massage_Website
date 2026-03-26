@@ -14,6 +14,8 @@ const {
 } = require("./models");
 const { Op } = require("sequelize");
 
+// process.env.TZ = "Asia/Tehran";
+
 const app = express();
 
 // تابع ساخت JWT token
@@ -60,6 +62,100 @@ const authMiddleware = (req, res, next) => {
       success: false,
       error: "توکن نامعتبر است.",
     });
+  }
+};
+
+const updatePastAppointments = async () => {
+  console.log("🔄 ===== updatePastAppointments START ===== 🔄");
+
+  try {
+    // استفاده از تاریخ ایران
+    const iranDate = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Tehran" })
+    );
+    iranDate.setHours(0, 0, 0, 0);
+    const year = iranDate.getFullYear();
+    const month = String(iranDate.getMonth() + 1).padStart(2, "0");
+    const day = String(iranDate.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    console.log(`📅 Today date (Iran): ${todayStr}`);
+
+    // پیدا کردن نوبت‌های در انتظار که تاریخ آنها گذشته است
+    const pastPendingAppointments = await Appointment.findAll({
+      where: {
+        status: "pending",
+        appointment_date: {
+          [Op.lt]: todayStr,
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "full_name"],
+        },
+      ],
+    });
+
+    console.log(
+      `📊 Found ${pastPendingAppointments.length} past pending appointments`
+    );
+
+    if (pastPendingAppointments.length > 0) {
+      for (const appointment of pastPendingAppointments) {
+        console.log(`🔄 Updating appointment ${appointment.id}...`);
+
+        // تغییر وضعیت به expired
+        await appointment.update({ status: "expired" });
+        console.log(`✅ Appointment ${appointment.id} updated to expired`);
+
+        // ============ ارسال نوتیفیکیشن به مشتری ============
+        if (appointment.user_id) {
+          await Notification.create({
+            user_id: appointment.user_id,
+            title: "انقضای زمان نوبت",
+            message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} به دلیل عدم تأیید به موقع منقضی شد.`,
+            type: "appointment_cancelled",
+            related_id: appointment.id,
+          });
+          console.log(
+            `📧 Notification sent to customer (user ${appointment.user_id})`
+          );
+        }
+
+        // ============ ارسال نوتیفیکیشن به ادمین (ماساژور) ============
+        const adminUsers = await User.findAll({
+          where: { role: "admin" },
+          attributes: ["id"],
+        });
+
+        for (const admin of adminUsers) {
+          await Notification.create({
+            user_id: admin.id,
+            title: "نوبت منقضی شد",
+            message: `نوبت مشتری ${
+              appointment.user?.full_name || "نامشخص"
+            } در تاریخ ${appointment.appointment_date} ساعت ${
+              appointment.appointment_time
+            } به دلیل عدم تأیید منقضی شد.`,
+            type: "appointment_cancelled",
+            related_id: appointment.id,
+          });
+        }
+        if (adminUsers.length > 0) {
+          console.log(`📧 Notification sent to ${adminUsers.length} admin(s)`);
+        }
+      }
+    } else {
+      console.log("✅ No past pending appointments found");
+    }
+
+    console.log("🔄 ===== updatePastAppointments END ===== 🔄");
+    return pastPendingAppointments.length;
+  } catch (error) {
+    console.error("❌ Error updating past appointments:", error);
+    return 0;
   }
 };
 
@@ -2173,6 +2269,20 @@ const startServer = async () => {
   try {
     await sequelize.sync({ alter: true });
     console.log("✅ Database synchronized");
+
+    // اجرای اولیه برای به‌روزرسانی نوبت‌های گذشته
+    const updatedCount = await updatePastAppointments();
+    if (updatedCount > 0) {
+      console.log(`📅 Updated ${updatedCount} past pending appointments`);
+    }
+
+    // اجرای هر ساعت یکبار
+    setInterval(async () => {
+      const count = await updatePastAppointments();
+      if (count > 0) {
+        console.log(`📅 [Auto] Updated ${count} past pending appointments`);
+      }
+    }, 60 * 60 * 1000); // هر 1 ساعت
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on: http://localhost:${PORT}`);

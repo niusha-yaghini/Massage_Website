@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AdminPanel.module.css";
+import moment from "moment-jalaali";
 import { adminService, notificationService } from "../../services/userService";
 import {
   FiHome,
   FiUsers,
   FiCalendar,
   FiStar,
-  FiSettings,
   FiLogOut,
   FiBell,
-  FiDollarSign,
+  FiCreditCard,
   FiUserCheck,
   FiClock,
   FiCheckCircle,
@@ -23,20 +23,49 @@ import {
   FiCheck,
   FiMessageSquare,
   FiEye,
-  FiEyeOff,
   FiRefreshCw,
   FiSearch,
-  FiFilter,
   FiPlus,
   FiSave,
   FiX,
   FiMail,
   FiUser,
   FiBriefcase,
-  FiInfo,
-  FiActivity,
 } from "react-icons/fi";
 import { userService } from "../../services/userService";
+
+// import moment from "moment-jalaali";
+
+// تبدیل تاریخ میلادی به شمسی
+const formatGregorianToPersian = (gregorianDate) => {
+  if (!gregorianDate) return "نامشخص";
+
+  try {
+    // تبدیل تاریخ میلادی به moment
+    const m = moment(gregorianDate);
+    // بررسی معتبر بودن تاریخ
+    if (!m.isValid()) return gregorianDate;
+
+    // تبدیل به شمسی با فرمت دلخواه
+    return m.format("jYYYY/jMM/jDD");
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return gregorianDate;
+  }
+};
+
+// استخراج روز شمسی
+const getPersianDayNumber = (gregorianDate) => {
+  if (!gregorianDate) return "";
+
+  try {
+    const m = moment(gregorianDate);
+    if (!m.isValid()) return "";
+    return m.format("jD");
+  } catch (error) {
+    return "";
+  }
+};
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -259,6 +288,10 @@ const AdminPanel = () => {
         startDate.toISOString().split("T")[0],
         endDate.toISOString().split("T")[0]
       );
+
+      console.log("📅 Calendar data received:", data);
+      console.log("First appointment date:", data[0]?.date);
+
       setCalendarAppointments(data);
     } catch (error) {
       console.error("Error fetching calendar:", error);
@@ -432,6 +465,12 @@ const AdminPanel = () => {
       bg: "#fee2e2",
       icon: FiXCircle,
     },
+    expired: {
+      label: "تأیید نشده - منقضی شده",
+      color: "#6b7280",
+      bg: "#f3f4f6",
+      icon: FiAlertCircle,
+    },
   };
 
   // ============ کامپوننت‌های داخلی ============
@@ -586,19 +625,29 @@ const AdminPanel = () => {
     const startOfWeek = new Date(currentDate);
 
     // تنظیم به اولین روز هفته (شنبه در تقویم ایران)
-    const dayOfWeek = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, ...
+    const dayOfWeek = startOfWeek.getDay();
     const daysToSaturday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     startOfWeek.setDate(startOfWeek.getDate() - daysToSaturday);
+    startOfWeek.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+
+      // دریافت روز شمسی با moment
+      const persianDay = moment(dateStr).format("jD");
 
       weekDays.push({
-        dateStr: date.toISOString().split("T")[0],
+        dateStr: dateStr,
         dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
-        dayNumber: date.getDate(),
+        dayNumber: parseInt(persianDay),
         month: date.toLocaleDateString("fa-IR", { month: "long" }),
         isToday: date.toDateString() === today.toDateString(),
       });
@@ -662,7 +711,7 @@ const AdminPanel = () => {
                     className={styles.statIcon}
                     style={{ backgroundColor: "#fee2e2", color: "#ef4444" }}
                   >
-                    <FiDollarSign />
+                    <FiCreditCard />
                   </div>
                   <div className={styles.statInfo}>
                     <h3>
@@ -811,9 +860,15 @@ const AdminPanel = () => {
               {/* تقویم هفتگی */}
               <div className={styles.calendarWeek}>
                 {generateWeekDays(selectedDate).map((day) => {
+                  // فیلتر کردن نوبت‌ها بر اساس تاریخ (مقایسه به صورت string)
                   const dayAppointments = calendarAppointments.filter(
                     (apt) => apt.date === day.dateStr
                   );
+
+                  console.log(
+                    `Day ${day.dateStr} has ${dayAppointments.length} appointments`
+                  );
+
                   const isToday = day.isToday;
 
                   return (
@@ -862,13 +917,17 @@ const AdminPanel = () => {
                                 <div
                                   className={styles.calendarAppointmentClient}
                                 >
-                                  <strong>{apt.client.name}</strong>
+                                  <strong>
+                                    {apt.client?.name ||
+                                      apt.client_name ||
+                                      "نامشخص"}
+                                  </strong>
                                   <span
                                     className={
                                       styles.calendarAppointmentService
                                     }
                                   >
-                                    {apt.service.name}
+                                    {apt.service?.name || "نامشخص"}
                                   </span>
                                 </div>
                                 <div
@@ -932,7 +991,7 @@ const AdminPanel = () => {
                           <FiCalendar /> {client.total_appointments} نوبت
                         </span>
                         <span>
-                          <FiDollarSign />{" "}
+                          <FiCreditCard />{" "}
                           {client.total_spent?.toLocaleString("fa-IR")} تومان
                         </span>
                       </div>
@@ -979,6 +1038,7 @@ const AdminPanel = () => {
                   <option value="confirmed">تأیید شده</option>
                   <option value="completed">انجام شده</option>
                   <option value="cancelled">لغو شده</option>
+                  <option value="expired">تأیید نشده - منقضی شده</option>
                 </select>
 
                 {/* 
@@ -1194,7 +1254,7 @@ const AdminPanel = () => {
                 <div className={styles.modalHeader}>
                   <h3>
                     <FiMessageSquare />
-                    یادداشت تراپیست
+                    <span> یادداشت تراپیست</span>
                   </h3>
                   <button
                     className={styles.closeModal}
@@ -1207,17 +1267,26 @@ const AdminPanel = () => {
                   <div className={styles.appointmentInfoBox}>
                     <p>
                       <strong>مشتری:</strong>{" "}
-                      {selectedAppointment.user?.full_name}
+                      {selectedAppointment.user?.full_name ||
+                        selectedAppointment.client?.name ||
+                        "نامشخص"}
                     </p>
                     <p>
-                      <strong>خدمت:</strong> {selectedAppointment.service?.name}
+                      <strong>خدمت:</strong>{" "}
+                      {selectedAppointment.service?.name || "نامشخص"}
                     </p>
                     <p>
                       <strong>تاریخ و ساعت:</strong>{" "}
-                      {new Date(
-                        selectedAppointment.appointment_date
-                      ).toLocaleDateString("fa-IR")}{" "}
-                      - {selectedAppointment.appointment_time}
+                      {selectedAppointment.date
+                        ? formatGregorianToPersian(selectedAppointment.date)
+                        : selectedAppointment.appointment_date
+                        ? formatGregorianToPersian(
+                            selectedAppointment.appointment_date
+                          )
+                        : "نامشخص"}{" "}
+                      -{" "}
+                      {selectedAppointment.time ||
+                        selectedAppointment.appointment_time}
                     </p>
                   </div>
 
@@ -1293,10 +1362,13 @@ const AdminPanel = () => {
                 {services.map((service) => (
                   <div key={service.id} className={styles.serviceCard}>
                     <div className={styles.serviceHeader}>
-                      <div className={styles.serviceIcon}>
-                        <FiStar />
-                      </div>
-                      <div className={styles.serviceStatus}>
+                      <div
+                        className={`${styles.serviceStatus} ${
+                          service.is_active
+                            ? styles.activeStatus
+                            : styles.inactiveStatus
+                        }`}
+                      >
                         {service.is_active ? "فعال" : "غیرفعال"}
                       </div>
                     </div>
@@ -1436,8 +1508,9 @@ const AdminPanel = () => {
                       <option value="ویژه">ویژه</option>
                     </select>
                   </div>
-                  <div className={styles.formGroup}>
+                  <div className={styles.isActive}>
                     <label>
+                      فعال بودن سرویس
                       <input
                         type="checkbox"
                         checked={serviceForm.is_active}
@@ -1448,7 +1521,6 @@ const AdminPanel = () => {
                           })
                         }
                       />
-                      فعال بودن سرویس
                     </label>
                   </div>
                 </div>
