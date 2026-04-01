@@ -63,6 +63,11 @@ const Review = sequelize.define(
       },
       field: "appointment_id",
     },
+    is_rejected: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: "is_rejected",
+    },
   },
   {
     tableName: "reviews",

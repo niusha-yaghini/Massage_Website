@@ -881,23 +881,46 @@ export const adminService = {
   },
 
   // تایید/رد نظر
-  async approveReview(reviewId, is_approved) {
+  // approveReview
+  async approveReview(reviewId, is_approved, is_rejected = false) {
     try {
+      console.log("📤 ===== approveReview API CALL =====");
+      console.log("📤 URL:", `${API_URL}/admin/reviews/${reviewId}/approve`);
+      console.log("📤 Body:", { is_approved, is_rejected });
+
       const response = await fetchWithAuth(
         `${API_URL}/admin/reviews/${reviewId}/approve`,
         {
           method: "PUT",
-          body: JSON.stringify({ is_approved }),
+          body: JSON.stringify({ is_approved, is_rejected }),
         }
       );
       const data = await handleResponse(response);
+      console.log("📥 Response:", data);
       return data;
     } catch (error) {
       handleNetworkError(error);
-      console.error("Error approving review:", error);
+      console.error("❌ Error approving review:", error);
       throw error;
     }
   },
+  // async approveReview(reviewId, is_approved) {
+  //   try {
+  //     const response = await fetchWithAuth(
+  //       `${API_URL}/admin/reviews/${reviewId}/approve`,
+  //       {
+  //         method: "PUT",
+  //         body: JSON.stringify({ is_approved }),
+  //       }
+  //     );
+  //     const data = await handleResponse(response);
+  //     return data;
+  //   } catch (error) {
+  //     handleNetworkError(error);
+  //     console.error("Error approving review:", error);
+  //     throw error;
+  //   }
+  // },
 
   // ============ کارهای ماساژتراپیست ============
 

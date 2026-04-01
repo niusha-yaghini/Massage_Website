@@ -1605,7 +1605,20 @@ app.get("/api/admin/reviews", adminMiddleware, async (req, res) => {
     const { status = "pending", page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
-    const where = status === "pending" ? { is_approved: false } : {};
+    let where = {};
+
+    if (status === "pending") {
+      where = {
+        is_approved: false,
+        is_rejected: false,
+      };
+    } else if (status === "approved") {
+      where = { is_approved: true };
+    } else if (status === "rejected") {
+      where = { is_rejected: true };
+    } else if (status === "all") {
+      where = {};
+    }
 
     const { count, rows } = await Review.findAndCountAll({
       where,
@@ -1618,7 +1631,12 @@ app.get("/api/admin/reviews", adminMiddleware, async (req, res) => {
         {
           model: Service,
           as: "service",
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "price", "duration_minutes"],
+        },
+        {
+          model: Appointment,
+          as: "appointment",
+          attributes: ["price", "appointment_date", "appointment_time"],
         },
       ],
       limit: parseInt(limit),
@@ -1643,11 +1661,23 @@ app.get("/api/admin/reviews", adminMiddleware, async (req, res) => {
 });
 
 app.put("/api/admin/reviews/:id/approve", adminMiddleware, async (req, res) => {
+  console.log("🔧 ===== APPROVE REVIEW API CALLED =====");
+  console.log("🔧 req.params:", req.params);
+  console.log("🔧 req.body:", req.body);
+  
   try {
     const { id } = req.params;
-    const { is_approved } = req.body;
+    const { is_approved, is_rejected } = req.body;
 
-    const review = await Review.findByPk(id);
+    const review = await Review.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "full_name"],
+        },
+      ],
+    });
 
     if (!review) {
       return res.status(404).json({
@@ -1656,16 +1686,36 @@ app.put("/api/admin/reviews/:id/approve", adminMiddleware, async (req, res) => {
       });
     }
 
-    review.is_approved = is_approved;
+    // اگر is_approved = true باشد، نظر تایید می‌شود و is_rejected false می‌شود
+    if (is_approved === true) {
+      review.is_approved = true;
+      review.is_rejected = false;
+    }
+    // اگر is_rejected = true باشد، نظر رد می‌شود و is_approved false می‌شود
+    else if (is_rejected === true) {
+      review.is_approved = false;
+      review.is_rejected = true;
+    }
+    // اگر هر دو false باشند، یعنی عملیات لغو (برای reset کردن)
+    else if (is_approved === false && is_rejected === false) {
+      review.is_approved = false;
+      review.is_rejected = false;
+    }
+
     await review.save();
 
-    if (review.user_id) {
+    // ارسال نوتیفیکیشن به کاربر
+    if (review.user_id && (is_approved || is_rejected)) {
       await Notification.create({
         user_id: review.user_id,
         title: is_approved ? "نظر شما تایید شد" : "نظر شما رد شد",
         message: is_approved
-          ? "نظر شما با موفقیت تایید شد و در صفحه اصلی نمایش داده خواهد شد."
-          : "متاسفانه نظر شما تایید نشد. برای اطلاعات بیشتر با پشتیبانی تماس بگیرید.",
+          ? `نظر شما برای خدمت "${
+              review.service?.name || ""
+            }" با موفقیت تایید شد و در صفحه اصلی نمایش داده خواهد شد.`
+          : `متاسفانه نظر شما برای خدمت "${
+              review.service?.name || ""
+            }" تایید نشد.`,
         type: "review_approved",
         related_id: review.id,
       });
@@ -1673,19 +1723,25 @@ app.put("/api/admin/reviews/:id/approve", adminMiddleware, async (req, res) => {
 
     res.json({
       success: true,
-      message: is_approved ? "نظر با موفقیت تایید شد." : "نظر رد شد.",
-      review,
+      message: is_approved
+        ? "نظر با موفقیت تایید شد."
+        : is_rejected
+        ? "نظر رد شد."
+        : "وضعیت نظر به روزرسانی شد.",
+      review: {
+        id: review.id,
+        is_approved: review.is_approved,
+        is_rejected: review.is_rejected,
+      },
     });
   } catch (error) {
     console.error("Approve review error:", error);
     res.status(500).json({
       success: false,
-      error: "خطا در تایید نظر",
+      error: "خطا در تایید نظر: " + error.message,
     });
   }
 });
-
-// ============ ADMIN ROUTES - کارهای ماساژتراپیست ============
 
 app.get("/api/admin/clients", adminMiddleware, async (req, res) => {
   try {
@@ -1886,105 +1942,6 @@ app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
     });
   }
 });
-
-// app.get("/api/admin/clients/:clientId", adminMiddleware, async (req, res) => {
-//   try {
-//     const { clientId } = req.params;
-
-//     const client = await User.findByPk(clientId, {
-//       attributes: { exclude: ["password"] },
-//       include: [
-//         {
-//           model: Appointment,
-//           as: "appointments",
-//           required: false,
-//           include: [
-//             {
-//               model: Service,
-//               as: "service",
-//               attributes: [
-//                 "id",
-//                 "name",
-//                 "duration_minutes",
-//                 "price",
-//                 "category",
-//               ],
-//             },
-//           ],
-//           order: [["appointment_date", "DESC"]],
-//         },
-//       ],
-//     });
-
-//     if (!client) {
-//       return res.status(404).json({
-//         success: false,
-//         error: "مشتری پیدا نشد.",
-//       });
-//     }
-
-//     const appointments = client.appointments || [];
-//     const completedAppointments = appointments.filter(
-//       (a) => a.status === "completed"
-//     );
-//     const totalSpent = completedAppointments.reduce(
-//       (sum, apt) => sum + (apt.price || 0),
-//       0
-//     );
-
-//     res.json({
-//       success: true,
-//       client: {
-//         id: client.id,
-//         full_name: client.full_name,
-//         phone: client.phone,
-//         email: client.email,
-//         birth_date: client.birth_date,
-//         gender: client.gender,
-//         job: client.job,
-//         medical_info: client.medical_info,
-//         joined_date: client.created_at,
-//         appointments: appointments.map((apt) => ({
-//           id: apt.id,
-//           date: apt.appointment_date,
-//           time: apt.appointment_time,
-//           status: apt.status,
-//           status_text: apt.getStatusText(),
-//           service: apt.service
-//             ? {
-//                 name: apt.service.name,
-//                 duration: apt.service.duration_minutes,
-//                 price: apt.service.price,
-//               }
-//             : null,
-//           price: apt.price,
-//           rating: apt.rating,
-//           user_review: apt.user_review,
-//           therapist_notes: apt.therapist_notes,
-//           created_at: apt.created_at,
-//         })),
-//         stats: {
-//           total_appointments: appointments.length,
-//           completed_appointments: completedAppointments.length,
-//           total_spent: totalSpent,
-//           avg_rating:
-//             completedAppointments.length > 0
-//               ? completedAppointments.reduce(
-//                   (sum, apt) => sum + (apt.rating || 0),
-//                   0
-//                 ) / completedAppointments.length
-//               : 0,
-//         },
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Get client details error:", error);
-//     res.status(500).json({
-//       success: false,
-//       error: "خطا در دریافت اطلاعات مشتری",
-//     });
-//   }
-// });
 
 app.get("/api/admin/calendar", adminMiddleware, async (req, res) => {
   try {
@@ -2311,101 +2268,6 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
   }
 });
 
-// app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
-//   try {
-//     const now = new Date();
-//     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-//     const monthlyAppointments = await Appointment.findAll({
-//       where: {
-//         appointment_date: {
-//           [Op.gte]: startOfMonth.toISOString().split("T")[0],
-//         },
-//         status: "completed",
-//       },
-//     });
-
-//     const monthlyRevenue = monthlyAppointments.reduce(
-//       (sum, apt) => sum + (apt.price || 0),
-//       0
-//     );
-
-//     const uniqueClients = await Appointment.count({
-//       where: {
-//         status: "completed",
-//       },
-//       distinct: true,
-//       col: "user_id",
-//     });
-
-//     const today = now.toISOString().split("T")[0];
-//     const todayAppointments = await Appointment.findAll({
-//       where: {
-//         appointment_date: today,
-//         status: ["pending", "confirmed"],
-//       },
-//       include: [
-//         {
-//           model: User,
-//           as: "user",
-//           attributes: ["full_name", "phone"],
-//         },
-//         {
-//           model: Service,
-//           as: "service",
-//           attributes: ["name"],
-//         },
-//       ],
-//     });
-
-//     const pendingReviews = await Review.findAll({
-//       where: {
-//         is_approved: false,
-//       },
-//       include: [
-//         {
-//           model: User,
-//           as: "user",
-//           attributes: ["full_name"],
-//         },
-//       ],
-//       limit: 10,
-//       order: [["created_at", "DESC"]],
-//     });
-
-//     res.json({
-//       success: true,
-//       overview: {
-//         monthly_revenue: monthlyRevenue,
-//         monthly_appointments: monthlyAppointments.length,
-//         total_clients: uniqueClients,
-//         today_appointments: todayAppointments.map((apt) => ({
-//           id: apt.id,
-//           time: apt.appointment_time,
-//           client_name: apt.user.full_name,
-//           client_phone: apt.user.phone,
-//           service: apt.service?.name,
-//           status: apt.status,
-//         })),
-//         pending_reviews: pendingReviews.map((review) => ({
-//           id: review.id,
-//           client_name: review.user?.full_name || review.name,
-//           rating: review.rating,
-//           text: review.text,
-//           created_at: review.created_at,
-//         })),
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Get admin overview error:", error);
-//     res.status(500).json({
-//       success: false,
-//       error: "خطا در دریافت آمار",
-//     });
-//   }
-// });
-
-// ============ سرور ============
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {

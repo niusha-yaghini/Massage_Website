@@ -134,6 +134,14 @@ const AdminPanel = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // Reviews
+  const [reviewCounts, setReviewCounts] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    all: 0,
+  });
+
   // ============ دریافت اطلاعات کاربر جاری ============
   useEffect(() => {
     const fetchUserData = async () => {
@@ -160,14 +168,21 @@ const AdminPanel = () => {
       fetchAppointments();
     } else if (activeTab === "services") {
       fetchServices();
-    } else if (activeTab === "reviews") {
-      fetchReviews();
+      // } else if (activeTab === "reviews") {
+      //   fetchReviews();
     } else if (activeTab === "clients") {
       fetchClients();
     } else if (activeTab === "calendar") {
       fetchCalendar();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "reviews") {
+      fetchReviewsWithStatus(reviewsStatus, reviewsPage);
+      fetchReviewCounts(); // اضافه کنید
+    }
+  }, [activeTab, reviewsStatus, reviewsPage]);
 
   // دریافت داده‌های نوتیفیکیشن
   useEffect(() => {
@@ -261,6 +276,61 @@ const AdminPanel = () => {
       console.error("Error fetching reviews:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviewsWithStatus = async (status, page) => {
+    setLoading(true);
+    try {
+      const data = await adminService.getReviews({
+        page: page,
+        status: status,
+      });
+      setReviews(data.reviews);
+      setReviewsTotal(data.total);
+      setReviewsPage(page);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchReviewCounts = async () => {
+    try {
+      // دریافت تعداد نظرات در انتظار
+      const pendingData = await adminService.getReviews({
+        status: "pending",
+        page: 1,
+        limit: 1,
+      });
+      // دریافت تعداد نظرات تایید شده
+      const approvedData = await adminService.getReviews({
+        status: "approved",
+        page: 1,
+        limit: 1,
+      });
+      // دریافت تعداد نظرات رد شده
+      const rejectedData = await adminService.getReviews({
+        status: "rejected",
+        page: 1,
+        limit: 1,
+      });
+      // دریافت تعداد کل نظرات
+      const allData = await adminService.getReviews({
+        status: "all",
+        page: 1,
+        limit: 1,
+      });
+
+      setReviewCounts({
+        pending: pendingData.total || 0,
+        approved: approvedData.total || 0,
+        rejected: rejectedData.total || 0,
+        all: allData.total || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching review counts:", error);
     }
   };
 
@@ -400,14 +470,46 @@ const AdminPanel = () => {
     }
   };
 
-  const handleApproveReview = async (reviewId, isApproved) => {
+  const handleApproveReview = async (
+    reviewId,
+    isApproved,
+    isRejected = false
+  ) => {
     try {
-      await adminService.approveReview(reviewId, isApproved);
-      fetchReviews();
+      await adminService.approveReview(reviewId, isApproved, isRejected);
+      fetchReviewsWithStatus(reviewsStatus, reviewsPage);
+      fetchReviewCounts(); // اضافه کنید - برای به‌روزرسانی تعدادها
     } catch (error) {
       console.error("Error approving review:", error);
     }
   };
+
+  // const handleApproveReview = async (
+  //   reviewId,
+  //   isApproved,
+  //   isRejected = false
+  // ) => {
+  //   console.log("🔄 ===== handleApproveReview START =====");
+  //   console.log("📝 reviewId:", reviewId);
+  //   console.log("📝 isApproved:", isApproved);
+  //   console.log("📝 isRejected:", isRejected);
+
+  //   try {
+  //     const result = await adminService.approveReview(
+  //       reviewId,
+  //       isApproved,
+  //       isRejected
+  //     );
+  //     console.log("✅ Response from server:", result);
+  //     console.log("🔄 Fetching reviews again...");
+  //     await fetchReviewsWithStatus(reviewsStatus, reviewsPage);
+  //     console.log("✅ Reviews updated");
+  //   } catch (error) {
+  //     console.error("❌ Error approving review:", error);
+  //     alert("خطا در تایید/رد نظر: " + (error.message || "خطای ناشناخته"));
+  //   }
+  //   console.log("🔄 ===== handleApproveReview END =====");
+  // };
 
   const handleViewClient = async (clientId) => {
     try {
@@ -1707,22 +1809,183 @@ const AdminPanel = () => {
           {activeTab === "reviews" && (
             <div className={styles.reviewsSection}>
               <div className={styles.filtersBar}>
-                <select
-                  className={styles.filterSelect}
-                  value={reviewsStatus}
-                  onChange={(e) => {
-                    setReviewsStatus(e.target.value);
-                    setReviewsPage(1);
-                  }}
-                >
-                  <option value="pending">در انتظار تایید</option>
-                  <option value="all">همه نظرات</option>
-                </select>
+                {/* <div className={styles.filterCards}>
+                  <button
+                    className={`${styles.filterCard} ${styles.pendingCard} ${
+                      reviewsStatus === "pending" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("pending");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("pending", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiClock />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>
+                        در انتظار تایید
+                      </span>
+                      <span className={styles.filterCardCount}>
+                        {reviewsTotal || 0}
+                      </span>
+                    </div>
+                  </button>
 
-                <button className={styles.searchBtn} onClick={fetchReviews}>
-                  <FiRefreshCw />
-                  <span> بروزرسانی</span>
-                </button>
+                  <button
+                    className={`${styles.filterCard} ${styles.approvedCard} ${
+                      reviewsStatus === "approved" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("approved");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("approved", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiCheckCircle />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>تایید شده</span>
+                      <span className={styles.filterCardCount}>
+                        {reviews.filter((r) => r.is_approved).length}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    className={`${styles.filterCard} ${styles.rejectedCard} ${
+                      reviewsStatus === "rejected" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("rejected");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("rejected", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiXCircle />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>رد شده</span>
+                      <span className={styles.filterCardCount}>
+                        {reviews.filter((r) => r.is_rejected).length}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    className={`${styles.filterCard} ${styles.allCard} ${
+                      reviewsStatus === "all" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("all");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("all", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiStar />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>همه نظرات</span>
+                      <span className={styles.filterCardCount}>
+                        {reviewsTotal}
+                      </span>
+                    </div>
+                  </button>
+                </div> */}
+                <div className={styles.filterCards}>
+                  <button
+                    className={`${styles.filterCard} ${styles.pendingCard} ${
+                      reviewsStatus === "pending" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("pending");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("pending", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiClock />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>
+                        در انتظار تایید
+                      </span>
+                      <span className={styles.filterCardCount}>
+                        {reviewCounts.pending}{" "}
+                        {/* ✅ استفاده از reviewCounts */}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    className={`${styles.filterCard} ${styles.approvedCard} ${
+                      reviewsStatus === "approved" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("approved");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("approved", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiCheckCircle />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>تایید شده</span>
+                      <span className={styles.filterCardCount}>
+                        {reviewCounts.approved}{" "}
+                        {/* ✅ استفاده از reviewCounts */}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    className={`${styles.filterCard} ${styles.rejectedCard} ${
+                      reviewsStatus === "rejected" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("rejected");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("rejected", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiXCircle />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>رد شده</span>
+                      <span className={styles.filterCardCount}>
+                        {reviewCounts.rejected}{" "}
+                        {/* ✅ استفاده از reviewCounts */}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    className={`${styles.filterCard} ${styles.allCard} ${
+                      reviewsStatus === "all" ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      setReviewsStatus("all");
+                      setReviewsPage(1);
+                      fetchReviewsWithStatus("all", 1);
+                    }}
+                  >
+                    <div className={styles.filterCardIcon}>
+                      <FiStar />
+                    </div>
+                    <div className={styles.filterCardInfo}>
+                      <span className={styles.filterCardLabel}>همه نظرات</span>
+                      <span className={styles.filterCardCount}>
+                        {reviewCounts.all} {/* ✅ استفاده از reviewCounts */}
+                      </span>
+                    </div>
+                  </button>
+                </div>
               </div>
 
               <div className={styles.reviewsList}>
@@ -1762,6 +2025,39 @@ const AdminPanel = () => {
 
                     <p className={styles.reviewText}>{review.text}</p>
 
+                    {/* اطلاعات تکمیلی */}
+                    <div className={styles.reviewDetails}>
+                      {review.appointment && (
+                        <>
+                          <div className={styles.detailItem}>
+                            <FiClock className={styles.detailIcon} />
+                            <span>
+                              مدت زمان: {review.service?.duration_minutes} دقیقه
+                            </span>
+                          </div>
+                          <div className={styles.detailItem}>
+                            <FiCreditCard className={styles.detailIcon} />
+                            <span>
+                              قیمت:{" "}
+                              {review.appointment.price?.toLocaleString(
+                                "fa-IR"
+                              )}{" "}
+                              تومان
+                            </span>
+                          </div>
+                          <div className={styles.detailItem}>
+                            <FiCalendar className={styles.detailIcon} />
+                            <span>
+                              تاریخ:{" "}
+                              {formatGregorianToPersian(
+                                review.appointment.appointment_date
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
                     <div className={styles.reviewMeta}>
                       <span className={styles.reviewDate}>
                         {new Date(review.created_at).toLocaleDateString(
@@ -1771,32 +2067,166 @@ const AdminPanel = () => {
                     </div>
 
                     <div className={styles.reviewActions}>
-                      {!review.is_approved && (
+                      {/* {!review.is_approved && !review.is_rejected ? (
                         <>
                           <button
                             className={styles.approveBtn}
-                            onClick={() => handleApproveReview(review.id, true)}
+                            onClick={async () => {
+                              await handleApproveReview(review.id, true, false);
+                              fetchReviewsWithStatus(
+                                reviewsStatus,
+                                reviewsPage
+                              );
+                            }}
                           >
                             <FiCheck />
                             تایید
                           </button>
                           <button
                             className={styles.rejectBtn}
-                            onClick={() =>
-                              handleApproveReview(review.id, false)
-                            }
+                            onClick={async () => {
+                              await handleApproveReview(review.id, false, true);
+                              fetchReviewsWithStatus(
+                                reviewsStatus,
+                                reviewsPage
+                              );
+                            }}
                           >
                             <FiX />
                             رد
                           </button>
                         </>
-                      )}
-                      {review.is_approved && (
-                        <span className={styles.approvedBadge}>
-                          <FiCheckCircle />
-                          تایید شده
-                        </span>
-                      )}
+                      ) : review.is_approved ? (
+                        <div className={styles.reviewStatus}>
+                          <span className={styles.approvedBadge}>
+                            <FiCheckCircle />
+                            تایید شده
+                          </span>
+                          <button
+                            className={styles.rejectBtnSmall}
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "آیا می‌خواهید این نظر را رد کنید؟"
+                                )
+                              ) {
+                                await handleApproveReview(
+                                  review.id,
+                                  false,
+                                  true
+                                );
+                                fetchReviewsWithStatus(
+                                  reviewsStatus,
+                                  reviewsPage
+                                );
+                              }
+                            }}
+                          >
+                            لغو تایید
+                          </button>
+                        </div>
+                      ) : review.is_rejected ? (
+                        <div className={styles.reviewStatus}>
+                          <span className={styles.rejectedBadge}>
+                            <FiXCircle />
+                            رد شده
+                          </span>
+                          <button
+                            className={styles.approveBtnSmall}
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "آیا می‌خواهید این نظر را تایید کنید؟"
+                                )
+                              ) {
+                                await handleApproveReview(
+                                  review.id,
+                                  true,
+                                  false
+                                );
+                                fetchReviewsWithStatus(
+                                  reviewsStatus,
+                                  reviewsPage
+                                );
+                              }
+                            }}
+                          >
+                            تایید مجدد
+                          </button>
+                        </div>
+                      ) : null} */}
+                      {!review.is_approved && !review.is_rejected ? (
+                        <>
+                          <button
+                            className={styles.approveBtn}
+                            onClick={async () => {
+                              await handleApproveReview(review.id, true, false);
+                            }}
+                          >
+                            <FiCheck />
+                            تایید
+                          </button>
+                          <button
+                            className={styles.rejectBtn}
+                            onClick={async () => {
+                              await handleApproveReview(review.id, false, true);
+                            }}
+                          >
+                            <FiX />
+                            رد
+                          </button>
+                        </>
+                      ) : review.is_approved ? (
+                        <div className={styles.reviewStatus}>
+                          <span className={styles.approvedBadge}>
+                            <FiCheckCircle />
+                            تایید شده
+                          </span>
+                          <button
+                            className={styles.rejectBtnSmall}
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "آیا می‌خواهید این نظر را رد کنید؟"
+                                )
+                              ) {
+                                await handleApproveReview(
+                                  review.id,
+                                  false,
+                                  true
+                                );
+                              }
+                            }}
+                          >
+                            لغو تایید
+                          </button>
+                        </div>
+                      ) : review.is_rejected ? (
+                        <div className={styles.reviewStatus}>
+                          <span className={styles.rejectedBadge}>
+                            <FiXCircle />
+                            رد شده
+                          </span>
+                          <button
+                            className={styles.approveBtnSmall}
+                            onClick={async () => {
+                              if (
+                                window.confirm(
+                                  "آیا می‌خواهید این نظر را تایید کنید؟"
+                                )
+                              ) {
+                                await handleApproveReview(
+                                  review.id,
+                                  true,
+                                  false
+                                );
+                              }
+                            }}
+                          >
+                            تایید مجدد
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -1813,14 +2243,22 @@ const AdminPanel = () => {
                 <div className={styles.pagination}>
                   <button
                     disabled={reviewsPage === 1}
-                    onClick={() => setReviewsPage(reviewsPage - 1)}
+                    onClick={() => {
+                      const newPage = reviewsPage - 1;
+                      setReviewsPage(newPage);
+                      fetchReviewsWithStatus(reviewsStatus, newPage);
+                    }}
                   >
                     <FiChevronRight />
                   </button>
                   <span>صفحه {reviewsPage}</span>
                   <button
                     disabled={reviewsPage * 20 >= reviewsTotal}
-                    onClick={() => setReviewsPage(reviewsPage + 1)}
+                    onClick={() => {
+                      const newPage = reviewsPage + 1;
+                      setReviewsPage(newPage);
+                      fetchReviewsWithStatus(reviewsStatus, newPage);
+                    }}
                   >
                     <FiChevronLeft />
                   </button>
