@@ -159,6 +159,186 @@ const updatePastAppointments = async () => {
   }
 };
 
+// تابع برای بررسی نوبت‌های انجام نشده که تاریخ آنها گذشته است
+const checkUncompletedAppointments = async () => {
+  console.log("🔄 ===== checkUncompletedAppointments START ===== 🔄");
+
+  try {
+    // استفاده از تاریخ ایران
+    const iranDate = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Tehran" })
+    );
+    iranDate.setHours(0, 0, 0, 0);
+    const year = iranDate.getFullYear();
+    const month = String(iranDate.getMonth() + 1).padStart(2, "0");
+    const day = String(iranDate.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    console.log(`📅 Today date (Iran): ${todayStr}`);
+
+    // پیدا کردن نوبت‌های تأیید شده که تاریخ آنها گذشته است
+    const pastConfirmedAppointments = await Appointment.findAll({
+      where: {
+        status: "confirmed",
+        appointment_date: {
+          [Op.lt]: todayStr,
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "full_name", "phone"],
+        },
+        {
+          model: Service,
+          as: "service",
+          attributes: ["name", "duration_minutes", "price"],
+        },
+      ],
+    });
+
+    console.log(
+      `📊 Found ${pastConfirmedAppointments.length} past confirmed appointments`
+    );
+
+    if (pastConfirmedAppointments.length > 0) {
+      for (const appointment of pastConfirmedAppointments) {
+        console.log(
+          `⚠️ Appointment ${appointment.id} (${appointment.appointment_date}) is past due but still confirmed`
+        );
+
+        // ارسال نوتیفیکیشن به ادمین (ماساژور)
+        const adminUsers = await User.findAll({
+          where: { role: "admin" },
+          attributes: ["id"],
+        });
+
+        for (const admin of adminUsers) {
+          await Notification.create({
+            user_id: admin.id,
+            title: "⚠️ نوبت انجام نشده",
+            message: `نوبت مشتری ${appointment.user.full_name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. لطفاً وضعیت را بررسی کنید.`,
+            type: "appointment_reminder",
+            related_id: appointment.id,
+          });
+        }
+
+        // ارسال نوتیفیکیشن به مشتری
+        await Notification.create({
+          user_id: appointment.user_id,
+          title: "یادآوری نوبت انجام نشده",
+          message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. در صورت نیاز با کلینیک تماس بگیرید.`,
+          type: "appointment_reminder",
+          related_id: appointment.id,
+        });
+
+        console.log(
+          `📧 Reminder notifications sent for appointment ${appointment.id}`
+        );
+      }
+    } else {
+      console.log("✅ No past confirmed appointments found");
+    }
+
+    console.log("🔄 ===== checkUncompletedAppointments END ===== 🔄");
+    return pastConfirmedAppointments.length;
+  } catch (error) {
+    console.error("❌ Error checking uncompleted appointments:", error);
+    return 0;
+  }
+};
+
+// تابع برای بررسی نوبت‌های انجام نشده که تاریخ آنها گذشته است
+// const checkUncompletedAppointments = async () => {
+//   console.log("🔄 ===== checkUncompletedAppointments START ===== 🔄");
+
+//   try {
+//     // استفاده از تاریخ ایران
+//     const iranDate = new Date(
+//       new Date().toLocaleString("en-US", { timeZone: "Asia/Tehran" })
+//     );
+//     iranDate.setHours(0, 0, 0, 0);
+//     const year = iranDate.getFullYear();
+//     const month = String(iranDate.getMonth() + 1).padStart(2, "0");
+//     const day = String(iranDate.getDate()).padStart(2, "0");
+//     const todayStr = `${year}-${month}-${day}`;
+
+//     console.log(`📅 Today date (Iran): ${todayStr}`);
+
+//     // پیدا کردن نوبت‌های تأیید شده که تاریخ آنها گذشته است
+//     const pastConfirmedAppointments = await Appointment.findAll({
+//       where: {
+//         status: "confirmed",
+//         appointment_date: {
+//           [Op.lt]: todayStr, // تاریخ کمتر از امروز
+//         },
+//       },
+//       include: [
+//         {
+//           model: User,
+//           as: "user",
+//           attributes: ["id", "full_name", "phone"],
+//         },
+//         {
+//           model: Service,
+//           as: "service",
+//           attributes: ["name", "duration_minutes", "price"],
+//         },
+//       ],
+//     });
+
+//     console.log(
+//       `📊 Found ${pastConfirmedAppointments.length} past confirmed appointments`
+//     );
+
+//     if (pastConfirmedAppointments.length > 0) {
+//       for (const appointment of pastConfirmedAppointments) {
+//         console.log(
+//           `⚠️ Appointment ${appointment.id} (${appointment.appointment_date}) is past due but still confirmed`
+//         );
+
+//         // ارسال نوتیفیکیشن به ادمین (ماساژور)
+//         const adminUsers = await User.findAll({
+//           where: { role: "admin" },
+//           attributes: ["id"],
+//         });
+
+//         for (const admin of adminUsers) {
+//           await Notification.create({
+//             user_id: admin.id,
+//             title: "⚠️ نوبت انجام نشده",
+//             message: `نوبت مشتری ${appointment.user.full_name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. لطفاً وضعیت را بررسی کنید.`,
+//             type: "appointment_reminder",
+//             related_id: appointment.id,
+//           });
+//         }
+
+//         // ارسال نوتیفیکیشن به مشتری
+//         await Notification.create({
+//           user_id: appointment.user_id,
+//           title: "یادآوری نوبت انجام نشده",
+//           message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. در صورت نیاز با کلینیک تماس بگیرید.`,
+//           type: "appointment_reminder",
+//           related_id: appointment.id,
+//         });
+
+//         console.log(
+//           `📧 Reminder notifications sent for appointment ${appointment.id}`
+//         );
+//       }
+//     } else {
+//       console.log("✅ No past confirmed appointments found");
+//     }
+
+//     console.log("🔄 ===== checkUncompletedAppointments END ===== 🔄");
+//     return pastConfirmedAppointments.length;
+//   } catch (error) {
+//     console.error("❌ Error checking uncompleted appointments:", error);
+//     return 0;
+//   }
+// };
+
 // Middleware برای بررسی نقش ادمین
 const adminMiddleware = (req, res, next) => {
   authMiddleware(req, res, async () => {
@@ -2264,7 +2444,6 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
 });
 
 // ============ REPORTS ROUTES ============
-// ============ REPORTS ROUTES ============
 app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
   console.log("🔧 ===== FINANCIAL REPORTS API CALLED =====");
 
@@ -2284,15 +2463,97 @@ app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
       totalAppointments > 0 ? totalRevenue / totalAppointments : 0;
 
     // 2. درآمد ماهانه (۱۲ ماه اخیر)
+    // const monthlyData = [];
+    // const now = new Date();
+    // for (let i = 11; i >= 0; i--) {
+    //   const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    //   const startOfMonth = date.toISOString().split("T")[0];
+    //   const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+    //     .toISOString()
+    //     .split("T")[0];
+
+    //   const revenue = await Appointment.sum("price", {
+    //     where: {
+    //       status: "completed",
+    //       appointment_date: {
+    //         [Op.between]: [startOfMonth, endOfMonth],
+    //       },
+    //     },
+    //   });
+
+    //   monthlyData.push({
+    //     month: date.toLocaleDateString("fa-IR", {
+    //       month: "long",
+    //       year: "numeric",
+    //     }),
+    //     revenue: revenue || 0,
+    //     count: await Appointment.count({
+    //       where: {
+    //         status: "completed",
+    //         appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
+    //       },
+    //     }),
+    //   });
+    // }
+
+    // پیدا کردن اولین نوبت انجام شده
+    const firstAppointment = await Appointment.findOne({
+      where: { status: "completed" },
+      order: [["appointment_date", "ASC"]],
+      attributes: ["appointment_date"],
+    });
+
+    // اگر هیچ نوبتی وجود نداشت، از ۱۲ ماه قبل شروع کن
+    let startDate;
+    if (firstAppointment) {
+      startDate = new Date(firstAppointment.appointment_date);
+      startDate.setDate(1); // اولین روز ماه
+      startDate.setHours(0, 0, 0, 0);
+
+      // ✅ اضافه کردن یک ماه قبل از اولین نوبت
+      startDate.setMonth(startDate.getMonth() - 1);
+
+      console.log(`📅 First appointment: ${firstAppointment.appointment_date}`);
+      console.log(
+        `📅 Start month (one month before first): ${startDate.toLocaleDateString(
+          "fa-IR"
+        )}`
+      );
+    } else {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 11);
+      startDate.setDate(1);
+      startDate.setHours(0, 0, 0, 0);
+      console.log(`📅 No appointments found, showing last 12 months`);
+    }
+
+    const endDate = new Date();
+    endDate.setDate(1);
+    endDate.setHours(0, 0, 0, 0);
+
+    // محاسبه تعداد ماه‌ها بین شروع و پایان
+    const monthsDiff =
+      (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+      (endDate.getMonth() - startDate.getMonth()) +
+      1;
+
+    console.log(`📅 Start month: ${startDate.toLocaleDateString("fa-IR")}`);
+    console.log(`📅 End month: ${endDate.toLocaleDateString("fa-IR")}`);
+    console.log(`📅 Total months to show: ${monthsDiff}`);
+
     const monthlyData = [];
-    const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+
+    // حلقه از ماه شروع تا ماه جاری
+    for (let i = 0; i < monthsDiff; i++) {
+      const date = new Date(startDate);
+      date.setMonth(startDate.getMonth() + i);
+
       const startOfMonth = date.toISOString().split("T")[0];
       const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
         .toISOString()
         .split("T")[0];
 
+      // محاسبه درآمد این ماه
       const revenue = await Appointment.sum("price", {
         where: {
           status: "completed",
@@ -2302,20 +2563,99 @@ app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
         },
       });
 
+      // محاسبه تعداد نوبت‌های این ماه
+      const count = await Appointment.count({
+        where: {
+          status: "completed",
+          appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
+        },
+      });
+
       monthlyData.push({
         month: date.toLocaleDateString("fa-IR", {
           month: "long",
           year: "numeric",
         }),
         revenue: revenue || 0,
-        count: await Appointment.count({
-          where: {
-            status: "completed",
-            appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
-          },
-        }),
+        count: count || 0,
       });
     }
+
+    console.log(`📊 Generated ${monthlyData.length} months of data`);
+
+    // اگر هیچ نوبتی وجود نداشت، از ۱۲ ماه قبل شروع کن
+    // let startDate;
+    // if (firstAppointment) {
+    //   startDate = new Date(firstAppointment.appointment_date);
+    //   startDate.setDate(1); // اولین روز ماه
+    //   startDate.setHours(0, 0, 0, 0);
+    // } else {
+    //   startDate = new Date();
+    //   startDate.setMonth(startDate.getMonth() - 11);
+    //   startDate.setDate(1);
+    //   startDate.setHours(0, 0, 0, 0);
+    // }
+
+    // const endDate = new Date();
+    // endDate.setDate(1);
+    // endDate.setHours(0, 0, 0, 0);
+
+    // محاسبه تعداد ماه‌ها بین شروع و پایان
+    // const monthsDiff =
+    //   (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+    //   (endDate.getMonth() - startDate.getMonth()) +
+    //   1;
+
+    // console.log(
+    //   `📅 First appointment date: ${
+    //     firstAppointment?.appointment_date || "none"
+    //   }`
+    // );
+    // console.log(`📅 Start month: ${startDate.toLocaleDateString("fa-IR")}`);
+    // console.log(`📅 End month: ${endDate.toLocaleDateString("fa-IR")}`);
+    // console.log(`📅 Total months to show: ${monthsDiff}`);
+
+    // const monthlyData = [];
+
+    // حلقه از ماه شروع تا ماه جاری
+    // for (let i = 0; i < monthsDiff; i++) {
+    //   const date = new Date(startDate);
+    //   date.setMonth(startDate.getMonth() + i);
+
+    //   const startOfMonth = date.toISOString().split("T")[0];
+    //   const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+    //     .toISOString()
+    //     .split("T")[0];
+
+    //   // محاسبه درآمد این ماه
+    //   const revenue = await Appointment.sum("price", {
+    //     where: {
+    //       status: "completed",
+    //       appointment_date: {
+    //         [Op.between]: [startOfMonth, endOfMonth],
+    //       },
+    //     },
+    //   });
+
+    //   // محاسبه تعداد نوبت‌های این ماه
+    //   const count = await Appointment.count({
+    //     where: {
+    //       status: "completed",
+    //       appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
+    //     },
+    //   });
+
+    //   monthlyData.push({
+    //     month: date.toLocaleDateString("fa-IR", {
+    //       month: "long",
+    //       year: "numeric",
+    //     }),
+    //     revenue: revenue || 0,
+    //     count: count || 0,
+    //   });
+    // }
+
+    // console.log(`📊 Generated ${monthlyData.length} months of data`);
 
     // 3. آمار خدمات
     const services = await Service.findAll({
@@ -2460,192 +2800,24 @@ app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
     });
   }
 });
-// app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
-//   try {
-//     // 1. آمار کلی
-//     const totalRevenue = await Appointment.sum("price", {
-//       where: { status: "completed" },
-//     });
 
-//     const totalAppointments = await Appointment.count({
-//       where: { status: "completed" },
-//     });
-
-//     const averageRevenue =
-//       totalAppointments > 0 ? totalRevenue / totalAppointments : 0;
-
-//     // 2. درآمد ماهانه (۱۲ ماه اخیر)
-//     const monthlyData = [];
-//     const now = new Date();
-//     for (let i = 11; i >= 0; i--) {
-//       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-//       const startOfMonth = date.toISOString().split("T")[0];
-//       const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
-//         .toISOString()
-//         .split("T")[0];
-
-//       const revenue = await Appointment.sum("price", {
-//         where: {
-//           status: "completed",
-//           appointment_date: {
-//             [Op.between]: [startOfMonth, endOfMonth],
-//           },
-//         },
-//       });
-
-//       monthlyData.push({
-//         month: date.toLocaleDateString("fa-IR", {
-//           month: "long",
-//           year: "numeric",
-//         }),
-//         revenue: revenue || 0,
-//         count: await Appointment.count({
-//           where: {
-//             status: "completed",
-//             appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
-//           },
-//         }),
-//       });
-//     }
-
-//     // 3. آمار خدمات
-//     const services = await Service.findAll({
-//       attributes: ["id", "name", "price"],
-//       include: [
-//         {
-//           model: Appointment,
-//           as: "appointments",
-//           where: { status: "completed" },
-//           required: false,
-//           attributes: ["price"],
-//         },
-//       ],
-//     });
-
-//     const serviceStats = services
-//       .map((service) => {
-//         const appointments = service.appointments || [];
-//         const count = appointments.length;
-//         const revenue = appointments.reduce(
-//           (sum, apt) => sum + (apt.price || 0),
-//           0
-//         );
-//         return {
-//           id: service.id,
-//           name: service.name,
-//           count: count,
-//           revenue: revenue,
-//           percentage:
-//             totalAppointments > 0
-//               ? ((count / totalAppointments) * 100).toFixed(1)
-//               : 0,
-//         };
-//       })
-//       .sort((a, b) => b.revenue - a.revenue);
-
-//     // 4. مشتریان برتر
-//     const topClients = await Appointment.findAll({
-//       where: { status: "completed" },
-//       attributes: [
-//         "user_id",
-//         [sequelize.fn("SUM", sequelize.col("price")), "total_spent"],
-//         [sequelize.fn("COUNT", sequelize.col("id")), "appointment_count"],
-//       ],
-//       include: [
-//         {
-//           model: User,
-//           as: "user",
-//           attributes: ["id", "full_name", "phone"],
-//         },
-//       ],
-//       group: ["user_id", "user.id"],
-//       order: [[sequelize.literal("total_spent"), "DESC"]],
-//       limit: 10,
-//     });
-
-//     const formattedTopClients = topClients.map((client) => ({
-//       id: client.user.id,
-//       name: client.user.full_name,
-//       phone: client.user.phone,
-//       total_spent: client.dataValues.total_spent || 0,
-//       appointment_count: client.dataValues.appointment_count || 0,
-//     }));
-
-//     // 5. تحلیل زمانی
-//     const allAppointments = await Appointment.findAll({
-//       where: { status: "completed" },
-//       attributes: ["appointment_time", "appointment_date"],
-//     });
-
-//     // تحلیل ساعتی
-//     const hourlyStats = {};
-//     for (let i = 8; i <= 19; i++) {
-//       hourlyStats[`${i}:00`] = 0;
-//     }
-//     allAppointments.forEach((apt) => {
-//       const hour = apt.appointment_time.split(":")[0];
-//       if (hourlyStats[`${hour}:00`] !== undefined) {
-//         hourlyStats[`${hour}:00`]++;
-//       }
-//     });
-
-//     // تحلیل روزانه
-//     const weeklyStats = {
-//       شنبه: 0,
-//       یکشنبه: 0,
-//       دوشنبه: 0,
-//       سه‌شنبه: 0,
-//       چهارشنبه: 0,
-//       پنج‌شنبه: 0,
-//       جمعه: 0,
-//     };
-//     allAppointments.forEach((apt) => {
-//       const date = new Date(apt.appointment_date);
-//       const dayName = date.toLocaleDateString("fa-IR", { weekday: "long" });
-//       if (weeklyStats[dayName] !== undefined) weeklyStats[dayName]++;
-//     });
-
-//     // تحلیل ماهانه
-//     const monthlyStats = {};
-//     allAppointments.forEach((apt) => {
-//       const date = new Date(apt.appointment_date);
-//       const monthName = date.toLocaleDateString("fa-IR", { month: "long" });
-//       monthlyStats[monthName] = (monthlyStats[monthName] || 0) + 1;
-//     });
-
-//     res.json({
-//       success: true,
-//       data: {
-//         total_revenue: totalRevenue || 0,
-//         total_appointments: totalAppointments,
-//         average_revenue: averageRevenue,
-//         monthly_revenue: monthlyData,
-//         service_stats: serviceStats,
-//         top_clients: formattedTopClients,
-//         time_analysis: {
-//           hourly: Object.entries(hourlyStats).map(([hour, count]) => ({
-//             hour,
-//             count,
-//           })),
-//           weekly: Object.entries(weeklyStats).map(([day, count]) => ({
-//             day,
-//             count,
-//           })),
-//           monthly: Object.entries(monthlyStats).map(([month, count]) => ({
-//             month,
-//             count,
-//           })),
-//         },
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error fetching financial reports:", error);
-//     res.status(500).json({
-//       success: false,
-//       error: "خطا در دریافت گزارشات مالی",
-//     });
-//   }
-// });
+// API برای بررسی دستی نوبت‌های انجام نشده
+app.post("/api/admin/check-uncompleted", adminMiddleware, async (req, res) => {
+  try {
+    const count = await checkUncompletedAppointments();
+    res.json({
+      success: true,
+      message: `${count} نوبت انجام نشده بررسی شدند.`,
+      count: count,
+    });
+  } catch (error) {
+    console.error("Error in check-uncompleted API:", error);
+    res.status(500).json({
+      success: false,
+      error: "خطا در بررسی نوبت‌های انجام نشده",
+    });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 
@@ -2654,17 +2826,38 @@ const startServer = async () => {
     await sequelize.sync({ alter: true });
     console.log("✅ Database synchronized");
 
-    // اجرای اولیه برای به‌روزرسانی نوبت‌های گذشته
-    const updatedCount = await updatePastAppointments();
-    if (updatedCount > 0) {
-      console.log(`📅 Updated ${updatedCount} past pending appointments`);
+    // اجرای اولیه برای به‌روزرسانی نوبت‌های گذشته (pending -> expired)
+    const expiredCount = await updatePastAppointments();
+    if (expiredCount > 0) {
+      console.log(
+        `📅 Updated ${expiredCount} past pending appointments to expired`
+      );
+    }
+
+    // اجرای اولیه برای بررسی نوبت‌های انجام نشده (confirmed -> reminder)
+    const uncompletedCount = await checkUncompletedAppointments();
+    if (uncompletedCount > 0) {
+      console.log(
+        `⚠️ Found ${uncompletedCount} uncompleted past confirmed appointments`
+      );
     }
 
     // اجرای هر ساعت یکبار
     setInterval(async () => {
-      const count = await updatePastAppointments();
-      if (count > 0) {
-        console.log(`📅 [Auto] Updated ${count} past pending appointments`);
+      // 1. به‌روزرسانی نوبت‌های pending با تاریخ گذشته
+      const expiredCount = await updatePastAppointments();
+      if (expiredCount > 0) {
+        console.log(
+          `📅 [Auto] Updated ${expiredCount} past pending appointments to expired`
+        );
+      }
+
+      // 2. بررسی نوبت‌های confirmed با تاریخ گذشته و ارسال نوتیفیکیشن
+      const uncompletedCount = await checkUncompletedAppointments();
+      if (uncompletedCount > 0) {
+        console.log(
+          `⚠️ [Auto] Found ${uncompletedCount} uncompleted past confirmed appointments`
+        );
       }
     }, 60 * 60 * 1000); // هر 1 ساعت
 
@@ -2694,5 +2887,51 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// const startServer = async () => {
+//   try {
+//     await sequelize.sync({ alter: true });
+//     console.log("✅ Database synchronized");
+
+//     // اجرای اولیه برای به‌روزرسانی نوبت‌های گذشته
+//     const updatedCount = await updatePastAppointments();
+//     if (updatedCount > 0) {
+//       console.log(`📅 Updated ${updatedCount} past pending appointments`);
+//     }
+
+//     // اجرای هر ساعت یکبار
+//     setInterval(async () => {
+//       const count = await updatePastAppointments();
+//       if (count > 0) {
+//         console.log(`📅 [Auto] Updated ${count} past pending appointments`);
+//       }
+//     }, 60 * 60 * 1000); // هر 1 ساعت
+
+//     app.listen(PORT, () => {
+//       console.log(`🚀 Server running on: http://localhost:${PORT}`);
+//       console.log(`📡 Available APIs:`);
+//       console.log(`   Public Routes:`);
+//       console.log(`     GET  /api/services`);
+//       console.log(`     GET  /api/reviews`);
+//       console.log(`   Auth Routes:`);
+//       console.log(`     POST /api/auth/login`);
+//       console.log(`     POST /api/auth/register`);
+//       console.log(`     POST /api/auth/reset-password`);
+//       console.log(`     GET  /api/auth/me`);
+//       console.log(`   Admin Routes (same as therapist):`);
+//       console.log(`     GET  /api/admin/stats`);
+//       console.log(`     GET  /api/admin/users`);
+//       console.log(`     GET  /api/admin/appointments`);
+//       console.log(`     GET  /api/admin/services`);
+//       console.log(`     GET  /api/admin/reviews`);
+//       console.log(`     GET  /api/admin/clients`);
+//       console.log(`     GET  /api/admin/calendar`);
+//       console.log(`     GET  /api/admin/overview`);
+//     });
+//   } catch (error) {
+//     console.error("❌ Failed to start server:", error);
+//     process.exit(1);
+//   }
+// };
 
 startServer();

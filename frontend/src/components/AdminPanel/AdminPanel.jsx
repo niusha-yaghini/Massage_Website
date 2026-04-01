@@ -43,6 +43,18 @@ import {
   FiDollarSign,
 } from "react-icons/fi";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Dot,
+  ReferenceLine,
+} from "recharts";
+
 // تبدیل تاریخ میلادی به شمسی
 const formatGregorianToPersian = (gregorianDate) => {
   if (!gregorianDate) return "نامشخص";
@@ -2350,7 +2362,7 @@ const AdminPanel = () => {
                       ) || 0}{" "}
                       تومان
                     </h3>
-                    <p>میانگین هر نوبت</p>
+                    <p>میانگین درآمد هر نوبت</p>
                   </div>
                 </div>
               </div>
@@ -2361,7 +2373,114 @@ const AdminPanel = () => {
                   <FiTrendingUp className={styles.sectionIcon} />
                   درآمد ماهانه
                 </h2>
-                <div className={styles.monthlyChart}>
+
+                {/* نمودار خطی */}
+                <div className={styles.lineChartContainer}>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <LineChart
+                      data={monthlyRevenue}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis
+                        dataKey="month"
+                        tick={{ fontSize: 12, fill: "#64748b" }}
+                        tickLine={false}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                      />
+                      <YAxis
+                        tickFormatter={(value) =>
+                          `${(value / 1000000).toFixed(1)}M`
+                        }
+                        tick={{ fontSize: 12, fill: "#64748b" }}
+                        tickLine={false}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#fff",
+                          border: "none",
+                          borderRadius: "12px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          padding: "12px",
+                          direction: "rtl",
+                        }}
+                        labelStyle={{
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          marginBottom: "8px",
+                        }}
+                        formatter={(value) => [
+                          `${value.toLocaleString("fa-IR")} تومان`,
+                          "درآمد",
+                        ]}
+                        labelFormatter={(label) => `ماه ${label}`}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#f59e0b"
+                        strokeWidth={3}
+                        dot={{
+                          fill: "#f59e0b",
+                          stroke: "#fff",
+                          strokeWidth: 2,
+                          r: 5,
+                        }}
+                        activeDot={{
+                          fill: "#f59e0b",
+                          stroke: "#fff",
+                          strokeWidth: 2,
+                          r: 8,
+                        }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* خلاصه آمار */}
+                <div className={styles.chartSummary}>
+                  <div className={styles.summaryItem}>
+                    <span className={styles.summaryLabel}>
+                      میانگین درآمد ماهانه:
+                    </span>
+                    <span className={styles.summaryValue}>
+                      {Math.round(
+                        monthlyRevenue.reduce(
+                          (sum, item) => sum + item.revenue,
+                          0
+                        ) / (monthlyRevenue.length || 1)
+                      ).toLocaleString("fa-IR")}{" "}
+                      تومان
+                    </span>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span className={styles.summaryLabel}>
+                      بیشترین درآمد ماهانه:
+                    </span>
+                    <span className={styles.summaryValue}>
+                      {Math.max(
+                        ...monthlyRevenue.map((item) => item.revenue),
+                        0
+                      ).toLocaleString("fa-IR")}{" "}
+                      تومان
+                    </span>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span className={styles.summaryLabel}>
+                      کمترین درآمد ماهانه:
+                    </span>
+                    <span className={styles.summaryValue}>
+                      {Math.min(
+                        ...monthlyRevenue.map((item) => item.revenue),
+                        0
+                      ).toLocaleString("fa-IR")}{" "}
+                      تومان
+                    </span>
+                  </div>
+                </div>
+
+                {/* <div className={styles.monthlyChart}>
                   {monthlyRevenue.map((item, index) => (
                     <div key={index} className={styles.chartBar}>
                       <div className={styles.chartBarLabel}>{item.month}</div>
@@ -2384,7 +2503,7 @@ const AdminPanel = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
 
               {/* دو ستون: خدمات محبوب + مشتریان برتر */}

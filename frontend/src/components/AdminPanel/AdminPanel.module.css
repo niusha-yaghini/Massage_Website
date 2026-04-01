@@ -2174,6 +2174,44 @@
   display: block;
 }
 
+/* ============ Line Chart ============ */
+.lineChartContainer {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.chartSummary {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.chartSummary .summaryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.chartSummary .summaryLabel {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.chartSummary .summaryValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
 /* تحلیل زمانی */
 .timeAnalysisGrid {
   display: grid;
