@@ -24,6 +24,7 @@ import {
   FiSave,
   FiActivity,
   FiBriefcase,
+  FiBell,
 } from "react-icons/fi";
 
 // کامپوننت SimplePersianDateInput
@@ -200,6 +201,11 @@ const Dashboard = () => {
   const [error, setError] = useState("");
   const [editingAppointment, setEditingAppointment] = useState(null);
 
+  // در بخش stateهای Dashboard، اضافه کنید:
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+
   // ============ useEffect برای بارگذاری داده‌ها ============
   useEffect(() => {
     const fetchData = async () => {
@@ -233,9 +239,66 @@ const Dashboard = () => {
     };
 
     fetchData();
+    fetchNotifications();
   }, [navigate]);
 
+  // بعد از توابع fetchData، اضافه کنید:
+  const fetchNotifications = async () => {
+    try {
+      const data = await userService.getNotifications(1, 20);
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unread_count || 0);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await userService.markNotificationAsRead(notificationId);
+      // به‌روزرسانی لیست
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await userService.markAllNotificationsAsRead();
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
+
   // ============ تبدیل appointments به massageHistory ============
+  // const massageHistory = appointments.map((apt) => {
+  //   const serviceInfo = apt.service || {};
+
+  //   return {
+  //     id: apt.id,
+  //     date: apt.date || apt.appointment_date,
+  //     time: apt.time || apt.appointment_time,
+  //     type: serviceInfo.name || "ماساژ عمومی",
+  //     duration: serviceInfo.duration_minutes
+  //       ? `${serviceInfo.duration_minutes} دقیقه`
+  //       : serviceInfo.duration || "۶۰ دقیقه",
+  //     price: apt.price // عددی
+  //       ? new Intl.NumberFormat("fa-IR").format(apt.price) + " تومان"
+  //       : serviceInfo.price // عددی
+  //       ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
+  //       : "۰ تومان",
+  //     priceValue: apt.price || serviceInfo.price || 0, // برای محاسبات
+  //     rating: apt.rating || 0,
+  //     therapistNotes: apt.therapist_notes || "",
+  //     status: apt.status,
+  //     userRating: apt.rating,
+  //     userReview: apt.user_review,
+  //     service: serviceInfo,
+  //   };
+  // });
+
   const massageHistory = appointments.map((apt) => {
     const serviceInfo = apt.service || {};
 
@@ -247,17 +310,17 @@ const Dashboard = () => {
       duration: serviceInfo.duration_minutes
         ? `${serviceInfo.duration_minutes} دقیقه`
         : serviceInfo.duration || "۶۰ دقیقه",
-      price: apt.price // عددی
+      price: apt.price
         ? new Intl.NumberFormat("fa-IR").format(apt.price) + " تومان"
-        : serviceInfo.price // عددی
+        : serviceInfo.price
         ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
         : "۰ تومان",
-      priceValue: apt.price || serviceInfo.price || 0, // برای محاسبات
+      priceValue: apt.price || serviceInfo.price || 0,
       rating: apt.rating || 0,
       therapistNotes: apt.therapist_notes || "",
       status: apt.status,
-      userRating: apt.rating,
-      userReview: apt.user_review,
+      userRating: apt.rating, // ✅ اینجا مقدار rating را به userRating می‌دهد
+      userReview: apt.user_review, // ✅ اینجا مقدار user_review را می‌دهد
       service: serviceInfo,
     };
   });
@@ -504,19 +567,34 @@ const Dashboard = () => {
     const handleSubmitRating = async (appointmentId, rating, review) => {
       try {
         await userService.rateAppointment(appointmentId, rating, review);
-        setAppointments((prev) =>
-          prev.map((apt) =>
-            apt.id === appointmentId
-              ? { ...apt, rating, user_review: review }
-              : apt
-          )
-        );
+
+        // ✅ دریافت مجدد نوبت‌ها برای به‌روزرسانی نظر
+        const appointmentsResponse = await userService.getAppointments();
+        setAppointments(appointmentsResponse.appointments || []);
+
         alert("نظر و امتیاز شما با موفقیت ثبت شد!");
       } catch (err) {
         console.error("Error submitting rating:", err);
         alert("خطا در ثبت نظر. لطفاً دوباره تلاش کنید.");
       }
     };
+
+    // const handleSubmitRating = async (appointmentId, rating, review) => {
+    //   try {
+    //     await userService.rateAppointment(appointmentId, rating, review);
+    //     setAppointments((prev) =>
+    //       prev.map((apt) =>
+    //         apt.id === appointmentId
+    //           ? { ...apt, rating, user_review: review }
+    //           : apt
+    //       )
+    //     );
+    //     alert("نظر و امتیاز شما با موفقیت ثبت شد!");
+    //   } catch (err) {
+    //     console.error("Error submitting rating:", err);
+    //     alert("خطا در ثبت نظر. لطفاً دوباره تلاش کنید.");
+    //   }
+    // };
 
     // تاریخچه ماساژهای انجام شده
     const completedMassages = massageHistory
@@ -530,8 +608,17 @@ const Dashboard = () => {
     const [reviewText, setReviewText] = useState("");
     const [userRatings, setUserRatings] = useState({});
 
+    // const openRatingModal = (sessionId) => {
+    //   const session = completedMassages.find((s) => s.id === sessionId);
+    //   setSelectedSession(session);
+    //   setRatingValue(userRatings[sessionId]?.rating || 0);
+    //   setReviewText(userRatings[sessionId]?.review || "");
+    //   setShowRatingModal(true);
+    // };
+
     const openRatingModal = (sessionId) => {
       const session = completedMassages.find((s) => s.id === sessionId);
+      console.log("Selected session:", session); // لاگ اضافه کنید
       setSelectedSession(session);
       setRatingValue(userRatings[sessionId]?.rating || 0);
       setReviewText(userRatings[sessionId]?.review || "");
@@ -857,6 +944,34 @@ const Dashboard = () => {
                     </button>
 
                     {session.userRating && (
+                      <div className={styles.userRatingSection}>
+                        <div className={styles.ratingStars}>
+                          {renderStars(session.userRating)}
+                        </div>
+                        <span className={styles.ratingText}>
+                          امتیاز شما: {session.userRating}/5
+                        </span>
+                        {session.userReview && (
+                          <div className={styles.userReviewCard}>
+                            <div className={styles.userReviewHeader}>
+                              <FiMessageSquare className={styles.reviewIcon} />
+                              <span>نظر شما:</span>
+                            </div>
+                            <p className={styles.userReviewText}>
+                              {session.userReview}
+                            </p>
+                            <button
+                              className={styles.editReviewButton}
+                              onClick={() => openRatingModal(session.id)}
+                            >
+                              <FiEdit />
+                              ویرایش نظر
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {/* {session.userRating && (
                       <button
                         className={styles.editReviewButton}
                         onClick={() => openRatingModal(session.id)}
@@ -864,7 +979,7 @@ const Dashboard = () => {
                         <FiEdit />
                         ویرایش نظر
                       </button>
-                    )}
+                    )} */}
                   </div>
                 </div>
               ))}
@@ -917,7 +1032,7 @@ const Dashboard = () => {
                     <div className={styles.ratingText}>
                       {ratingValue > 0
                         ? `${ratingValue} ستاره`
-                        : "لطفاً امتیاز دهید"}
+                        : "لطفاً امتیاز دهید."}
                     </div>
                   </div>
 
@@ -927,7 +1042,7 @@ const Dashboard = () => {
                       className={styles.reviewTextarea}
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
-                      placeholder="تجربه خود از این ماساژ را بنویسید..."
+                      placeholder="تجربه خود از این ماساژ را بنویسید ..."
                       rows="4"
                     />
                   </div>
@@ -942,12 +1057,26 @@ const Dashboard = () => {
                   </button>
                   <button
                     className={styles.submitRatingButton}
-                    onClick={handleSubmitRating}
+                    onClick={() =>
+                      handleSubmitRating(
+                        selectedSession.id,
+                        ratingValue,
+                        reviewText
+                      )
+                    }
                     disabled={ratingValue === 0}
                   >
                     <FiCheck />
                     ثبت نظر
                   </button>
+                  {/* <button
+                    className={styles.submitRatingButton}
+                    onClick={handleSubmitRating}
+                    disabled={ratingValue === 0}
+                  >
+                    <FiCheck />
+                    ثبت نظر
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -1279,7 +1408,6 @@ const Dashboard = () => {
                   </label>
                   {isEditingProfile ? (
                     <>
-                      {/* از SimplePersianDateInput استفاده کن */}
                       <SimplePersianDateInput
                         value={formik.values.birth_date || ""}
                         onChange={(date) => {
@@ -1405,11 +1533,11 @@ const Dashboard = () => {
                               )
                             }
                             className={styles.formInput}
-                            placeholder="مثال: دیابت, فشار خون بالا (با کاما جدا کنید)"
+                            placeholder="مثال: دیابت, فشار خون بالا (با کاما جدا کنید.)"
                           />
                           <small className={styles.medicalFormHint}>
                             شرایط پزشکی خود را با کاما جدا کنید. (داروهای مصرفی،
-                            جراحی های ۶ ماه اخیر، ...)
+                            جراحی‌های ۶ ماه اخیر، ...)
                           </small>
                         </div>
 
@@ -1502,6 +1630,77 @@ const Dashboard = () => {
       <Sidebar />
 
       <main className={styles.mainContent}>
+        {/* هدر با نوتیفیکیشن */}
+        <div className={styles.dashboardHeader}>
+          <h1 className={styles.pageTitle}>
+            {activeTab === "dashboard" && "داشبورد کاربری"}
+            {activeTab === "profile" && "پروفایل"}
+            {activeTab === "booking" && "رزرو وقت"}
+          </h1>
+
+          <div className={styles.headerActions}>
+            <div className={styles.notificationWrapper}>
+              <button
+                className={styles.notificationBtn}
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <FiBell />
+                {unreadCount > 0 && (
+                  <span className={styles.notificationBadge}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className={styles.notificationDropdown}>
+                  <div className={styles.dropdownHeader}>
+                    <span>نوتیفیکیشن‌ها</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllNotificationsAsRead}
+                        className={styles.markAllRead}
+                      >
+                        همه پیام‌ها خوانده شدند.
+                      </button>
+                    )}
+                  </div>
+                  <div className={styles.dropdownList}>
+                    {notifications.length === 0 ? (
+                      <div className={styles.emptyNotifications}>
+                        <FiBell />
+                        <p>نوتیفیکیشنی وجود ندارد.</p>
+                      </div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          className={`${styles.notificationItem} ${
+                            !notif.is_read ? styles.unread : ""
+                          }`}
+                          onClick={() => markNotificationAsRead(notif.id)}
+                        >
+                          <div className={styles.notificationTitle}>
+                            {notif.title}
+                          </div>
+                          <div className={styles.notificationMessage}>
+                            {notif.message}
+                          </div>
+                          <div className={styles.notificationTime}>
+                            {new Date(notif.created_at).toLocaleDateString(
+                              "fa-IR"
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className={styles.contentArea}>
           {activeTab === "dashboard" && <DashboardHome />}
           {activeTab === "profile" && <Profile />}

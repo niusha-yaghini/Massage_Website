@@ -712,7 +712,7 @@ const AdminPanel = () => {
                     onClick={handleMarkAllNotificationsRead}
                     className={styles.markAllRead}
                   >
-                    همه پیام ها خوانده شدند.
+                    همه پیام‌ها خوانده شدند.
                   </button>
                 )}
               </div>

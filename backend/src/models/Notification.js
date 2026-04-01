@@ -34,7 +34,9 @@ const Notification = sequelize.define(
         "review_received",
         "review_approved",
         "therapist_note",
-        "appointment_reminder"
+        "appointment_reminder",
+        "new_appointment_request",
+        "appointment_confirmation"
       ),
       defaultValue: "appointment_cancelled",
     },

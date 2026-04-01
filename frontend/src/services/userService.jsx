@@ -1021,15 +1021,11 @@ export const adminService = {
 // ==================== NOTIFICATION SERVICES ====================
 export const notificationService = {
   // دریافت لیست نوتیفیکیشن‌ها
-  async getNotifications(page = 1, limit = 20, unreadOnly = false) {
+  // دریافت نوتیفیکیشن‌های کاربر
+  async getNotifications(page = 1, limit = 20) {
     try {
-      const queryParams = new URLSearchParams({
-        page,
-        limit,
-        unread_only: unreadOnly,
-      }).toString();
       const response = await fetchWithAuth(
-        `${API_URL}/notifications?${queryParams}`
+        `${API_URL}/notifications?page=${page}&limit=${limit}`
       );
       const data = await handleResponse(response);
       return data;
@@ -1058,7 +1054,7 @@ export const notificationService = {
     }
   },
 
-  // علامت زدن همه نوتیفیکیشن‌ها به عنوان خوانده شده
+  // علامت زدن همه به عنوان خوانده شده
   async markAllAsRead() {
     try {
       const response = await fetchWithAuth(
@@ -1091,6 +1087,10 @@ export const notificationService = {
     }
   },
 };
+
+userService.getNotifications = notificationService.getNotifications;
+userService.markNotificationAsRead = notificationService.markAsRead;
+userService.markAllNotificationsAsRead = notificationService.markAllAsRead;
 
 export default {
   ...userService,

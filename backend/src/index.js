@@ -786,23 +786,19 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
     const { service_id, appointment_date, appointment_time, notes, price } =
       req.body;
 
+    console.log("📅 ===== NEW APPOINTMENT REQUEST =====");
+    console.log("📅 User ID:", req.userId);
+    console.log("📅 Service ID:", service_id);
+    console.log("📅 Date:", appointment_date);
+    console.log("📅 Time:", appointment_time);
+
     const service = await Service.findByPk(service_id);
     if (!service) {
+      console.log("❌ Service not found");
       return res.status(404).json({
         success: false,
         error: "سرویس مورد نظر یافت نشد",
       });
-    }
-
-    if (price && service.price) {
-      const priceDiff = Math.abs(price - service.price);
-      if (priceDiff > 0) {
-        console.warn("⚠️ Price difference detected:", {
-          sent_price: price,
-          actual_price: service.price,
-          diff: priceDiff,
-        });
-      }
     }
 
     const existingAppointment = await Appointment.findOne({
@@ -814,12 +810,14 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
     });
 
     if (existingAppointment) {
+      console.log("⚠️ Time slot already booked");
       return res.status(400).json({
         success: false,
         error: "این زمان قبلاً رزرو شده است. لطفاً زمان دیگری انتخاب کنید.",
       });
     }
 
+    console.log("✅ Creating appointment...");
     const appointment = await Appointment.create({
       user_id: req.userId,
       service_id,
@@ -829,7 +827,9 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
       status: "pending",
       price: price || service.price,
     });
+    console.log("✅ Appointment created, ID:", appointment.id);
 
+    console.log("🔍 Fetching full appointment data...");
     const fullAppointment = await Appointment.findByPk(appointment.id, {
       include: [
         {
@@ -837,8 +837,64 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
           as: "service",
           attributes: ["id", "name", "duration_minutes", "price", "category"],
         },
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "full_name", "phone"],
+        },
       ],
     });
+
+    if (!fullAppointment.user) {
+      console.log("⚠️ User not found for appointment!");
+    }
+
+    console.log("🔍 Looking for admin users...");
+    const adminUsers = await User.findAll({
+      where: { role: "admin" },
+      attributes: ["id"],
+    });
+    console.log(`👥 Found ${adminUsers.length} admin(s)`);
+
+    // ارسال نوتیفیکیشن به ادمین
+    for (const admin of adminUsers) {
+      try {
+        await Notification.create({
+          user_id: admin.id,
+          title: "📅 درخواست نوبت جدید",
+          message: `مشتری ${
+            fullAppointment.user?.full_name || "نامشخص"
+          } در تاریخ ${appointment_date} ساعت ${appointment_time} درخواست نوبت ${
+            service.name
+          } را ثبت کرده است.`,
+          type: "new_appointment_request",
+          related_id: appointment.id,
+        });
+        console.log(`✅ Notification sent to admin ${admin.id}`);
+      } catch (notifError) {
+        console.error(
+          `❌ Failed to send notification to admin ${admin.id}:`,
+          notifError.message
+        );
+      }
+    }
+
+    // ارسال نوتیفیکیشن به مشتری
+    try {
+      await Notification.create({
+        user_id: req.userId,
+        title: "ثبت نوبت با موفقیت انجام شد",
+        message: `نوبت شما برای ${service.name} در تاریخ ${appointment_date} ساعت ${appointment_time} با موفقیت ثبت شد. منتظر تأیید ادمین باشید.`,
+        type: "appointment_confirmation",
+        related_id: appointment.id,
+      });
+      console.log("✅ Notification sent to customer");
+    } catch (notifError) {
+      console.error(
+        "❌ Failed to send notification to customer:",
+        notifError.message
+      );
+    }
 
     res.status(201).json({
       success: true,
@@ -863,13 +919,161 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Create appointment error:", error);
+    console.error("❌ Create appointment error:", error);
+    console.error("❌ Error stack:", error.stack);
     res.status(500).json({
       success: false,
-      error: "خطا در رزرو نوبت",
+      error: "خطا در رزرو نوبت: " + error.message,
     });
   }
 });
+
+// app.post("/api/appointments", authMiddleware, async (req, res) => {
+//   try {
+//     const { service_id, appointment_date, appointment_time, notes, price } =
+//       req.body;
+
+//     console.log("📅 ===== NEW APPOINTMENT REQUEST =====");
+//     console.log("📅 User ID:", req.userId);
+//     console.log("📅 Service ID:", service_id);
+//     console.log("📅 Date:", appointment_date);
+//     console.log("📅 Time:", appointment_time);
+
+//     const service = await Service.findByPk(service_id);
+//     if (!service) {
+//       console.log("❌ Service not found");
+//       return res.status(404).json({
+//         success: false,
+//         error: "سرویس مورد نظر یافت نشد",
+//       });
+//     }
+
+//     const existingAppointment = await Appointment.findOne({
+//       where: {
+//         appointment_date,
+//         appointment_time,
+//         status: ["pending", "confirmed"],
+//       },
+//     });
+
+//     if (existingAppointment) {
+//       console.log("⚠️ Time slot already booked");
+//       return res.status(400).json({
+//         success: false,
+//         error: "این زمان قبلاً رزرو شده است. لطفاً زمان دیگری انتخاب کنید.",
+//       });
+//     }
+
+//     console.log("✅ Creating appointment...");
+//     const appointment = await Appointment.create({
+//       user_id: req.userId,
+//       service_id,
+//       appointment_date,
+//       appointment_time,
+//       notes: notes || "",
+//       status: "pending",
+//       price: price || service.price,
+//     });
+//     console.log("✅ Appointment created, ID:", appointment.id);
+
+//     console.log("🔍 Fetching full appointment data...");
+//     const fullAppointment = await Appointment.findByPk(appointment.id, {
+//       include: [
+//         {
+//           model: Service,
+//           as: "service",
+//           attributes: ["id", "name", "duration_minutes", "price", "category"],
+//         },
+//         {
+//           model: User,
+//           as: "user",
+//           attributes: ["id", "full_name", "phone"],
+//         },
+//       ],
+//     });
+
+//     if (!fullAppointment.user) {
+//       console.log("⚠️ User not found for appointment!");
+//     }
+
+//     console.log("🔍 Looking for admin users...");
+//     const adminUsers = await User.findAll({
+//       where: { role: "admin" },
+//       attributes: ["id"],
+//     });
+//     console.log(`👥 Found ${adminUsers.length} admin(s)`);
+
+//     // ارسال نوتیفیکیشن به ادمین
+//     for (const admin of adminUsers) {
+//       try {
+//         await Notification.create({
+//           user_id: admin.id,
+//           title: "📅 درخواست نوبت جدید",
+//           message: `مشتری ${
+//             fullAppointment.user?.full_name || "نامشخص"
+//           } در تاریخ ${appointment_date} ساعت ${appointment_time} درخواست نوبت ${
+//             service.name
+//           } را ثبت کرده است.`,
+//           type: "new_appointment_request",
+//           related_id: appointment.id,
+//         });
+//         console.log(`✅ Notification sent to admin ${admin.id}`);
+//       } catch (notifError) {
+//         console.error(
+//           `❌ Failed to send notification to admin ${admin.id}:`,
+//           notifError.message
+//         );
+//       }
+//     }
+
+//     // ارسال نوتیفیکیشن به مشتری
+//     try {
+//       await Notification.create({
+//         user_id: req.userId,
+//         title: "ثبت نوبت با موفقیت انجام شد",
+//         message: `نوبت شما برای ${service.name} در تاریخ ${appointment_date} ساعت ${appointment_time} با موفقیت ثبت شد. منتظر تأیید ادمین باشید.`,
+//         type: "appointment_confirmation",
+//         related_id: appointment.id,
+//       });
+//       console.log("✅ Notification sent to customer");
+//     } catch (notifError) {
+//       console.error(
+//         "❌ Failed to send notification to customer:",
+//         notifError.message
+//       );
+//     }
+
+//     res.status(201).json({
+//       success: true,
+//       message: "نوبت با موفقیت رزرو شد.",
+//       appointment: {
+//         id: fullAppointment.id,
+//         appointment_code: fullAppointment.appointment_code,
+//         date: fullAppointment.appointment_date,
+//         time: fullAppointment.appointment_time,
+//         status: fullAppointment.status,
+//         status_text: fullAppointment.getStatusText(),
+//         price: fullAppointment.price,
+//         service: {
+//           id: fullAppointment.service.id,
+//           name: fullAppointment.service.name,
+//           duration: `${fullAppointment.service.duration_minutes} دقیقه`,
+//           price:
+//             new Intl.NumberFormat("fa-IR").format(
+//               fullAppointment.service.price
+//             ) + " تومان",
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("❌ Create appointment error:", error);
+//     console.error("❌ Error stack:", error.stack);
+//     res.status(500).json({
+//       success: false,
+//       error: "خطا در رزرو نوبت: " + error.message,
+//     });
+//   }
+// });
 
 app.put("/api/appointments/:id", authMiddleware, async (req, res) => {
   try {
@@ -1616,7 +1820,20 @@ app.put(
       const { id } = req.params;
       const { status, therapist_notes } = req.body;
 
-      const appointment = await Appointment.findByPk(id);
+      const appointment = await Appointment.findByPk(id, {
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "full_name"],
+          },
+          {
+            model: Service,
+            as: "service",
+            attributes: ["name"],
+          },
+        ],
+      });
 
       if (!appointment) {
         return res.status(404).json({
@@ -1625,11 +1842,35 @@ app.put(
         });
       }
 
+      const oldStatus = appointment.status;
+
       if (status) appointment.status = status;
       if (therapist_notes !== undefined)
         appointment.therapist_notes = therapist_notes;
 
       await appointment.save();
+
+      // ✅ اگر وضعیت از pending به confirmed تغییر کرد، نوتیفیکیشن به مشتری ارسال کن
+      if (oldStatus === "pending" && status === "confirmed") {
+        await Notification.create({
+          user_id: appointment.user_id,
+          title: "✅ نوبت شما تأیید شد",
+          message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} توسط ادمین تأیید شد.`,
+          type: "appointment_confirmation",
+          related_id: appointment.id,
+        });
+      }
+
+      // ✅ اگر نوبت لغو شد، نوتیفیکیشن به مشتری ارسال کن
+      if (status === "cancelled") {
+        await Notification.create({
+          user_id: appointment.user_id,
+          title: "❌ لغو نوبت",
+          message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} لغو شد.`,
+          type: "appointment_cancelled",
+          related_id: appointment.id,
+        });
+      }
 
       res.json({
         success: true,
@@ -1650,6 +1891,49 @@ app.put(
     }
   }
 );
+
+// app.put(
+//   "/api/admin/appointments/:id/status",
+//   adminMiddleware,
+//   async (req, res) => {
+//     try {
+//       const { id } = req.params;
+//       const { status, therapist_notes } = req.body;
+
+//       const appointment = await Appointment.findByPk(id);
+
+//       if (!appointment) {
+//         return res.status(404).json({
+//           success: false,
+//           error: "نوبت پیدا نشد.",
+//         });
+//       }
+
+//       if (status) appointment.status = status;
+//       if (therapist_notes !== undefined)
+//         appointment.therapist_notes = therapist_notes;
+
+//       await appointment.save();
+
+//       res.json({
+//         success: true,
+//         message: "وضعیت نوبت با موفقیت به‌روزرسانی شد.",
+//         appointment: {
+//           id: appointment.id,
+//           status: appointment.status,
+//           status_text: appointment.getStatusText(),
+//           therapist_notes: appointment.therapist_notes,
+//         },
+//       });
+//     } catch (error) {
+//       console.error("Update appointment status error:", error);
+//       res.status(500).json({
+//         success: false,
+//         error: "خطا در به‌روزرسانی وضعیت نوبت",
+//       });
+//     }
+//   }
+// );
 
 app.get("/api/admin/services", adminMiddleware, async (req, res) => {
   try {
@@ -2463,39 +2747,6 @@ app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
       totalAppointments > 0 ? totalRevenue / totalAppointments : 0;
 
     // 2. درآمد ماهانه (۱۲ ماه اخیر)
-    // const monthlyData = [];
-    // const now = new Date();
-    // for (let i = 11; i >= 0; i--) {
-    //   const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    //   const startOfMonth = date.toISOString().split("T")[0];
-    //   const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
-    //     .toISOString()
-    //     .split("T")[0];
-
-    //   const revenue = await Appointment.sum("price", {
-    //     where: {
-    //       status: "completed",
-    //       appointment_date: {
-    //         [Op.between]: [startOfMonth, endOfMonth],
-    //       },
-    //     },
-    //   });
-
-    //   monthlyData.push({
-    //     month: date.toLocaleDateString("fa-IR", {
-    //       month: "long",
-    //       year: "numeric",
-    //     }),
-    //     revenue: revenue || 0,
-    //     count: await Appointment.count({
-    //       where: {
-    //         status: "completed",
-    //         appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
-    //       },
-    //     }),
-    //   });
-    // }
-
     // پیدا کردن اولین نوبت انجام شده
     const firstAppointment = await Appointment.findOne({
       where: { status: "completed" },
@@ -2583,81 +2834,6 @@ app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
 
     console.log(`📊 Generated ${monthlyData.length} months of data`);
 
-    // اگر هیچ نوبتی وجود نداشت، از ۱۲ ماه قبل شروع کن
-    // let startDate;
-    // if (firstAppointment) {
-    //   startDate = new Date(firstAppointment.appointment_date);
-    //   startDate.setDate(1); // اولین روز ماه
-    //   startDate.setHours(0, 0, 0, 0);
-    // } else {
-    //   startDate = new Date();
-    //   startDate.setMonth(startDate.getMonth() - 11);
-    //   startDate.setDate(1);
-    //   startDate.setHours(0, 0, 0, 0);
-    // }
-
-    // const endDate = new Date();
-    // endDate.setDate(1);
-    // endDate.setHours(0, 0, 0, 0);
-
-    // محاسبه تعداد ماه‌ها بین شروع و پایان
-    // const monthsDiff =
-    //   (endDate.getFullYear() - startDate.getFullYear()) * 12 +
-    //   (endDate.getMonth() - startDate.getMonth()) +
-    //   1;
-
-    // console.log(
-    //   `📅 First appointment date: ${
-    //     firstAppointment?.appointment_date || "none"
-    //   }`
-    // );
-    // console.log(`📅 Start month: ${startDate.toLocaleDateString("fa-IR")}`);
-    // console.log(`📅 End month: ${endDate.toLocaleDateString("fa-IR")}`);
-    // console.log(`📅 Total months to show: ${monthsDiff}`);
-
-    // const monthlyData = [];
-
-    // حلقه از ماه شروع تا ماه جاری
-    // for (let i = 0; i < monthsDiff; i++) {
-    //   const date = new Date(startDate);
-    //   date.setMonth(startDate.getMonth() + i);
-
-    //   const startOfMonth = date.toISOString().split("T")[0];
-    //   const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
-    //     .toISOString()
-    //     .split("T")[0];
-
-    //   // محاسبه درآمد این ماه
-    //   const revenue = await Appointment.sum("price", {
-    //     where: {
-    //       status: "completed",
-    //       appointment_date: {
-    //         [Op.between]: [startOfMonth, endOfMonth],
-    //       },
-    //     },
-    //   });
-
-    //   // محاسبه تعداد نوبت‌های این ماه
-    //   const count = await Appointment.count({
-    //     where: {
-    //       status: "completed",
-    //       appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
-    //     },
-    //   });
-
-    //   monthlyData.push({
-    //     month: date.toLocaleDateString("fa-IR", {
-    //       month: "long",
-    //       year: "numeric",
-    //     }),
-    //     revenue: revenue || 0,
-    //     count: count || 0,
-    //   });
-    // }
-
-    // console.log(`📊 Generated ${monthlyData.length} months of data`);
-
-    // 3. آمار خدمات
     const services = await Service.findAll({
       attributes: ["id", "name", "price"],
     });
@@ -2823,8 +2999,11 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    await sequelize.sync({ alter: true });
-    console.log("✅ Database synchronized");
+    // await sequelize.sync({ alter: true });
+    // console.log("✅ Database synchronized");
+
+    await testConnection();
+    console.log("✅ Database connection established");
 
     // اجرای اولیه برای به‌روزرسانی نوبت‌های گذشته (pending -> expired)
     const expiredCount = await updatePastAppointments();
@@ -2887,51 +3066,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
-// const startServer = async () => {
-//   try {
-//     await sequelize.sync({ alter: true });
-//     console.log("✅ Database synchronized");
-
-//     // اجرای اولیه برای به‌روزرسانی نوبت‌های گذشته
-//     const updatedCount = await updatePastAppointments();
-//     if (updatedCount > 0) {
-//       console.log(`📅 Updated ${updatedCount} past pending appointments`);
-//     }
-
-//     // اجرای هر ساعت یکبار
-//     setInterval(async () => {
-//       const count = await updatePastAppointments();
-//       if (count > 0) {
-//         console.log(`📅 [Auto] Updated ${count} past pending appointments`);
-//       }
-//     }, 60 * 60 * 1000); // هر 1 ساعت
-
-//     app.listen(PORT, () => {
-//       console.log(`🚀 Server running on: http://localhost:${PORT}`);
-//       console.log(`📡 Available APIs:`);
-//       console.log(`   Public Routes:`);
-//       console.log(`     GET  /api/services`);
-//       console.log(`     GET  /api/reviews`);
-//       console.log(`   Auth Routes:`);
-//       console.log(`     POST /api/auth/login`);
-//       console.log(`     POST /api/auth/register`);
-//       console.log(`     POST /api/auth/reset-password`);
-//       console.log(`     GET  /api/auth/me`);
-//       console.log(`   Admin Routes (same as therapist):`);
-//       console.log(`     GET  /api/admin/stats`);
-//       console.log(`     GET  /api/admin/users`);
-//       console.log(`     GET  /api/admin/appointments`);
-//       console.log(`     GET  /api/admin/services`);
-//       console.log(`     GET  /api/admin/reviews`);
-//       console.log(`     GET  /api/admin/clients`);
-//       console.log(`     GET  /api/admin/calendar`);
-//       console.log(`     GET  /api/admin/overview`);
-//     });
-//   } catch (error) {
-//     console.error("❌ Failed to start server:", error);
-//     process.exit(1);
-//   }
-// };
 
 startServer();
