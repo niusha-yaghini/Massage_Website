@@ -2172,7 +2172,74 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
   try {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const today = now.toISOString().split("T")[0];
 
+    // نوبت‌های امروز
+    const todayAppointments = await Appointment.findAll({
+      where: {
+        appointment_date: today,
+        status: ["pending", "confirmed"],
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["full_name", "phone"],
+        },
+        {
+          model: Service,
+          as: "service",
+          attributes: ["name"],
+        },
+      ],
+      order: [["appointment_time", "ASC"]],
+    });
+
+    // نوبت‌های آینده (بعد از امروز)
+    const futureAppointments = await Appointment.findAll({
+      where: {
+        appointment_date: {
+          [Op.gt]: today,
+        },
+        status: ["pending", "confirmed"],
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["full_name", "phone"],
+        },
+        {
+          model: Service,
+          as: "service",
+          attributes: ["name"],
+        },
+      ],
+      order: [
+        ["appointment_date", "ASC"],
+        ["appointment_time", "ASC"],
+      ],
+    });
+
+    // گروه‌بندی نوبت‌های آینده بر اساس تاریخ
+    const groupedFutureAppointments = {};
+    futureAppointments.forEach((apt) => {
+      const date = apt.appointment_date;
+      if (!groupedFutureAppointments[date]) {
+        groupedFutureAppointments[date] = [];
+      }
+      groupedFutureAppointments[date].push({
+        id: apt.id,
+        time: apt.appointment_time,
+        client_name: apt.user.full_name,
+        client_phone: apt.user.phone,
+        service: apt.service.name,
+        status: apt.status,
+        date: apt.appointment_date,
+      });
+    });
+
+    // نوبت‌های ماه جاری برای درآمد
     const monthlyAppointments = await Appointment.findAll({
       where: {
         appointment_date: {
@@ -2193,26 +2260,6 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
       },
       distinct: true,
       col: "user_id",
-    });
-
-    const today = now.toISOString().split("T")[0];
-    const todayAppointments = await Appointment.findAll({
-      where: {
-        appointment_date: today,
-        status: ["pending", "confirmed"],
-      },
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["full_name", "phone"],
-        },
-        {
-          model: Service,
-          as: "service",
-          attributes: ["name"],
-        },
-      ],
     });
 
     const pendingReviews = await Review.findAll({
@@ -2243,7 +2290,9 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
           client_phone: apt.user.phone,
           service: apt.service?.name,
           status: apt.status,
+          date: apt.appointment_date,
         })),
+        future_appointments: groupedFutureAppointments,
         pending_reviews: pendingReviews.map((review) => ({
           id: review.id,
           client_name: review.user?.full_name || review.name,
@@ -2261,6 +2310,100 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
     });
   }
 });
+
+// app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
+//   try {
+//     const now = new Date();
+//     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+//     const monthlyAppointments = await Appointment.findAll({
+//       where: {
+//         appointment_date: {
+//           [Op.gte]: startOfMonth.toISOString().split("T")[0],
+//         },
+//         status: "completed",
+//       },
+//     });
+
+//     const monthlyRevenue = monthlyAppointments.reduce(
+//       (sum, apt) => sum + (apt.price || 0),
+//       0
+//     );
+
+//     const uniqueClients = await Appointment.count({
+//       where: {
+//         status: "completed",
+//       },
+//       distinct: true,
+//       col: "user_id",
+//     });
+
+//     const today = now.toISOString().split("T")[0];
+//     const todayAppointments = await Appointment.findAll({
+//       where: {
+//         appointment_date: today,
+//         status: ["pending", "confirmed"],
+//       },
+//       include: [
+//         {
+//           model: User,
+//           as: "user",
+//           attributes: ["full_name", "phone"],
+//         },
+//         {
+//           model: Service,
+//           as: "service",
+//           attributes: ["name"],
+//         },
+//       ],
+//     });
+
+//     const pendingReviews = await Review.findAll({
+//       where: {
+//         is_approved: false,
+//       },
+//       include: [
+//         {
+//           model: User,
+//           as: "user",
+//           attributes: ["full_name"],
+//         },
+//       ],
+//       limit: 10,
+//       order: [["created_at", "DESC"]],
+//     });
+
+//     res.json({
+//       success: true,
+//       overview: {
+//         monthly_revenue: monthlyRevenue,
+//         monthly_appointments: monthlyAppointments.length,
+//         total_clients: uniqueClients,
+//         today_appointments: todayAppointments.map((apt) => ({
+//           id: apt.id,
+//           time: apt.appointment_time,
+//           client_name: apt.user.full_name,
+//           client_phone: apt.user.phone,
+//           service: apt.service?.name,
+//           status: apt.status,
+//         })),
+//         pending_reviews: pendingReviews.map((review) => ({
+//           id: review.id,
+//           client_name: review.user?.full_name || review.name,
+//           rating: review.rating,
+//           text: review.text,
+//           created_at: review.created_at,
+//         })),
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get admin overview error:", error);
+//     res.status(500).json({
+//       success: false,
+//       error: "خطا در دریافت آمار",
+//     });
+//   }
+// });
 
 // ============ سرور ============
 const PORT = process.env.PORT || 5000;

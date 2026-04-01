@@ -1595,6 +1595,176 @@
   }
 }
 
+/* ============ No Appointments ============ */
+/* .noAppointmentsCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+} */
+
+/* .noAppointmentsIcon {
+  font-size: 48px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+} */
+
+.nextAppointmentCard {
+  margin-top: 24px;
+}
+
+.appointmentDate {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 4px;
+  display: block;
+}
+
+/* ============ Reviews Section ============ */
+.reviewsSection {
+  width: 100%;
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reviewCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.reviewerInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.reviewerAvatar {
+  width: 48px;
+  height: 48px;
+  background: #fef3c7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.reviewerName {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.reviewService {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.reviewRating {
+  display: flex;
+  gap: 2px;
+}
+
+.reviewText {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.reviewMeta {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.reviewDate {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.approvedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #d1fae5;
+  color: #10b981;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ============ Future Appointments ============ */
+.futureAppointmentsCard {
+  margin-top: 24px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.futureTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.futureIcon {
+  color: #f59e0b;
+}
+
+.futureDate {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.noFutureAppointmentsCard {
+  margin-top: 24px;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.noAppointmentsCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.noAppointmentsIcon {
+  font-size: 48px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {

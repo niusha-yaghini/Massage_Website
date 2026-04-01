@@ -439,6 +439,21 @@ const AdminPanel = () => {
     }
   };
 
+  const getNextAppointment = () => {
+    if (!overview?.today_appointments) return null;
+
+    const today = new Date().toISOString().split("T")[0];
+    const futureAppointments = overview.today_appointments.filter(
+      (apt) => apt.date > today
+    );
+
+    if (futureAppointments.length === 0) return null;
+
+    // مرتب‌سازی بر اساس تاریخ
+    futureAppointments.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return futureAppointments[0];
+  };
+
   // ============ وضعیت‌های نوبت ============
   const statusConfig = {
     pending: {
@@ -689,7 +704,7 @@ const AdminPanel = () => {
                   </div>
                   <div className={styles.statInfo}>
                     <h3>{stats?.total_appointments || 0}</h3>
-                    <p>کل نوبت‌ها</p>
+                    <p>کل نوبت‌های گذشته</p>
                   </div>
                 </div>
 
@@ -723,8 +738,9 @@ const AdminPanel = () => {
                 </div>
               </div>
 
-              {/* نوبت‌های امروز */}
-              {overview?.today_appointments?.length > 0 && (
+              {/* بخش نوبت‌ها */}
+              {overview?.today_appointments?.length > 0 ? (
+                // حالت 1: امروز نوبت دارد
                 <div className={styles.todayAppointments}>
                   <h2 className={styles.sectionTitle}>
                     <FiCalendar className={styles.sectionIcon} />
@@ -753,59 +769,69 @@ const AdminPanel = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              ) : (
+                // حالت 2: امروز نوبت ندارد
+                <div className={styles.noAppointmentsCard}>
+                  <FiCalendar className={styles.noAppointmentsIcon} />
+                  <p>برای امروز نوبتی وجود ندارد.</p>
 
-              {/* نظرات در انتظار تایید */}
-              {overview?.pending_reviews?.length > 0 && (
-                <div className={styles.pendingReviews}>
-                  <h2 className={styles.sectionTitle}>
-                    <FiMessageSquare className={styles.sectionIcon} />
-                    نظرات در انتظار تایید
-                  </h2>
-                  <div className={styles.reviewsList}>
-                    {overview.pending_reviews.map((review) => (
-                      <div key={review.id} className={styles.reviewCard}>
-                        <div className={styles.reviewHeader}>
-                          <span className={styles.reviewerName}>
-                            {review.client_name}
-                          </span>
-                          <div className={styles.reviewRating}>
-                            {Array(5)
-                              .fill(0)
-                              .map((_, i) => (
-                                <FiStar
-                                  key={i}
-                                  className={
-                                    i < review.rating
-                                      ? styles.starFilled
-                                      : styles.starEmpty
-                                  }
-                                />
-                              ))}
+                  {/* بررسی نوبت‌های آینده */}
+                  {overview?.future_appointments &&
+                  Object.keys(overview.future_appointments).length > 0 ? (
+                    // حالت 2-1: نوبت آینده وجود دارد
+                    (() => {
+                      const nextDate = Object.keys(
+                        overview.future_appointments
+                      ).sort()[0];
+                      const nextAppointments =
+                        overview.future_appointments[nextDate];
+                      return (
+                        <div className={styles.futureAppointmentsCard}>
+                          <h3 className={styles.futureTitle}>
+                            <FiClock className={styles.futureIcon} />
+                            نزدیک‌ترین روز بعدی با نوبت:
+                          </h3>
+                          <div className={styles.futureDate}>
+                            {formatGregorianToPersian(nextDate)}
+                          </div>
+                          <div className={styles.appointmentsList}>
+                            {nextAppointments.map((apt) => (
+                              <div
+                                key={apt.id}
+                                className={styles.appointmentCard}
+                              >
+                                <div className={styles.appointmentTime}>
+                                  {apt.time}
+                                </div>
+                                <div className={styles.appointmentInfo}>
+                                  <strong>{apt.client_name}</strong>
+                                  <span className={styles.appointmentService}>
+                                    {apt.service}
+                                  </span>
+                                </div>
+                                <div
+                                  className={styles.appointmentStatus}
+                                  style={{
+                                    backgroundColor:
+                                      statusConfig[apt.status]?.bg,
+                                    color: statusConfig[apt.status]?.color,
+                                  }}
+                                >
+                                  {statusConfig[apt.status]?.label}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <p className={styles.reviewText}>{review.text}</p>
-                        <div className={styles.reviewActions}>
-                          <button
-                            className={styles.approveBtn}
-                            onClick={() => handleApproveReview(review.id, true)}
-                          >
-                            <FiCheck />
-                            تایید
-                          </button>
-                          <button
-                            className={styles.rejectBtn}
-                            onClick={() =>
-                              handleApproveReview(review.id, false)
-                            }
-                          >
-                            <FiX />
-                            رد
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      );
+                    })()
+                  ) : (
+                    // حالت 3: هیچ نوبتی در آینده وجود ندارد
+                    <div className={styles.noFutureAppointmentsCard}>
+                      <FiCalendar className={styles.noAppointmentsIcon} />
+                      <p>نوبت آینده‌ای وجود ندارد.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1674,6 +1700,132 @@ const AdminPanel = () => {
                     )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Reviews Section */}
+          {activeTab === "reviews" && (
+            <div className={styles.reviewsSection}>
+              <div className={styles.filtersBar}>
+                <select
+                  className={styles.filterSelect}
+                  value={reviewsStatus}
+                  onChange={(e) => {
+                    setReviewsStatus(e.target.value);
+                    setReviewsPage(1);
+                  }}
+                >
+                  <option value="pending">در انتظار تایید</option>
+                  <option value="all">همه نظرات</option>
+                </select>
+
+                <button className={styles.searchBtn} onClick={fetchReviews}>
+                  <FiRefreshCw />
+                  <span> بروزرسانی</span>
+                </button>
+              </div>
+
+              <div className={styles.reviewsList}>
+                {reviews.map((review) => (
+                  <div key={review.id} className={styles.reviewCard}>
+                    <div className={styles.reviewHeader}>
+                      <div className={styles.reviewerInfo}>
+                        <div className={styles.reviewerAvatar}>
+                          {review.user?.full_name?.charAt(0) ||
+                            review.name?.charAt(0) ||
+                            "ن"}
+                        </div>
+                        <div>
+                          <div className={styles.reviewerName}>
+                            {review.user?.full_name || review.name}
+                          </div>
+                          <div className={styles.reviewService}>
+                            {review.service?.name || "خدمت"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.reviewRating}>
+                        {Array(5)
+                          .fill(0)
+                          .map((_, i) => (
+                            <FiStar
+                              key={i}
+                              className={
+                                i < review.rating
+                                  ? styles.starFilled
+                                  : styles.starEmpty
+                              }
+                            />
+                          ))}
+                      </div>
+                    </div>
+
+                    <p className={styles.reviewText}>{review.text}</p>
+
+                    <div className={styles.reviewMeta}>
+                      <span className={styles.reviewDate}>
+                        {new Date(review.created_at).toLocaleDateString(
+                          "fa-IR"
+                        )}
+                      </span>
+                    </div>
+
+                    <div className={styles.reviewActions}>
+                      {!review.is_approved && (
+                        <>
+                          <button
+                            className={styles.approveBtn}
+                            onClick={() => handleApproveReview(review.id, true)}
+                          >
+                            <FiCheck />
+                            تایید
+                          </button>
+                          <button
+                            className={styles.rejectBtn}
+                            onClick={() =>
+                              handleApproveReview(review.id, false)
+                            }
+                          >
+                            <FiX />
+                            رد
+                          </button>
+                        </>
+                      )}
+                      {review.is_approved && (
+                        <span className={styles.approvedBadge}>
+                          <FiCheckCircle />
+                          تایید شده
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {reviews.length === 0 && (
+                <div className={styles.emptyState}>
+                  <FiMessageSquare className={styles.emptyIcon} />
+                  <p>نظری یافت نشد</p>
+                </div>
+              )}
+
+              {reviewsTotal > 20 && (
+                <div className={styles.pagination}>
+                  <button
+                    disabled={reviewsPage === 1}
+                    onClick={() => setReviewsPage(reviewsPage - 1)}
+                  >
+                    <FiChevronRight />
+                  </button>
+                  <span>صفحه {reviewsPage}</span>
+                  <button
+                    disabled={reviewsPage * 20 >= reviewsTotal}
+                    onClick={() => setReviewsPage(reviewsPage + 1)}
+                  >
+                    <FiChevronLeft />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
