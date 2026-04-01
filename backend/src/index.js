@@ -1664,7 +1664,7 @@ app.put("/api/admin/reviews/:id/approve", adminMiddleware, async (req, res) => {
   console.log("🔧 ===== APPROVE REVIEW API CALLED =====");
   console.log("🔧 req.params:", req.params);
   console.log("🔧 req.body:", req.body);
-  
+
   try {
     const { id } = req.params;
     const { is_approved, is_rejected } = req.body;
@@ -1784,11 +1784,6 @@ app.get("/api/admin/clients", adminMiddleware, async (req, res) => {
       const completedAppointments = appointments.filter(
         (a) => a.status === "completed"
       );
-
-      // const totalSpent = completedAppointments.reduce(
-      //   (sum, apt) => sum + (apt.price || 0),
-      //   0
-      // );
 
       const totalSpent = completedAppointments.reduce((sum, apt) => {
         const price = apt.price ? Number(apt.price) : 0;
@@ -2267,6 +2262,390 @@ app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
     });
   }
 });
+
+// ============ REPORTS ROUTES ============
+// ============ REPORTS ROUTES ============
+app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
+  console.log("🔧 ===== FINANCIAL REPORTS API CALLED =====");
+
+  try {
+    // 1. آمار کلی
+    const totalRevenue = await Appointment.sum("price", {
+      where: { status: "completed" },
+    });
+    console.log("💰 Total revenue:", totalRevenue);
+
+    const totalAppointments = await Appointment.count({
+      where: { status: "completed" },
+    });
+    console.log("📊 Total appointments:", totalAppointments);
+
+    const averageRevenue =
+      totalAppointments > 0 ? totalRevenue / totalAppointments : 0;
+
+    // 2. درآمد ماهانه (۱۲ ماه اخیر)
+    const monthlyData = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const startOfMonth = date.toISOString().split("T")[0];
+      const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+        .toISOString()
+        .split("T")[0];
+
+      const revenue = await Appointment.sum("price", {
+        where: {
+          status: "completed",
+          appointment_date: {
+            [Op.between]: [startOfMonth, endOfMonth],
+          },
+        },
+      });
+
+      monthlyData.push({
+        month: date.toLocaleDateString("fa-IR", {
+          month: "long",
+          year: "numeric",
+        }),
+        revenue: revenue || 0,
+        count: await Appointment.count({
+          where: {
+            status: "completed",
+            appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
+          },
+        }),
+      });
+    }
+
+    // 3. آمار خدمات
+    const services = await Service.findAll({
+      attributes: ["id", "name", "price"],
+    });
+
+    const serviceStats = [];
+    for (const service of services) {
+      const appointments = await Appointment.findAll({
+        where: {
+          service_id: service.id,
+          status: "completed",
+        },
+        attributes: ["price"],
+      });
+
+      const count = appointments.length;
+      const revenue = appointments.reduce(
+        (sum, apt) => sum + (apt.price || 0),
+        0
+      );
+
+      serviceStats.push({
+        id: service.id,
+        name: service.name,
+        count: count,
+        revenue: revenue,
+        percentage:
+          totalAppointments > 0
+            ? ((count / totalAppointments) * 100).toFixed(1)
+            : 0,
+      });
+    }
+    serviceStats.sort((a, b) => b.revenue - a.revenue);
+
+    // 4. مشتریان برتر
+    const topClientsRaw = await Appointment.findAll({
+      where: { status: "completed" },
+      attributes: [
+        "user_id",
+        [sequelize.fn("SUM", sequelize.col("price")), "total_spent"],
+        [sequelize.fn("COUNT", sequelize.col("id")), "appointment_count"],
+      ],
+      group: ["user_id"],
+      order: [[sequelize.literal("total_spent"), "DESC"]],
+      limit: 10,
+    });
+
+    const topClients = [];
+    for (const client of topClientsRaw) {
+      const user = await User.findByPk(client.user_id, {
+        attributes: ["id", "full_name", "phone"],
+      });
+      if (user) {
+        topClients.push({
+          id: user.id,
+          name: user.full_name,
+          phone: user.phone,
+          total_spent: client.dataValues.total_spent || 0,
+          appointment_count: client.dataValues.appointment_count || 0,
+        });
+      }
+    }
+
+    // 5. تحلیل زمانی
+    const allAppointments = await Appointment.findAll({
+      where: { status: "completed" },
+      attributes: ["appointment_time", "appointment_date"],
+    });
+
+    // تحلیل ساعتی
+    const hourlyStats = {};
+    for (let i = 8; i <= 19; i++) {
+      hourlyStats[`${i}:00`] = 0;
+    }
+    allAppointments.forEach((apt) => {
+      const hour = apt.appointment_time.split(":")[0];
+      if (hourlyStats[`${hour}:00`] !== undefined) {
+        hourlyStats[`${hour}:00`]++;
+      }
+    });
+
+    // تحلیل روزانه
+    const weeklyStats = {
+      شنبه: 0,
+      یکشنبه: 0,
+      دوشنبه: 0,
+      سه‌شنبه: 0,
+      چهارشنبه: 0,
+      پنج‌شنبه: 0,
+      جمعه: 0,
+    };
+    allAppointments.forEach((apt) => {
+      const date = new Date(apt.appointment_date);
+      const dayName = date.toLocaleDateString("fa-IR", { weekday: "long" });
+      if (weeklyStats[dayName] !== undefined) weeklyStats[dayName]++;
+    });
+
+    // تحلیل ماهانه
+    const monthlyStats = {};
+    allAppointments.forEach((apt) => {
+      const date = new Date(apt.appointment_date);
+      const monthName = date.toLocaleDateString("fa-IR", { month: "long" });
+      monthlyStats[monthName] = (monthlyStats[monthName] || 0) + 1;
+    });
+
+    const responseData = {
+      success: true,
+      data: {
+        total_revenue: totalRevenue || 0,
+        total_appointments: totalAppointments,
+        average_revenue: averageRevenue,
+        monthly_revenue: monthlyData,
+        service_stats: serviceStats,
+        top_clients: topClients,
+        time_analysis: {
+          hourly: Object.entries(hourlyStats).map(([hour, count]) => ({
+            hour,
+            count,
+          })),
+          weekly: Object.entries(weeklyStats).map(([day, count]) => ({
+            day,
+            count,
+          })),
+          monthly: Object.entries(monthlyStats).map(([month, count]) => ({
+            month,
+            count,
+          })),
+        },
+      },
+    };
+
+    console.log("✅ Financial reports generated successfully");
+    res.json(responseData);
+  } catch (error) {
+    console.error("❌ Error in financial reports API:", error);
+    console.error("❌ Error details:", error.message);
+    console.error("❌ Error stack:", error.stack);
+    res.status(500).json({
+      success: false,
+      error: "خطا در دریافت گزارشات مالی: " + error.message,
+    });
+  }
+});
+// app.get("/api/admin/reports/financial", adminMiddleware, async (req, res) => {
+//   try {
+//     // 1. آمار کلی
+//     const totalRevenue = await Appointment.sum("price", {
+//       where: { status: "completed" },
+//     });
+
+//     const totalAppointments = await Appointment.count({
+//       where: { status: "completed" },
+//     });
+
+//     const averageRevenue =
+//       totalAppointments > 0 ? totalRevenue / totalAppointments : 0;
+
+//     // 2. درآمد ماهانه (۱۲ ماه اخیر)
+//     const monthlyData = [];
+//     const now = new Date();
+//     for (let i = 11; i >= 0; i--) {
+//       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+//       const startOfMonth = date.toISOString().split("T")[0];
+//       const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+//         .toISOString()
+//         .split("T")[0];
+
+//       const revenue = await Appointment.sum("price", {
+//         where: {
+//           status: "completed",
+//           appointment_date: {
+//             [Op.between]: [startOfMonth, endOfMonth],
+//           },
+//         },
+//       });
+
+//       monthlyData.push({
+//         month: date.toLocaleDateString("fa-IR", {
+//           month: "long",
+//           year: "numeric",
+//         }),
+//         revenue: revenue || 0,
+//         count: await Appointment.count({
+//           where: {
+//             status: "completed",
+//             appointment_date: { [Op.between]: [startOfMonth, endOfMonth] },
+//           },
+//         }),
+//       });
+//     }
+
+//     // 3. آمار خدمات
+//     const services = await Service.findAll({
+//       attributes: ["id", "name", "price"],
+//       include: [
+//         {
+//           model: Appointment,
+//           as: "appointments",
+//           where: { status: "completed" },
+//           required: false,
+//           attributes: ["price"],
+//         },
+//       ],
+//     });
+
+//     const serviceStats = services
+//       .map((service) => {
+//         const appointments = service.appointments || [];
+//         const count = appointments.length;
+//         const revenue = appointments.reduce(
+//           (sum, apt) => sum + (apt.price || 0),
+//           0
+//         );
+//         return {
+//           id: service.id,
+//           name: service.name,
+//           count: count,
+//           revenue: revenue,
+//           percentage:
+//             totalAppointments > 0
+//               ? ((count / totalAppointments) * 100).toFixed(1)
+//               : 0,
+//         };
+//       })
+//       .sort((a, b) => b.revenue - a.revenue);
+
+//     // 4. مشتریان برتر
+//     const topClients = await Appointment.findAll({
+//       where: { status: "completed" },
+//       attributes: [
+//         "user_id",
+//         [sequelize.fn("SUM", sequelize.col("price")), "total_spent"],
+//         [sequelize.fn("COUNT", sequelize.col("id")), "appointment_count"],
+//       ],
+//       include: [
+//         {
+//           model: User,
+//           as: "user",
+//           attributes: ["id", "full_name", "phone"],
+//         },
+//       ],
+//       group: ["user_id", "user.id"],
+//       order: [[sequelize.literal("total_spent"), "DESC"]],
+//       limit: 10,
+//     });
+
+//     const formattedTopClients = topClients.map((client) => ({
+//       id: client.user.id,
+//       name: client.user.full_name,
+//       phone: client.user.phone,
+//       total_spent: client.dataValues.total_spent || 0,
+//       appointment_count: client.dataValues.appointment_count || 0,
+//     }));
+
+//     // 5. تحلیل زمانی
+//     const allAppointments = await Appointment.findAll({
+//       where: { status: "completed" },
+//       attributes: ["appointment_time", "appointment_date"],
+//     });
+
+//     // تحلیل ساعتی
+//     const hourlyStats = {};
+//     for (let i = 8; i <= 19; i++) {
+//       hourlyStats[`${i}:00`] = 0;
+//     }
+//     allAppointments.forEach((apt) => {
+//       const hour = apt.appointment_time.split(":")[0];
+//       if (hourlyStats[`${hour}:00`] !== undefined) {
+//         hourlyStats[`${hour}:00`]++;
+//       }
+//     });
+
+//     // تحلیل روزانه
+//     const weeklyStats = {
+//       شنبه: 0,
+//       یکشنبه: 0,
+//       دوشنبه: 0,
+//       سه‌شنبه: 0,
+//       چهارشنبه: 0,
+//       پنج‌شنبه: 0,
+//       جمعه: 0,
+//     };
+//     allAppointments.forEach((apt) => {
+//       const date = new Date(apt.appointment_date);
+//       const dayName = date.toLocaleDateString("fa-IR", { weekday: "long" });
+//       if (weeklyStats[dayName] !== undefined) weeklyStats[dayName]++;
+//     });
+
+//     // تحلیل ماهانه
+//     const monthlyStats = {};
+//     allAppointments.forEach((apt) => {
+//       const date = new Date(apt.appointment_date);
+//       const monthName = date.toLocaleDateString("fa-IR", { month: "long" });
+//       monthlyStats[monthName] = (monthlyStats[monthName] || 0) + 1;
+//     });
+
+//     res.json({
+//       success: true,
+//       data: {
+//         total_revenue: totalRevenue || 0,
+//         total_appointments: totalAppointments,
+//         average_revenue: averageRevenue,
+//         monthly_revenue: monthlyData,
+//         service_stats: serviceStats,
+//         top_clients: formattedTopClients,
+//         time_analysis: {
+//           hourly: Object.entries(hourlyStats).map(([hour, count]) => ({
+//             hour,
+//             count,
+//           })),
+//           weekly: Object.entries(weeklyStats).map(([day, count]) => ({
+//             day,
+//             count,
+//           })),
+//           monthly: Object.entries(monthlyStats).map(([month, count]) => ({
+//             month,
+//             count,
+//           })),
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error fetching financial reports:", error);
+//     res.status(500).json({
+//       success: false,
+//       error: "خطا در دریافت گزارشات مالی",
+//     });
+//   }
+// });
 
 const PORT = process.env.PORT || 5000;
 

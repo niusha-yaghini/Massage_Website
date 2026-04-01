@@ -2035,6 +2035,217 @@
   border-color: #ef4444;
 }
 
+/* ============ Financial Reports Section ============ */
+.reportsSection {
+  width: 100%;
+}
+
+.chartCard,
+.infoCard,
+.timeAnalysisCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* نمودار ماهانه */
+.monthlyChart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.chartBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chartBarLabel {
+  width: 80px;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.chartBarContainer {
+  flex: 1;
+  height: 32px;
+  background: #f1f5f9;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.chartBarFill {
+  height: 100%;
+  border-radius: 16px;
+  transition: width 0.5s ease;
+}
+
+.chartBarValue {
+  width: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1e293b;
+  text-align: left;
+}
+
+/* خدمات محبوب */
+.serviceStatsList,
+.topClientsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.serviceStatItem,
+.clientStatItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.serviceStatItem:hover,
+.clientStatItem:hover {
+  background: #f1f5f9;
+  transform: translateX(-4px);
+}
+
+.serviceRank,
+.clientRank {
+  width: 28px;
+  height: 28px;
+  background: #f59e0b;
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.serviceInfo,
+.clientInfo {
+  flex: 1;
+}
+
+.serviceName,
+.clientName {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.serviceDetails,
+.clientPhone {
+  font-size: 0.7rem;
+  color: #64748b;
+  display: flex;
+  gap: 12px;
+}
+
+.servicePercentage {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.clientStats {
+  text-align: left;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.clientStats span {
+  display: block;
+}
+
+/* تحلیل زمانی */
+.timeAnalysisGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.timeBox h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+
+.hourlyBars,
+.weeklyBars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hourBar,
+.weekBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hourLabel,
+.weekLabel {
+  width: 50px;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.hourBarContainer,
+.weekBarContainer {
+  flex: 1;
+  height: 24px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.hourBarFill,
+.weekBarFill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.hourCount,
+.weekCount {
+  width: 30px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #1e293b;
+  text-align: left;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .twoColumnGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeAnalysisGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {

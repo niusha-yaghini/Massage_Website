@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AdminPanel.module.css";
 import moment from "moment-jalaali";
-import { adminService, notificationService } from "../../services/userService";
+import {
+  userService,
+  adminService,
+  notificationService,
+} from "../../services/userService";
+
 import {
   FiHome,
   FiUsers,
@@ -31,10 +36,12 @@ import {
   FiMail,
   FiUser,
   FiBriefcase,
+  FiTrendingUp,
+  FiTrendingDown,
+  FiBarChart2,
+  FiPieChart,
+  FiDollarSign,
 } from "react-icons/fi";
-import { userService } from "../../services/userService";
-
-// import moment from "moment-jalaali";
 
 // تبدیل تاریخ میلادی به شمسی
 const formatGregorianToPersian = (gregorianDate) => {
@@ -142,6 +149,17 @@ const AdminPanel = () => {
     all: 0,
   });
 
+  // Financial Reports
+  const [financialStats, setFinancialStats] = useState(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [serviceStats, setServiceStats] = useState([]);
+  const [topClients, setTopClients] = useState([]);
+  const [timeAnalysis, setTimeAnalysis] = useState({
+    hourly: [],
+    weekly: [],
+    monthly: [],
+  });
+
   // ============ دریافت اطلاعات کاربر جاری ============
   useEffect(() => {
     const fetchUserData = async () => {
@@ -174,6 +192,8 @@ const AdminPanel = () => {
       fetchClients();
     } else if (activeTab === "calendar") {
       fetchCalendar();
+    } else if (activeTab === "reports") {
+      fetchFinancialReports();
     }
   }, [activeTab]);
 
@@ -388,6 +408,24 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchFinancialReports = async () => {
+    setLoading(true);
+    try {
+      const data = await adminService.getFinancialReports();
+      if (data.success) {
+        setFinancialStats(data.data);
+        setMonthlyRevenue(data.data.monthly_revenue);
+        setServiceStats(data.data.service_stats);
+        setTopClients(data.data.top_clients);
+        setTimeAnalysis(data.data.time_analysis);
+      }
+    } catch (error) {
+      console.error("Error fetching financial reports:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ============ توابع مدیریتی ============
   const handleLogout = () => {
     userService.logout();
@@ -483,33 +521,6 @@ const AdminPanel = () => {
       console.error("Error approving review:", error);
     }
   };
-
-  // const handleApproveReview = async (
-  //   reviewId,
-  //   isApproved,
-  //   isRejected = false
-  // ) => {
-  //   console.log("🔄 ===== handleApproveReview START =====");
-  //   console.log("📝 reviewId:", reviewId);
-  //   console.log("📝 isApproved:", isApproved);
-  //   console.log("📝 isRejected:", isRejected);
-
-  //   try {
-  //     const result = await adminService.approveReview(
-  //       reviewId,
-  //       isApproved,
-  //       isRejected
-  //     );
-  //     console.log("✅ Response from server:", result);
-  //     console.log("🔄 Fetching reviews again...");
-  //     await fetchReviewsWithStatus(reviewsStatus, reviewsPage);
-  //     console.log("✅ Reviews updated");
-  //   } catch (error) {
-  //     console.error("❌ Error approving review:", error);
-  //     alert("خطا در تایید/رد نظر: " + (error.message || "خطای ناشناخته"));
-  //   }
-  //   console.log("🔄 ===== handleApproveReview END =====");
-  // };
 
   const handleViewClient = async (clientId) => {
     try {
@@ -618,6 +629,7 @@ const AdminPanel = () => {
           { id: "services", label: "خدمات", icon: FiStar },
           { id: "reviews", label: "نظرات", icon: FiMessageSquare },
           { id: "users", label: "کاربران", icon: FiUserCheck },
+          { id: "reports", label: "گزارشات مالی", icon: FiTrendingUp },
         ].map((item) => (
           <button
             key={item.id}
@@ -1809,93 +1821,6 @@ const AdminPanel = () => {
           {activeTab === "reviews" && (
             <div className={styles.reviewsSection}>
               <div className={styles.filtersBar}>
-                {/* <div className={styles.filterCards}>
-                  <button
-                    className={`${styles.filterCard} ${styles.pendingCard} ${
-                      reviewsStatus === "pending" ? styles.active : ""
-                    }`}
-                    onClick={() => {
-                      setReviewsStatus("pending");
-                      setReviewsPage(1);
-                      fetchReviewsWithStatus("pending", 1);
-                    }}
-                  >
-                    <div className={styles.filterCardIcon}>
-                      <FiClock />
-                    </div>
-                    <div className={styles.filterCardInfo}>
-                      <span className={styles.filterCardLabel}>
-                        در انتظار تایید
-                      </span>
-                      <span className={styles.filterCardCount}>
-                        {reviewsTotal || 0}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    className={`${styles.filterCard} ${styles.approvedCard} ${
-                      reviewsStatus === "approved" ? styles.active : ""
-                    }`}
-                    onClick={() => {
-                      setReviewsStatus("approved");
-                      setReviewsPage(1);
-                      fetchReviewsWithStatus("approved", 1);
-                    }}
-                  >
-                    <div className={styles.filterCardIcon}>
-                      <FiCheckCircle />
-                    </div>
-                    <div className={styles.filterCardInfo}>
-                      <span className={styles.filterCardLabel}>تایید شده</span>
-                      <span className={styles.filterCardCount}>
-                        {reviews.filter((r) => r.is_approved).length}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    className={`${styles.filterCard} ${styles.rejectedCard} ${
-                      reviewsStatus === "rejected" ? styles.active : ""
-                    }`}
-                    onClick={() => {
-                      setReviewsStatus("rejected");
-                      setReviewsPage(1);
-                      fetchReviewsWithStatus("rejected", 1);
-                    }}
-                  >
-                    <div className={styles.filterCardIcon}>
-                      <FiXCircle />
-                    </div>
-                    <div className={styles.filterCardInfo}>
-                      <span className={styles.filterCardLabel}>رد شده</span>
-                      <span className={styles.filterCardCount}>
-                        {reviews.filter((r) => r.is_rejected).length}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    className={`${styles.filterCard} ${styles.allCard} ${
-                      reviewsStatus === "all" ? styles.active : ""
-                    }`}
-                    onClick={() => {
-                      setReviewsStatus("all");
-                      setReviewsPage(1);
-                      fetchReviewsWithStatus("all", 1);
-                    }}
-                  >
-                    <div className={styles.filterCardIcon}>
-                      <FiStar />
-                    </div>
-                    <div className={styles.filterCardInfo}>
-                      <span className={styles.filterCardLabel}>همه نظرات</span>
-                      <span className={styles.filterCardCount}>
-                        {reviewsTotal}
-                      </span>
-                    </div>
-                  </button>
-                </div> */}
                 <div className={styles.filterCards}>
                   <button
                     className={`${styles.filterCard} ${styles.pendingCard} ${
@@ -1981,7 +1906,7 @@ const AdminPanel = () => {
                     <div className={styles.filterCardInfo}>
                       <span className={styles.filterCardLabel}>همه نظرات</span>
                       <span className={styles.filterCardCount}>
-                        {reviewCounts.all} {/* ✅ استفاده از reviewCounts */}
+                        {reviewCounts.all}
                       </span>
                     </div>
                   </button>
@@ -2373,6 +2298,225 @@ const AdminPanel = () => {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Reports Section */}
+          {activeTab === "reports" && (
+            <div className={styles.reportsSection}>
+              {/* کارت‌های خلاصه */}
+              <div className={styles.statsGrid}>
+                <div className={styles.statCard}>
+                  <div
+                    className={styles.statIcon}
+                    style={{ backgroundColor: "#e6f7e6", color: "#10b981" }}
+                  >
+                    <FiDollarSign />
+                  </div>
+                  <div className={styles.statInfo}>
+                    <h3>
+                      {financialStats?.total_revenue?.toLocaleString("fa-IR") ||
+                        0}{" "}
+                      تومان
+                    </h3>
+                    <p>درآمد کل</p>
+                  </div>
+                </div>
+
+                <div className={styles.statCard}>
+                  <div
+                    className={styles.statIcon}
+                    style={{ backgroundColor: "#e6f0ff", color: "#3b82f6" }}
+                  >
+                    <FiCalendar />
+                  </div>
+                  <div className={styles.statInfo}>
+                    <h3>{financialStats?.total_appointments || 0}</h3>
+                    <p>کل نوبت‌ها</p>
+                  </div>
+                </div>
+
+                <div className={styles.statCard}>
+                  <div
+                    className={styles.statIcon}
+                    style={{ backgroundColor: "#fff3e0", color: "#f59e0b" }}
+                  >
+                    <FiTrendingUp />
+                  </div>
+                  <div className={styles.statInfo}>
+                    <h3>
+                      {financialStats?.average_revenue?.toLocaleString(
+                        "fa-IR"
+                      ) || 0}{" "}
+                      تومان
+                    </h3>
+                    <p>میانگین هر نوبت</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* نمودار درآمد ماهانه */}
+              <div className={styles.chartCard}>
+                <h2 className={styles.sectionTitle}>
+                  <FiTrendingUp className={styles.sectionIcon} />
+                  درآمد ماهانه
+                </h2>
+                <div className={styles.monthlyChart}>
+                  {monthlyRevenue.map((item, index) => (
+                    <div key={index} className={styles.chartBar}>
+                      <div className={styles.chartBarLabel}>{item.month}</div>
+                      <div className={styles.chartBarContainer}>
+                        <div
+                          className={styles.chartBarFill}
+                          style={{
+                            width: `${Math.min(
+                              (item.revenue /
+                                (financialStats?.total_revenue || 1)) *
+                                100,
+                              100
+                            )}%`,
+                            backgroundColor: "#f59e0b",
+                          }}
+                        />
+                      </div>
+                      <div className={styles.chartBarValue}>
+                        {item.revenue.toLocaleString("fa-IR")} تومان
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* دو ستون: خدمات محبوب + مشتریان برتر */}
+              <div className={styles.twoColumnGrid}>
+                {/* خدمات محبوب */}
+                <div className={styles.infoCard}>
+                  <h2 className={styles.sectionTitle}>
+                    <FiStar className={styles.sectionIcon} />
+                    محبوبیت خدمات
+                  </h2>
+                  <div className={styles.serviceStatsList}>
+                    {serviceStats.map((service, index) => (
+                      <div key={service.id} className={styles.serviceStatItem}>
+                        <div className={styles.serviceRank}>{index + 1}</div>
+                        <div className={styles.serviceInfo}>
+                          <div className={styles.serviceName}>
+                            {service.name}
+                          </div>
+                          <div className={styles.serviceDetails}>
+                            <span>{service.count} نوبت</span>
+                            <span>
+                              {service.revenue.toLocaleString("fa-IR")} تومان
+                            </span>
+                          </div>
+                        </div>
+                        <div className={styles.servicePercentage}>
+                          {service.percentage}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* مشتریان برتر */}
+                <div className={styles.infoCard}>
+                  <h2 className={styles.sectionTitle}>
+                    <FiUsers className={styles.sectionIcon} />
+                    مشتریان برتر
+                  </h2>
+                  <div className={styles.topClientsList}>
+                    {topClients.map((client, index) => (
+                      <div key={client.id} className={styles.clientStatItem}>
+                        <div className={styles.clientRank}>{index + 1}</div>
+                        <div className={styles.clientInfo}>
+                          <div className={styles.clientName}>{client.name}</div>
+                          <div className={styles.clientPhone}>
+                            {client.phone}
+                          </div>
+                        </div>
+                        <div className={styles.clientStats}>
+                          <span>{client.appointment_count} نوبت</span>
+                          <span>
+                            {client.total_spent.toLocaleString("fa-IR")} تومان
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* تحلیل زمانی */}
+              <div className={styles.timeAnalysisCard}>
+                <h2 className={styles.sectionTitle}>
+                  <FiClock className={styles.sectionIcon} />
+                  تحلیل زمانی
+                </h2>
+
+                <div className={styles.timeAnalysisGrid}>
+                  {/* ساعات پرتقاضا */}
+                  <div className={styles.timeBox}>
+                    <h3>ساعات پرتقاضا</h3>
+                    <div className={styles.hourlyBars}>
+                      {timeAnalysis.hourly?.map((item) => (
+                        <div key={item.hour} className={styles.hourBar}>
+                          <span className={styles.hourLabel}>{item.hour}</span>
+                          <div className={styles.hourBarContainer}>
+                            <div
+                              className={styles.hourBarFill}
+                              style={{
+                                width: `${
+                                  (item.count /
+                                    Math.max(
+                                      ...timeAnalysis.hourly.map(
+                                        (h) => h.count
+                                      ),
+                                      1
+                                    )) *
+                                  100
+                                }%`,
+                                backgroundColor: "#10b981",
+                              }}
+                            />
+                          </div>
+                          <span className={styles.hourCount}>{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* روزهای هفته */}
+                  <div className={styles.timeBox}>
+                    <h3>روزهای پرتقاضا</h3>
+                    <div className={styles.weeklyBars}>
+                      {timeAnalysis.weekly?.map((item) => (
+                        <div key={item.day} className={styles.weekBar}>
+                          <span className={styles.weekLabel}>{item.day}</span>
+                          <div className={styles.weekBarContainer}>
+                            <div
+                              className={styles.weekBarFill}
+                              style={{
+                                width: `${
+                                  (item.count /
+                                    Math.max(
+                                      ...timeAnalysis.weekly.map(
+                                        (w) => w.count
+                                      ),
+                                      1
+                                    )) *
+                                  100
+                                }%`,
+                                backgroundColor: "#3b82f6",
+                              }}
+                            />
+                          </div>
+                          <span className={styles.weekCount}>{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

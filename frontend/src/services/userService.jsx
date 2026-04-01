@@ -904,26 +904,8 @@ export const adminService = {
       throw error;
     }
   },
-  // async approveReview(reviewId, is_approved) {
-  //   try {
-  //     const response = await fetchWithAuth(
-  //       `${API_URL}/admin/reviews/${reviewId}/approve`,
-  //       {
-  //         method: "PUT",
-  //         body: JSON.stringify({ is_approved }),
-  //       }
-  //     );
-  //     const data = await handleResponse(response);
-  //     return data;
-  //   } catch (error) {
-  //     handleNetworkError(error);
-  //     console.error("Error approving review:", error);
-  //     throw error;
-  //   }
-  // },
 
   // ============ کارهای ماساژتراپیست ============
-
   // دریافت لیست مراجعین
   async getClients() {
     try {
@@ -1017,6 +999,20 @@ export const adminService = {
     } catch (error) {
       handleNetworkError(error);
       console.error("Error fetching overview:", error);
+      throw error;
+    }
+  },
+
+  async getFinancialReports() {
+    try {
+      const response = await fetchWithAuth(
+        `${API_URL}/admin/reports/financial`
+      );
+      const data = await handleResponse(response);
+      return data;
+    } catch (error) {
+      handleNetworkError(error);
+      console.error("Error fetching financial reports:", error);
       throw error;
     }
   },
