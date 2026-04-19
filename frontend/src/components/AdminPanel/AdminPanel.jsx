@@ -1350,6 +1350,12 @@ const AdminPanel = () => {
                               >
                                 <FiEye />
                               </button>
+
+                              {apt.therapist_notes && (
+                                <div className={styles.noteIndicator}>
+                                  <span>یادداشت ثبت شده</span>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -1734,7 +1740,7 @@ const AdminPanel = () => {
                         <FiUser /> {selectedClient.phone}
                       </p>
                       <p>
-                        <FiMail /> {selectedClient.email || "ثبت نشده"}
+                        <FiMail /> {selectedClient.email || "ثبت نشده."}
                       </p>
                       <p>
                         <FiCalendar /> تاریخ عضویت:{" "}
@@ -2479,31 +2485,6 @@ const AdminPanel = () => {
                     </span>
                   </div>
                 </div>
-
-                {/* <div className={styles.monthlyChart}>
-                  {monthlyRevenue.map((item, index) => (
-                    <div key={index} className={styles.chartBar}>
-                      <div className={styles.chartBarLabel}>{item.month}</div>
-                      <div className={styles.chartBarContainer}>
-                        <div
-                          className={styles.chartBarFill}
-                          style={{
-                            width: `${Math.min(
-                              (item.revenue /
-                                (financialStats?.total_revenue || 1)) *
-                                100,
-                              100
-                            )}%`,
-                            backgroundColor: "#f59e0b",
-                          }}
-                        />
-                      </div>
-                      <div className={styles.chartBarValue}>
-                        {item.revenue.toLocaleString("fa-IR")} تومان
-                      </div>
-                    </div>
-                  ))}
-                </div> */}
               </div>
 
               {/* دو ستون: خدمات محبوب + مشتریان برتر */}

@@ -480,7 +480,7 @@ export const userService = {
 
       return {
         success: true,
-        message: data.message || "امتیاز و نظر با موفقیت ثبت شد",
+        message: data.message || "امتیاز و نظر با موفقیت ثبت شد.",
       };
     } catch (error) {
       handleNetworkError(error);
@@ -619,7 +619,7 @@ export const userService = {
       return {
         success: true,
         review: data.review,
-        message: data.message || "نظر با موفقیت ثبت شد",
+        message: data.message || "نظر با موفقیت ثبت شد.",
       };
     } catch (error) {
       handleNetworkError(error);

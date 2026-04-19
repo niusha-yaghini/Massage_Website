@@ -550,7 +550,7 @@ const Landing = () => {
               }}
             />
             <h4 style={{ marginBottom: "10px", color: "#555" }}>
-              هنوز نظری ثبت نشده است
+              هنوز نظری ثبت نشده است.
             </h4>
             <p style={{ fontSize: "16px", opacity: 0.7 }}>
               اولین نفری باشید که نظر می‌دهید!

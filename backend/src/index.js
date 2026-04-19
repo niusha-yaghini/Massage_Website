@@ -114,9 +114,9 @@ const updatePastAppointments = async () => {
         if (appointment.user_id) {
           await Notification.create({
             user_id: appointment.user_id,
-            title: "انقضای زمان نوبت",
-            message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} به دلیل عدم تأیید به موقع منقضی شد.`,
-            type: "appointment_cancelled",
+            title: "⏰ انقضای زمان نوبت",
+            message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} به دلیل عدم تأیید به موقع منقضی شد.`,
+            type: "appointment_expired",
             related_id: appointment.id,
           });
           console.log(
@@ -217,7 +217,7 @@ const checkUncompletedAppointments = async () => {
         for (const admin of adminUsers) {
           await Notification.create({
             user_id: admin.id,
-            title: "⚠️ نوبت انجام نشده",
+            title: "⚠️ نوبت انجام نشده.",
             message: `نوبت مشتری ${appointment.user.full_name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. لطفاً وضعیت را بررسی کنید.`,
             type: "appointment_reminder",
             related_id: appointment.id,
@@ -227,8 +227,8 @@ const checkUncompletedAppointments = async () => {
         // ارسال نوتیفیکیشن به مشتری
         await Notification.create({
           user_id: appointment.user_id,
-          title: "یادآوری نوبت انجام نشده",
-          message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. در صورت نیاز با کلینیک تماس بگیرید.`,
+          title: "یادآوری نوبت انجام نشده.",
+          message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. در صورت نیاز با مجموعه تماس بگیرید.`,
           type: "appointment_reminder",
           related_id: appointment.id,
         });
@@ -249,97 +249,6 @@ const checkUncompletedAppointments = async () => {
   }
 };
 
-// تابع برای بررسی نوبت‌های انجام نشده که تاریخ آنها گذشته است
-// const checkUncompletedAppointments = async () => {
-//   console.log("🔄 ===== checkUncompletedAppointments START ===== 🔄");
-
-//   try {
-//     // استفاده از تاریخ ایران
-//     const iranDate = new Date(
-//       new Date().toLocaleString("en-US", { timeZone: "Asia/Tehran" })
-//     );
-//     iranDate.setHours(0, 0, 0, 0);
-//     const year = iranDate.getFullYear();
-//     const month = String(iranDate.getMonth() + 1).padStart(2, "0");
-//     const day = String(iranDate.getDate()).padStart(2, "0");
-//     const todayStr = `${year}-${month}-${day}`;
-
-//     console.log(`📅 Today date (Iran): ${todayStr}`);
-
-//     // پیدا کردن نوبت‌های تأیید شده که تاریخ آنها گذشته است
-//     const pastConfirmedAppointments = await Appointment.findAll({
-//       where: {
-//         status: "confirmed",
-//         appointment_date: {
-//           [Op.lt]: todayStr, // تاریخ کمتر از امروز
-//         },
-//       },
-//       include: [
-//         {
-//           model: User,
-//           as: "user",
-//           attributes: ["id", "full_name", "phone"],
-//         },
-//         {
-//           model: Service,
-//           as: "service",
-//           attributes: ["name", "duration_minutes", "price"],
-//         },
-//       ],
-//     });
-
-//     console.log(
-//       `📊 Found ${pastConfirmedAppointments.length} past confirmed appointments`
-//     );
-
-//     if (pastConfirmedAppointments.length > 0) {
-//       for (const appointment of pastConfirmedAppointments) {
-//         console.log(
-//           `⚠️ Appointment ${appointment.id} (${appointment.appointment_date}) is past due but still confirmed`
-//         );
-
-//         // ارسال نوتیفیکیشن به ادمین (ماساژور)
-//         const adminUsers = await User.findAll({
-//           where: { role: "admin" },
-//           attributes: ["id"],
-//         });
-
-//         for (const admin of adminUsers) {
-//           await Notification.create({
-//             user_id: admin.id,
-//             title: "⚠️ نوبت انجام نشده",
-//             message: `نوبت مشتری ${appointment.user.full_name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. لطفاً وضعیت را بررسی کنید.`,
-//             type: "appointment_reminder",
-//             related_id: appointment.id,
-//           });
-//         }
-
-//         // ارسال نوتیفیکیشن به مشتری
-//         await Notification.create({
-//           user_id: appointment.user_id,
-//           title: "یادآوری نوبت انجام نشده",
-//           message: `نوبت شما در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} (${appointment.service.name}) انجام نشده است. در صورت نیاز با کلینیک تماس بگیرید.`,
-//           type: "appointment_reminder",
-//           related_id: appointment.id,
-//         });
-
-//         console.log(
-//           `📧 Reminder notifications sent for appointment ${appointment.id}`
-//         );
-//       }
-//     } else {
-//       console.log("✅ No past confirmed appointments found");
-//     }
-
-//     console.log("🔄 ===== checkUncompletedAppointments END ===== 🔄");
-//     return pastConfirmedAppointments.length;
-//   } catch (error) {
-//     console.error("❌ Error checking uncompleted appointments:", error);
-//     return 0;
-//   }
-// };
-
-// Middleware برای بررسی نقش ادمین
 const adminMiddleware = (req, res, next) => {
   authMiddleware(req, res, async () => {
     try {
@@ -928,149 +837,147 @@ app.post("/api/appointments", authMiddleware, async (req, res) => {
   }
 });
 
-// app.post("/api/appointments", authMiddleware, async (req, res) => {
+// app.put("/api/appointments/:id", authMiddleware, async (req, res) => {
 //   try {
-//     const { service_id, appointment_date, appointment_time, notes, price } =
-//       req.body;
+//     const { id } = req.params;
+//     const { appointment_date, appointment_time, notes } = req.body;
 
-//     console.log("📅 ===== NEW APPOINTMENT REQUEST =====");
-//     console.log("📅 User ID:", req.userId);
-//     console.log("📅 Service ID:", service_id);
-//     console.log("📅 Date:", appointment_date);
-//     console.log("📅 Time:", appointment_time);
+//     // const appointment = await Appointment.findOne({
+//     //   where: {
+//     //     id: id,
+//     //     user_id: req.userId,
+//     //   },
+//     // });
 
-//     const service = await Service.findByPk(service_id);
-//     if (!service) {
-//       console.log("❌ Service not found");
+//     const appointment = await Appointment.findOne({
+//       where: {
+//         id: id,
+//         user_id: req.userId,
+//       },
+//       include: [
+//         {
+//           model: Service,
+//           as: "service",
+//           attributes: ["name"],
+//         },
+//       ],
+//     });
+
+//     if (!appointment) {
 //       return res.status(404).json({
 //         success: false,
-//         error: "سرویس مورد نظر یافت نشد",
+//         error: "نوبت مورد نظر یافت نشد.",
 //       });
 //     }
 
-//     const existingAppointment = await Appointment.findOne({
-//       where: {
-//         appointment_date,
-//         appointment_time,
-//         status: ["pending", "confirmed"],
-//       },
-//     });
-
-//     if (existingAppointment) {
-//       console.log("⚠️ Time slot already booked");
+//     if (appointment.status === "completed") {
 //       return res.status(400).json({
 //         success: false,
-//         error: "این زمان قبلاً رزرو شده است. لطفاً زمان دیگری انتخاب کنید.",
+//         error: "نوبت‌های انجام شده قابل تغییر نیستند.",
 //       });
 //     }
 
-//     console.log("✅ Creating appointment...");
-//     const appointment = await Appointment.create({
-//       user_id: req.userId,
-//       service_id,
-//       appointment_date,
-//       appointment_time,
-//       notes: notes || "",
-//       status: "pending",
-//       price: price || service.price,
-//     });
-//     console.log("✅ Appointment created, ID:", appointment.id);
+//     if (appointment.status === "cancelled") {
+//       return res.status(400).json({
+//         success: false,
+//         error: "نوبت‌های لغو شده قابل تغییر نیستند.",
+//       });
+//     }
 
-//     console.log("🔍 Fetching full appointment data...");
-//     const fullAppointment = await Appointment.findByPk(appointment.id, {
+//     if (appointment_date && appointment_time) {
+//       const existingAppointment = await Appointment.findOne({
+//         where: {
+//           appointment_date,
+//           appointment_time,
+//           status: ["pending", "confirmed"],
+//           id: {
+//             [Op.ne]: parseInt(id),
+//           },
+//         },
+//       });
+
+//       if (existingAppointment) {
+//         return res.status(400).json({
+//           success: false,
+//           error: "این زمان قبلاً رزرو شده است. لطفاً زمان دیگری انتخاب کنید.",
+//         });
+//       }
+//     }
+
+//     const oldDate = appointment.appointment_date;
+//     const oldTime = appointment.appointment_time;
+
+//     if (appointment_date) appointment.appointment_date = appointment_date;
+//     if (appointment_time) appointment.appointment_time = appointment_time;
+//     if (notes !== undefined) appointment.notes = notes;
+
+//     await appointment.save();
+
+//     // ارسال نوتیفیکیشن به مشتری برای تأیید تغییر
+//     await Notification.create({
+//       user_id: req.userId,
+//       title: "📅 تغییر زمان نوبت",
+//       message: `زمان نوبت شما برای ${appointment.service.name} از ${oldDate} ساعت ${oldTime} به ${appointment_date} ساعت ${appointment_time} تغییر یافت.`,
+//       type: "appointment_changed",
+//       related_id: appointment.id,
+//     });
+
+//     // ارسال نوتیفیکیشن به ادمین
+//     const adminUsers = await User.findAll({
+//       where: { role: "admin" },
+//       attributes: ["id"],
+//     });
+
+//     for (const admin of adminUsers) {
+//       await Notification.create({
+//         user_id: admin.id,
+//         title: "📅 تغییر زمان نوبت توسط مشتری",
+//         message: `مشتری ${appointment.user?.full_name} زمان نوبت ${appointment.service.name} را از ${oldDate} ساعت ${oldTime} به ${appointment_date} ساعت ${appointment_time} تغییر داد.`,
+//         type: "appointment_changed",
+//         related_id: appointment.id,
+//       });
+//     }
+
+//     const updatedAppointment = await Appointment.findByPk(id, {
 //       include: [
 //         {
 //           model: Service,
 //           as: "service",
 //           attributes: ["id", "name", "duration_minutes", "price", "category"],
 //         },
-//         {
-//           model: User,
-//           as: "user",
-//           attributes: ["id", "full_name", "phone"],
-//         },
 //       ],
 //     });
 
-//     if (!fullAppointment.user) {
-//       console.log("⚠️ User not found for appointment!");
-//     }
-
-//     console.log("🔍 Looking for admin users...");
-//     const adminUsers = await User.findAll({
-//       where: { role: "admin" },
-//       attributes: ["id"],
-//     });
-//     console.log(`👥 Found ${adminUsers.length} admin(s)`);
-
-//     // ارسال نوتیفیکیشن به ادمین
-//     for (const admin of adminUsers) {
-//       try {
-//         await Notification.create({
-//           user_id: admin.id,
-//           title: "📅 درخواست نوبت جدید",
-//           message: `مشتری ${
-//             fullAppointment.user?.full_name || "نامشخص"
-//           } در تاریخ ${appointment_date} ساعت ${appointment_time} درخواست نوبت ${
-//             service.name
-//           } را ثبت کرده است.`,
-//           type: "new_appointment_request",
-//           related_id: appointment.id,
-//         });
-//         console.log(`✅ Notification sent to admin ${admin.id}`);
-//       } catch (notifError) {
-//         console.error(
-//           `❌ Failed to send notification to admin ${admin.id}:`,
-//           notifError.message
-//         );
-//       }
-//     }
-
-//     // ارسال نوتیفیکیشن به مشتری
-//     try {
-//       await Notification.create({
-//         user_id: req.userId,
-//         title: "ثبت نوبت با موفقیت انجام شد",
-//         message: `نوبت شما برای ${service.name} در تاریخ ${appointment_date} ساعت ${appointment_time} با موفقیت ثبت شد. منتظر تأیید ادمین باشید.`,
-//         type: "appointment_confirmation",
-//         related_id: appointment.id,
-//       });
-//       console.log("✅ Notification sent to customer");
-//     } catch (notifError) {
-//       console.error(
-//         "❌ Failed to send notification to customer:",
-//         notifError.message
-//       );
-//     }
-
-//     res.status(201).json({
+//     res.json({
 //       success: true,
-//       message: "نوبت با موفقیت رزرو شد.",
+//       message: "نوبت با موفقیت به‌روزرسانی شد.",
 //       appointment: {
-//         id: fullAppointment.id,
-//         appointment_code: fullAppointment.appointment_code,
-//         date: fullAppointment.appointment_date,
-//         time: fullAppointment.appointment_time,
-//         status: fullAppointment.status,
-//         status_text: fullAppointment.getStatusText(),
-//         price: fullAppointment.price,
-//         service: {
-//           id: fullAppointment.service.id,
-//           name: fullAppointment.service.name,
-//           duration: `${fullAppointment.service.duration_minutes} دقیقه`,
-//           price:
-//             new Intl.NumberFormat("fa-IR").format(
-//               fullAppointment.service.price
-//             ) + " تومان",
-//         },
+//         id: updatedAppointment.id,
+//         appointment_code: updatedAppointment.appointment_code,
+//         date: updatedAppointment.appointment_date,
+//         time: updatedAppointment.appointment_time,
+//         status: updatedAppointment.status,
+//         status_text: updatedAppointment.getStatusText(),
+//         notes: updatedAppointment.notes,
+//         price: updatedAppointment.price,
+//         service: updatedAppointment.service
+//           ? {
+//               id: updatedAppointment.service.id,
+//               name: updatedAppointment.service.name,
+//               duration: `${updatedAppointment.service.duration_minutes} دقیقه`,
+//               price:
+//                 new Intl.NumberFormat("fa-IR").format(
+//                   updatedAppointment.service.price
+//                 ) + " تومان",
+//             }
+//           : null,
 //       },
 //     });
 //   } catch (error) {
-//     console.error("❌ Create appointment error:", error);
-//     console.error("❌ Error stack:", error.stack);
+//     console.error("❌ Update appointment error:", error);
 //     res.status(500).json({
 //       success: false,
-//       error: "خطا در رزرو نوبت: " + error.message,
+//       error: "خطا در به‌روزرسانی نوبت: " + error.message,
 //     });
 //   }
 // });
@@ -1085,6 +992,18 @@ app.put("/api/appointments/:id", authMiddleware, async (req, res) => {
         id: id,
         user_id: req.userId,
       },
+      include: [
+        {
+          model: Service,
+          as: "service",
+          attributes: ["name"],
+        },
+        {
+          model: User,
+          as: "user",
+          attributes: ["full_name"],
+        },
+      ],
     });
 
     if (!appointment) {
@@ -1108,7 +1027,18 @@ app.put("/api/appointments/:id", authMiddleware, async (req, res) => {
       });
     }
 
-    if (appointment_date && appointment_time) {
+    // ذخیره مقادیر قدیمی قبل از تغییر
+    const oldDate = appointment.appointment_date;
+    const oldTime = appointment.appointment_time;
+    const hasDateChanged = appointment_date && appointment_date !== oldDate;
+    const hasTimeChanged = appointment_time && appointment_time !== oldTime;
+
+    // بررسی تداخل زمانی فقط در صورت تغییر تاریخ یا ساعت
+    if (
+      (hasDateChanged || hasTimeChanged) &&
+      appointment_date &&
+      appointment_time
+    ) {
       const existingAppointment = await Appointment.findOne({
         where: {
           appointment_date,
@@ -1128,11 +1058,58 @@ app.put("/api/appointments/:id", authMiddleware, async (req, res) => {
       }
     }
 
-    if (appointment_date) appointment.appointment_date = appointment_date;
-    if (appointment_time) appointment.appointment_time = appointment_time;
+    // اعمال تغییرات
+    if (appointment_date !== undefined)
+      appointment.appointment_date = appointment_date;
+    if (appointment_time !== undefined)
+      appointment.appointment_time = appointment_time;
     if (notes !== undefined) appointment.notes = notes;
 
     await appointment.save();
+
+    // ارسال نوتیفیکیشن فقط در صورت تغییر زمان
+    if (hasDateChanged || hasTimeChanged) {
+      const newDate = appointment.appointment_date;
+      const newTime = appointment.appointment_time;
+
+      // ارسال نوتیفیکیشن به مشتری
+      await Notification.create({
+        user_id: req.userId,
+        title: "📅 تغییر زمان نوبت",
+        message: `زمان نوبت شما برای ${appointment.service.name} از ${oldDate} ساعت ${oldTime} به ${newDate} ساعت ${newTime} تغییر یافت.`,
+        type: "appointment_changed",
+        related_id: appointment.id,
+      });
+
+      // ارسال نوتیفیکیشن به ادمین
+      const adminUsers = await User.findAll({
+        where: { role: "admin" },
+        attributes: ["id"],
+      });
+
+      for (const admin of adminUsers) {
+        await Notification.create({
+          user_id: admin.id,
+          title: "📅 تغییر زمان نوبت توسط مشتری",
+          message: `مشتری ${appointment.user?.full_name || "کاربر"} زمان نوبت ${
+            appointment.service.name
+          } را از ${oldDate} ساعت ${oldTime} به ${newDate} ساعت ${newTime} تغییر داد.`,
+          type: "appointment_changed",
+          related_id: appointment.id,
+        });
+      }
+
+      console.log(`📧 Time change notification sent for appointment ${id}`);
+    } else if (notes !== undefined) {
+      // فقط یادداشت تغییر کرده - نوتیفیکیشن سبک‌تر
+      await Notification.create({
+        user_id: req.userId,
+        title: "📝 به‌روزرسانی یادداشت نوبت",
+        message: `یادداشت نوبت ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} به‌روزرسانی شد.`,
+        type: "appointment_changed",
+        related_id: appointment.id,
+      });
+    }
 
     const updatedAppointment = await Appointment.findByPk(id, {
       include: [
@@ -1240,12 +1217,25 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
       });
     }
 
+    // ✅ اصلاح: اضافه کردن include برای user و service
     const appointment = await Appointment.findOne({
       where: {
         id: req.params.id,
         user_id: req.userId,
         status: "completed",
       },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "full_name"],
+        },
+        {
+          model: Service,
+          as: "service",
+          attributes: ["id", "name", "price", "duration_minutes"],
+        },
+      ],
     });
 
     if (!appointment) {
@@ -1262,19 +1252,60 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
       });
     }
 
+    // ذخیره امتیاز و نظر
     appointment.rating = rating;
     appointment.user_review = review || "";
     await appointment.save();
 
-    const user = await User.findByPk(req.userId);
-    await Review.create({
+    // دریافت اطلاعات کاربر برای نظر
+    const user = await User.findByPk(req.userId, {
+      attributes: ["id", "full_name"],
+    });
+
+    // ایجاد رکورد در جدول reviews
+    const newReview = await Review.create({
       user_id: req.userId,
       name: user.full_name,
-      text: review || "تجربه خوبی بود..",
+      text: review || "تجربه خوبی بود.",
       rating: rating,
       is_approved: false,
       service_id: appointment.service_id,
       appointment_id: appointment.id,
+    });
+
+    console.log("📝 New review created:", {
+      id: newReview.id,
+      userId: req.userId,
+      appointmentId: appointment.id,
+      serviceName: appointment.service?.name,
+    });
+
+    // ✅ ارسال نوتیفیکیشن به ادمین (ماساژور)
+    const adminUsers = await User.findAll({
+      where: { role: "admin" },
+      attributes: ["id"],
+    });
+
+    console.log(`👥 Found ${adminUsers.length} admin(s) to notify`);
+
+    for (const admin of adminUsers) {
+      await Notification.create({
+        user_id: admin.id,
+        title: "⭐ نظر جدید از مشتری",
+        message: `مشتری ${user.full_name} برای نوبت ${appointment.service.name} (${appointment.appointment_date}) امتیاز ${rating} از ۵ ثبت کرد.`,
+        type: "review_received",
+        related_id: appointment.id,
+      });
+      console.log(`📧 Notification sent to admin ${admin.id}`);
+    }
+
+    // ارسال نوتیفیکیشن به مشتری برای تأیید ثبت نظر
+    await Notification.create({
+      user_id: req.userId,
+      title: "نظر شما با موفقیت ثبت شد",
+      message: `نظر شما برای ${appointment.service.name} با موفقیت ثبت شد. پس از تأیید ادمین در سایت نمایش داده می‌شود.`,
+      type: "review_received",
+      related_id: appointment.id,
     });
 
     res.json({
@@ -1287,10 +1318,11 @@ app.put("/api/appointments/:id/rate", authMiddleware, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Rate appointment error:", error);
+    console.error("❌ Rate appointment error:", error);
+    console.error("Error details:", error.message);
     res.status(500).json({
       success: false,
-      error: "خطا در ثبت امتیاز",
+      error: "خطا در ثبت امتیاز: " + error.message,
     });
   }
 });
@@ -1301,6 +1333,13 @@ app.get(
   async (req, res) => {
     try {
       const { date } = req.query;
+
+      // هدرهای جلوگیری از کش
+      res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, private",
+        Pragma: "no-cache",
+        Expires: "0",
+      });
 
       const allSlots = [
         "08:00",
@@ -1316,7 +1355,10 @@ app.get(
         "19:00",
       ];
 
+      console.log("📅 Available slots request for date:", date);
+
       if (date) {
+        // پیدا کردن نوبت‌های رزرو شده برای این تاریخ
         const bookedAppointments = await Appointment.findAll({
           where: {
             appointment_date: date,
@@ -1332,6 +1374,9 @@ app.get(
           (slot) => !bookedTimes.includes(slot)
         );
 
+        console.log(`📅 Date: ${date}, Booked slots:`, bookedTimes);
+        console.log(`📅 Available slots:`, availableSlots);
+
         return res.json({
           success: true,
           date,
@@ -1341,51 +1386,61 @@ app.get(
         });
       }
 
+      // اگر تاریخ مشخص نشده، تاریخ‌های امروز + ۷ روز آینده را برگردان
       const today = new Date();
       const availableDates = [];
 
-      for (let i = 1; i <= 7; i++) {
+      // ✅ اضافه کردن امروز به لیست (i=0 برای امروز)
+      for (let i = 0; i <= 7; i++) {
         const date = new Date(today);
-        date.setDate(today.getDate() + i);
+        date.setDate(today.getDate() + i); // حذف +1
         const dateStr = date.toISOString().split("T")[0];
 
-        const appointmentCount = await Appointment.count({
+        const bookedAppointments = await Appointment.findAll({
           where: {
             appointment_date: dateStr,
             status: ["pending", "confirmed"],
           },
+          attributes: ["appointment_time"],
         });
 
-        if (appointmentCount < 11) {
-          const bookedAppointments = await Appointment.findAll({
-            where: {
-              appointment_date: dateStr,
-              status: ["pending", "confirmed"],
-            },
-            attributes: ["appointment_time"],
-          });
+        const bookedTimes = bookedAppointments.map(
+          (apt) => apt.appointment_time
+        );
+        const availableSlots = allSlots.filter(
+          (slot) => !bookedTimes.includes(slot)
+        );
+        const totalAvailable = availableSlots.length;
 
-          const bookedTimes = bookedAppointments.map(
-            (apt) => apt.appointment_time
-          );
-          const availableSlots = allSlots.filter(
-            (slot) => !bookedTimes.includes(slot)
-          );
-
-          availableDates.push({
-            date: dateStr,
-            display: date.toLocaleDateString("fa-IR", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            }),
-            dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
-            all_slots: allSlots,
-            available_slots: availableSlots,
-            booked_slots: bookedTimes,
-            total_available: availableSlots.length,
+        // فیلتر برای امروز: فقط ساعت‌های ۱ ساعت آینده به بعد
+        let finalAvailableSlots = availableSlots;
+        if (i === 0) {
+          const now = new Date();
+          const currentHour = now.getHours();
+          const currentMinute = now.getMinutes();
+          finalAvailableSlots = availableSlots.filter((time) => {
+            const [hour, minute] = time.split(":").map(Number);
+            if (hour > currentHour) return true;
+            if (hour === currentHour) {
+              return minute >= currentMinute + 60;
+            }
+            return false;
           });
         }
+
+        availableDates.push({
+          date: dateStr,
+          display: date.toLocaleDateString("fa-IR", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          }),
+          dayName: date.toLocaleDateString("fa-IR", { weekday: "long" }),
+          all_slots: allSlots,
+          available_slots: finalAvailableSlots,
+          booked_slots: bookedTimes,
+          total_available: finalAvailableSlots.length,
+        });
       }
 
       res.json({
@@ -1843,33 +1898,55 @@ app.put(
       }
 
       const oldStatus = appointment.status;
+      const newStatus = status || appointment.status;
 
       if (status) appointment.status = status;
       if (therapist_notes !== undefined)
         appointment.therapist_notes = therapist_notes;
-
       await appointment.save();
 
-      // ✅ اگر وضعیت از pending به confirmed تغییر کرد، نوتیفیکیشن به مشتری ارسال کن
-      if (oldStatus === "pending" && status === "confirmed") {
-        await Notification.create({
-          user_id: appointment.user_id,
-          title: "✅ نوبت شما تأیید شد",
-          message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} توسط ادمین تأیید شد.`,
-          type: "appointment_confirmation",
-          related_id: appointment.id,
-        });
-      }
+      // ارسال نوتیفیکیشن به مشتری بر اساس نوع تغییر
+      if (oldStatus !== newStatus) {
+        let title = "";
+        let message = "";
 
-      // ✅ اگر نوبت لغو شد، نوتیفیکیشن به مشتری ارسال کن
-      if (status === "cancelled") {
+        switch (newStatus) {
+          case "confirmed":
+            title = "✅ نوبت شما تأیید شد";
+            message = `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} توسط ادمین تأیید شد.`;
+            break;
+          case "completed":
+            title = "✔️ نوبت شما انجام شد";
+            message = `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} با موفقیت انجام شد.`;
+            break;
+          case "cancelled":
+            title = "❌ لغو نوبت";
+            message = `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} لغو شد.`;
+            break;
+          case "expired":
+            title = "⏰ انقضای نوبت";
+            message = `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} به دلیل عدم تأیید به موقع منقضی شد.`;
+            break;
+          default:
+            title = "📅 تغییر وضعیت نوبت";
+            message = `وضعیت نوبت شما برای ${
+              appointment.service.name
+            } در تاریخ ${appointment.appointment_date} ساعت ${
+              appointment.appointment_time
+            } به "${getStatusText(newStatus)}" تغییر یافت.`;
+        }
+
         await Notification.create({
           user_id: appointment.user_id,
-          title: "❌ لغو نوبت",
-          message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} لغو شد.`,
-          type: "appointment_cancelled",
+          title: title,
+          message: message,
+          type: "appointment_changed",
           related_id: appointment.id,
         });
+
+        console.log(
+          `📧 Status change notification sent to user ${appointment.user_id}: ${oldStatus} -> ${newStatus}`
+        );
       }
 
       res.json({
@@ -1900,7 +1977,20 @@ app.put(
 //       const { id } = req.params;
 //       const { status, therapist_notes } = req.body;
 
-//       const appointment = await Appointment.findByPk(id);
+//       const appointment = await Appointment.findByPk(id, {
+//         include: [
+//           {
+//             model: User,
+//             as: "user",
+//             attributes: ["id", "full_name"],
+//           },
+//           {
+//             model: Service,
+//             as: "service",
+//             attributes: ["name"],
+//           },
+//         ],
+//       });
 
 //       if (!appointment) {
 //         return res.status(404).json({
@@ -1909,11 +1999,35 @@ app.put(
 //         });
 //       }
 
+//       const oldStatus = appointment.status;
+
 //       if (status) appointment.status = status;
 //       if (therapist_notes !== undefined)
 //         appointment.therapist_notes = therapist_notes;
 
 //       await appointment.save();
+
+//       // ✅ اگر وضعیت از pending به confirmed تغییر کرد، نوتیفیکیشن به مشتری ارسال کن
+//       if (oldStatus === "pending" && status === "confirmed") {
+//         await Notification.create({
+//           user_id: appointment.user_id,
+//           title: "✅ نوبت شما تأیید شد",
+//           message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} توسط ادمین تأیید شد.`,
+//           type: "appointment_confirmation",
+//           related_id: appointment.id,
+//         });
+//       }
+
+//       // ✅ اگر نوبت لغو شد، نوتیفیکیشن به مشتری ارسال کن
+//       if (status === "cancelled") {
+//         await Notification.create({
+//           user_id: appointment.user_id,
+//           title: "❌ لغو نوبت",
+//           message: `نوبت شما برای ${appointment.service.name} در تاریخ ${appointment.appointment_date} ساعت ${appointment.appointment_time} لغو شد.`,
+//           type: "appointment_cancelled",
+//           related_id: appointment.id,
+//         });
+//       }
 
 //       res.json({
 //         success: true,
@@ -2509,7 +2623,7 @@ app.put(
 
       await Notification.create({
         user_id: appointment.user_id,
-        title: "نظر ماساژتراپیست ثبت شد",
+        title: "نظر ماساژتراپیست ثبت شد.",
         message: `ماساژتراپیست برای جلسه ${appointment.appointment_date} نظر خود را ثبت کرد. می‌توانید در پنل خود مشاهده کنید.`,
         type: "therapist_note",
         related_id: appointment.id,
@@ -2548,6 +2662,11 @@ app.delete("/api/admin/appointments/:id", adminMiddleware, async (req, res) => {
           as: "user",
           attributes: ["id", "full_name", "phone"],
         },
+        {
+          model: Service,
+          as: "service",
+          attributes: ["name"],
+        },
       ],
     });
 
@@ -2560,16 +2679,36 @@ app.delete("/api/admin/appointments/:id", adminMiddleware, async (req, res) => {
 
     const oldDate = appointment.appointment_date;
     const oldTime = appointment.appointment_time;
+    const oldStatus = appointment.status;
 
     await appointment.update({ status: "cancelled" });
 
+    // ارسال نوتیفیکیشن به مشتری
     await Notification.create({
       user_id: appointment.user_id,
-      title: "لغو نوبت توسط ماساژتراپیست",
-      message: `نوبت شما در تاریخ ${oldDate} ساعت ${oldTime} توسط ماساژتراپیست لغو شد. در صورت تمایل می‌توانید نوبت جدیدی رزرو کنید.`,
+      title: "❌ لغو نوبت توسط ماساژتراپیست",
+      message: `نوبت شما برای ${appointment.service.name} در تاریخ ${oldDate} ساعت ${oldTime} توسط ماساژتراپیست لغو شد. در صورت تمایل می‌توانید نوبت جدیدی رزرو کنید.`,
       type: "appointment_cancelled",
       related_id: appointment.id,
     });
+
+    // ارسال نوتیفیکیشن به ادمین (تأیید لغو)
+    const adminUsers = await User.findAll({
+      where: { role: "admin" },
+      attributes: ["id"],
+    });
+
+    for (const admin of adminUsers) {
+      if (admin.id !== req.userId) {
+        await Notification.create({
+          user_id: admin.id,
+          title: "📅 لغو نوبت توسط ادمین",
+          message: `ادمین ${req.userId} نوبت مشتری ${appointment.user.full_name} در تاریخ ${oldDate} ساعت ${oldTime} را لغو کرد.`,
+          type: "appointment_cancelled",
+          related_id: appointment.id,
+        });
+      }
+    }
 
     res.json({
       success: true,
@@ -2583,6 +2722,57 @@ app.delete("/api/admin/appointments/:id", adminMiddleware, async (req, res) => {
     });
   }
 });
+
+// app.delete("/api/admin/appointments/:id", adminMiddleware, async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const appointment = await Appointment.findOne({
+//       where: {
+//         id,
+//         status: ["pending", "confirmed"],
+//       },
+//       include: [
+//         {
+//           model: User,
+//           as: "user",
+//           attributes: ["id", "full_name", "phone"],
+//         },
+//       ],
+//     });
+
+//     if (!appointment) {
+//       return res.status(404).json({
+//         success: false,
+//         error: "نوبت پیدا نشد یا قابل لغو نیست.",
+//       });
+//     }
+
+//     const oldDate = appointment.appointment_date;
+//     const oldTime = appointment.appointment_time;
+
+//     await appointment.update({ status: "cancelled" });
+
+//     await Notification.create({
+//       user_id: appointment.user_id,
+//       title: "لغو نوبت توسط ماساژتراپیست",
+//       message: `نوبت شما در تاریخ ${oldDate} ساعت ${oldTime} توسط ماساژتراپیست لغو شد. در صورت تمایل می‌توانید نوبت جدیدی رزرو کنید.`,
+//       type: "appointment_cancelled",
+//       related_id: appointment.id,
+//     });
+
+//     res.json({
+//       success: true,
+//       message: "نوبت با موفقیت لغو شد و به مشتری اطلاع داده شد.",
+//     });
+//   } catch (error) {
+//     console.error("Admin cancel appointment error:", error);
+//     res.status(500).json({
+//       success: false,
+//       error: "خطا در لغو نوبت",
+//     });
+//   }
+// });
 
 app.get("/api/admin/overview", adminMiddleware, async (req, res) => {
   try {
@@ -2990,7 +3180,7 @@ app.post("/api/admin/check-uncompleted", adminMiddleware, async (req, res) => {
     console.error("Error in check-uncompleted API:", error);
     res.status(500).json({
       success: false,
-      error: "خطا در بررسی نوبت‌های انجام نشده",
+      error: "خطا در بررسی نوبت‌های انجام نشده.",
     });
   }
 });

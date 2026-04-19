@@ -25,7 +25,11 @@ import {
   FiActivity,
   FiBriefcase,
   FiBell,
+  // FaStar,
+  // FaRegStar,
 } from "react-icons/fi";
+
+import { FaStar, FaRegStar } from "react-icons/fa";
 
 // کامپوننت SimplePersianDateInput
 const SimplePersianDateInput = ({
@@ -145,7 +149,7 @@ const SimplePersianDateInput = ({
 
 // تابع تبدیل میلادی به شمسی برای نمایش
 const formatToPersianDate = (gregorianDate) => {
-  if (!gregorianDate) return "ثبت نشده";
+  if (!gregorianDate) return "ثبت نشده.";
 
   try {
     // اگر تاریخ به فرمت میلادی هست
@@ -181,8 +185,37 @@ const formatToPersianDate = (gregorianDate) => {
     return gregorianDate;
   } catch (error) {
     console.error("Error formatting date:", error);
-    return gregorianDate || "ثبت نشده";
+    return gregorianDate || "ثبت نشده.";
   }
+};
+
+// در بالای کامپوننت Dashboard، بعد از importها، اضافه کنید:
+const statusConfig = {
+  pending: {
+    label: "در انتظار تأیید.",
+    color: "#f59e0b",
+    bg: "#fef3c7",
+  },
+  confirmed: {
+    label: "تأیید شده",
+    color: "#10b981",
+    bg: "#d1fae5",
+  },
+  completed: {
+    label: "انجام شده",
+    color: "#3b82f6",
+    bg: "#dbeafe",
+  },
+  cancelled: {
+    label: "لغو شده",
+    color: "#ef4444",
+    bg: "#fee2e2",
+  },
+  expired: {
+    label: "منقضی شده",
+    color: "#6b7280",
+    bg: "#f3f4f6",
+  },
 };
 
 const Dashboard = () => {
@@ -273,32 +306,6 @@ const Dashboard = () => {
   };
 
   // ============ تبدیل appointments به massageHistory ============
-  // const massageHistory = appointments.map((apt) => {
-  //   const serviceInfo = apt.service || {};
-
-  //   return {
-  //     id: apt.id,
-  //     date: apt.date || apt.appointment_date,
-  //     time: apt.time || apt.appointment_time,
-  //     type: serviceInfo.name || "ماساژ عمومی",
-  //     duration: serviceInfo.duration_minutes
-  //       ? `${serviceInfo.duration_minutes} دقیقه`
-  //       : serviceInfo.duration || "۶۰ دقیقه",
-  //     price: apt.price // عددی
-  //       ? new Intl.NumberFormat("fa-IR").format(apt.price) + " تومان"
-  //       : serviceInfo.price // عددی
-  //       ? new Intl.NumberFormat("fa-IR").format(serviceInfo.price) + " تومان"
-  //       : "۰ تومان",
-  //     priceValue: apt.price || serviceInfo.price || 0, // برای محاسبات
-  //     rating: apt.rating || 0,
-  //     therapistNotes: apt.therapist_notes || "",
-  //     status: apt.status,
-  //     userRating: apt.rating,
-  //     userReview: apt.user_review,
-  //     service: serviceInfo,
-  //   };
-  // });
-
   const massageHistory = appointments.map((apt) => {
     const serviceInfo = apt.service || {};
 
@@ -374,7 +381,7 @@ const Dashboard = () => {
 
   // ============ توابع کمکی ============
   const formatDate = (dateString) => {
-    if (!dateString) return "ثبت نشده";
+    if (!dateString) return "ثبت نشده.";
 
     console.log("Formatting date string:", dateString); // برای دیباگ
 
@@ -412,7 +419,7 @@ const Dashboard = () => {
     return Array(5)
       .fill(0)
       .map((_, index) => (
-        <FiStar
+        <FaStar
           key={index}
           className={index < rating ? styles.starFilled : styles.starEmpty}
         />
@@ -469,13 +476,30 @@ const Dashboard = () => {
   );
 
   const DashboardHome = () => {
-    const upcomingAppointments = appointments.filter(
-      (apt) => apt.status === "pending" || apt.status === "confirmed"
-    );
+    // تاریخ امروز برای مقایسه
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split("T")[0];
 
-    const completedAppointments = appointments.filter(
-      (apt) => apt.status === "completed"
-    );
+    // نوبت‌های آینده (تاریخ >= امروز و وضعیت pending یا confirmed)
+    const upcomingAppointments = appointments.filter((apt) => {
+      const aptDate = apt.date || apt.appointment_date;
+      const isFuture = aptDate >= todayStr;
+      const isPendingOrConfirmed =
+        apt.status === "pending" || apt.status === "confirmed";
+      return isFuture && isPendingOrConfirmed;
+    });
+    // نوبت‌های گذشته (تاریخ < امروز یا وضعیت completed/cancelled/expired)
+    const pastAppointments = appointments.filter((apt) => {
+      const aptDate = apt.date || apt.appointment_date;
+      const isPast = aptDate < todayStr;
+      const isCompletedOrCancelled = [
+        "completed",
+        "cancelled",
+        "expired",
+      ].includes(apt.status);
+      return isPast || isCompletedOrCancelled;
+    });
 
     const [showAllUpcoming, setShowAllUpcoming] = useState(false);
 
@@ -525,11 +549,6 @@ const Dashboard = () => {
 
       console.log("4. Found selected massage:", selectedMassage);
 
-      // setEditingAppointment({
-      //   ...appointment,
-      //   service: selectedMassage || appointment.service,
-      // });
-
       setEditingAppointment({
         id: appointment.id,
         service: selectedMassage || appointment.service,
@@ -559,7 +578,7 @@ const Dashboard = () => {
       {
         icon: <FiTrendingUp />,
         label: "تعداد ماساژهای گذشته",
-        value: completedAppointments.length.toString(),
+        value: pastAppointments.length.toString(),
         color: "#9C27B0",
       },
     ];
@@ -579,23 +598,6 @@ const Dashboard = () => {
       }
     };
 
-    // const handleSubmitRating = async (appointmentId, rating, review) => {
-    //   try {
-    //     await userService.rateAppointment(appointmentId, rating, review);
-    //     setAppointments((prev) =>
-    //       prev.map((apt) =>
-    //         apt.id === appointmentId
-    //           ? { ...apt, rating, user_review: review }
-    //           : apt
-    //       )
-    //     );
-    //     alert("نظر و امتیاز شما با موفقیت ثبت شد!");
-    //   } catch (err) {
-    //     console.error("Error submitting rating:", err);
-    //     alert("خطا در ثبت نظر. لطفاً دوباره تلاش کنید.");
-    //   }
-    // };
-
     // تاریخچه ماساژهای انجام شده
     const completedMassages = massageHistory
       .filter((item) => item.status === "completed")
@@ -607,14 +609,6 @@ const Dashboard = () => {
     const [ratingValue, setRatingValue] = useState(0);
     const [reviewText, setReviewText] = useState("");
     const [userRatings, setUserRatings] = useState({});
-
-    // const openRatingModal = (sessionId) => {
-    //   const session = completedMassages.find((s) => s.id === sessionId);
-    //   setSelectedSession(session);
-    //   setRatingValue(userRatings[sessionId]?.rating || 0);
-    //   setReviewText(userRatings[sessionId]?.review || "");
-    //   setShowRatingModal(true);
-    // };
 
     const openRatingModal = (sessionId) => {
       const session = completedMassages.find((s) => s.id === sessionId);
@@ -667,6 +661,20 @@ const Dashboard = () => {
             {upcomingAppointment ? (
               <>
                 <div className={styles.appointmentInfo}>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>وضعیت:</span>
+                    <span
+                      className={styles.statusBadge}
+                      style={{
+                        backgroundColor:
+                          statusConfig[upcomingAppointment.status]?.bg,
+                        color: statusConfig[upcomingAppointment.status]?.color,
+                      }}
+                    >
+                      {statusConfig[upcomingAppointment.status]?.label ||
+                        upcomingAppointment.status}
+                    </span>
+                  </div>
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>تاریخ:</span>
                     <span className={styles.infoValue}>
@@ -845,149 +853,182 @@ const Dashboard = () => {
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>
               <FiClock className={styles.sectionIcon} />
-              تاریخچه ماساژهای گذشته
+              تاریخچه نوبت‌های گذشته
             </h2>
           </div>
-          {completedMassages.length > 0 ? (
+
+          {pastAppointments.length > 0 ? (
             <div className={styles.historyList}>
-              {enhancedCompletedMassages.map((session) => (
-                <div key={session.id} className={styles.historyCard}>
-                  <div className={styles.cardHeader}>
-                    <div className={styles.sessionInfo}>
-                      <div className={styles.sessionDate}>
-                        <FiCalendar className={styles.infoIcon} />
-                        <span>{formatDate(session.date)}</span>
-                        <span className={styles.sessionTime}>
-                          <FiClock className={styles.timeIcon} />
-                          {session.time}
+              {pastAppointments.map((apt) => {
+                const serviceInfo = apt.service || {};
+                const status = statusConfig[apt.status] || statusConfig.pending;
+                const hasUserRating = apt.rating && apt.rating > 0;
+
+                return (
+                  <div key={apt.id} className={styles.historyCard}>
+                    <div className={styles.cardHeader}>
+                      <div className={styles.sessionInfo}>
+                        <div className={styles.sessionDate}>
+                          <FiCalendar className={styles.infoIcon} />
+                          <span>
+                            {formatDate(apt.date || apt.appointment_date)}
+                          </span>
+                          <span className={styles.sessionTime}>
+                            <FiClock className={styles.timeIcon} />
+                            {apt.time || apt.appointment_time}
+                          </span>
+                        </div>
+
+                        <div className={styles.sessionType}>
+                          <h3 className={styles.massageType}>
+                            {serviceInfo.name || "ماساژ عمومی"}
+                          </h3>
+                          <div className={styles.sessionMeta}>
+                            <span className={styles.metaItem}>
+                              <FiClock className={styles.metaIcon} />
+                              {serviceInfo.duration_minutes
+                                ? `${serviceInfo.duration_minutes} دقیقه`
+                                : serviceInfo.duration || "۶۰ دقیقه"}
+                            </span>
+                            <span className={styles.metaItem}>-</span>
+                            <span className={styles.metaItem}>
+                              {apt.price
+                                ? new Intl.NumberFormat("fa-IR").format(
+                                    apt.price
+                                  ) + " تومان"
+                                : serviceInfo.price
+                                ? new Intl.NumberFormat("fa-IR").format(
+                                    serviceInfo.price
+                                  ) + " تومان"
+                                : "۰ تومان"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* وضعیت نوبت */}
+                      <div className={styles.sessionStatus}>
+                        <span
+                          className={styles.historyStatusBadge}
+                          style={{
+                            backgroundColor: status.bg,
+                            color: status.color,
+                          }}
+                        >
+                          {status.label}
                         </span>
                       </div>
-
-                      <div className={styles.sessionType}>
-                        <h3 className={styles.massageType}>{session.type}</h3>
-                        <div className={styles.sessionMeta}>
-                          <span className={styles.metaItem}>
-                            <FiClock className={styles.metaIcon} />
-                            {session.duration}
-                          </span>
-                          <span className={styles.metaItem}>-</span>
-
-                          <span className={styles.metaItem}>
-                            {session.price}
-                          </span>
-                        </div>
-                      </div>
                     </div>
-                    <div className={styles.sessionStatus}>
-                      {session.userRating ? (
-                        <div className={styles.userRatingSection}>
-                          <div className={styles.ratingStars}>
-                            {renderStars(session.userRating)}
-                          </div>
-                          <span className={styles.ratingText}>
-                            امتیاز شما: {session.userRating}/5
-                          </span>
+
+                    {/* بخش امتیاز و نظر کاربر */}
+                    {hasUserRating && (
+                      <div className={styles.userRatingSection}>
+                        <div className={styles.ratingStars}>
+                          {renderStars(apt.rating)}
                         </div>
-                      ) : (
+                        <span className={styles.ratingTextshow}>
+                          امتیاز شما: {apt.rating}/5
+                        </span>
+                      </div>
+                    )}
+
+                    {/* نظر کاربر */}
+                    {apt.user_review && (
+                      <div className={styles.userReviewSection}>
+                        <div className={styles.reviewHeader}>
+                          <FiMessageSquare className={styles.reviewIcon} />
+                          <span>نظر شما:</span>
+                        </div>
+                        <p className={styles.reviewText}>{apt.user_review}</p>
+                      </div>
+                    )}
+
+                    {/* دکمه ثبت نظر (اگر نظری ثبت نشده و وضعیت completed است) */}
+                    {!hasUserRating && apt.status === "completed" && (
+                      <div className={styles.rateButtonWrapper}>
                         <button
                           className={styles.rateButton}
-                          onClick={() => openRatingModal(session.id)}
+                          onClick={() => {
+                            const session = {
+                              id: apt.id,
+                              type: serviceInfo.name || "ماساژ عمومی",
+                              date: apt.date || apt.appointment_date,
+                              time: apt.time || apt.appointment_time,
+                            };
+                            setSelectedSession(session);
+                            setRatingValue(0);
+                            setReviewText("");
+                            setShowRatingModal(true);
+                          }}
                         >
                           <FiStar />
                           <span>ثبت نظر و امتیاز</span>
                         </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {session.userReview && (
-                    <div className={styles.userReviewSection}>
-                      <div className={styles.reviewHeader}>
-                        <FiMessageSquare className={styles.reviewIcon} />
-                        <span>نظر شما:</span>
                       </div>
-                      <p className={styles.reviewText}>{session.userReview}</p>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Therapist Notes */}
-                  {session.therapistNotes && (
-                    <div className={styles.notesSection}>
-                      <button
-                        className={styles.notesToggle}
-                        onClick={() => toggleNotes(session.id)}
-                      >
-                        <FiMessageSquare className={styles.notesIcon} />
-                        <span>توضیحات ماساژتراپیست</span>
-                        {expandedNotes.includes(session.id) ? (
-                          <FiChevronUp className={styles.toggleIcon} />
-                        ) : (
-                          <FiChevronDown className={styles.toggleIcon} />
-                        )}
-                      </button>
+                    {/* Therapist Notes */}
+                    {apt.therapist_notes && (
+                      <div className={styles.notesSection}>
+                        <button
+                          className={styles.notesToggle}
+                          onClick={() => toggleNotes(apt.id)}
+                        >
+                          <FiMessageSquare className={styles.notesIcon} />
+                          <span>توضیحات ماساژتراپیست</span>
+                          {expandedNotes.includes(apt.id) ? (
+                            <FiChevronUp className={styles.toggleIcon} />
+                          ) : (
+                            <FiChevronDown className={styles.toggleIcon} />
+                          )}
+                        </button>
 
-                      {expandedNotes.includes(session.id) && (
-                        <div className={styles.notesContent}>
-                          <p>{session.therapistNotes}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className={styles.cardActions}>
-                    <button
-                      className={styles.primaryButton}
-                      onClick={() => setActiveTab("booking")}
-                    >
-                      رزرو مجدد این سرویس
-                    </button>
-
-                    {session.userRating && (
-                      <div className={styles.userRatingSection}>
-                        <div className={styles.ratingStars}>
-                          {renderStars(session.userRating)}
-                        </div>
-                        <span className={styles.ratingText}>
-                          امتیاز شما: {session.userRating}/5
-                        </span>
-                        {session.userReview && (
-                          <div className={styles.userReviewCard}>
-                            <div className={styles.userReviewHeader}>
-                              <FiMessageSquare className={styles.reviewIcon} />
-                              <span>نظر شما:</span>
-                            </div>
-                            <p className={styles.userReviewText}>
-                              {session.userReview}
-                            </p>
-                            <button
-                              className={styles.editReviewButton}
-                              onClick={() => openRatingModal(session.id)}
-                            >
-                              <FiEdit />
-                              ویرایش نظر
-                            </button>
+                        {expandedNotes.includes(apt.id) && (
+                          <div className={styles.notesContent}>
+                            <p>{apt.therapist_notes}</p>
                           </div>
                         )}
                       </div>
                     )}
-                    {/* {session.userRating && (
+
+                    {/* Actions */}
+                    <div className={styles.cardActions}>
                       <button
-                        className={styles.editReviewButton}
-                        onClick={() => openRatingModal(session.id)}
+                        className={styles.primaryButton}
+                        onClick={() => setActiveTab("booking")}
                       >
-                        <FiEdit />
-                        ویرایش نظر
+                        رزرو مجدد این سرویس
                       </button>
-                    )} */}
+
+                      {hasUserRating && (
+                        <button
+                          className={styles.editReviewButton}
+                          onClick={() => {
+                            const session = {
+                              id: apt.id,
+                              type: serviceInfo.name || "ماساژ عمومی",
+                              date: apt.date || apt.appointment_date,
+                              time: apt.time || apt.appointment_time,
+                            };
+                            setSelectedSession(session);
+                            setRatingValue(apt.rating);
+                            setReviewText(apt.user_review || "");
+                            setShowRatingModal(true);
+                          }}
+                        >
+                          <FiEdit />
+                          ویرایش نظر
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className={styles.noHistory}>
               <FiInfo className={styles.infoIcon} />
-              <p>هنوز ماساژی انجام نداده‌اید.</p>
+              <p>هنوز نوبت گذشته‌ای ندارید.</p>
             </div>
           )}
 
@@ -1017,7 +1058,7 @@ const Dashboard = () => {
                   <div className={styles.ratingSection}>
                     <p>امتیاز شما:</p>
                     <div className={styles.starRating}>
-                      {[1, 2, 3, 4, 5].map((star) => (
+                      {[5, 4, 3, 2, 1].map((star) => (
                         <button
                           key={star}
                           className={`${styles.starButton} ${
@@ -1025,7 +1066,7 @@ const Dashboard = () => {
                           }`}
                           onClick={() => setRatingValue(star)}
                         >
-                          <FiStar />
+                          <FaStar />
                         </button>
                       ))}
                     </div>
@@ -1069,14 +1110,6 @@ const Dashboard = () => {
                     <FiCheck />
                     ثبت نظر
                   </button>
-                  {/* <button
-                    className={styles.submitRatingButton}
-                    onClick={handleSubmitRating}
-                    disabled={ratingValue === 0}
-                  >
-                    <FiCheck />
-                    ثبت نظر
-                  </button> */}
                 </div>
               </div>
             </div>
@@ -1341,7 +1374,7 @@ const Dashboard = () => {
                     </>
                   ) : (
                     <p className={styles.formValue}>
-                      {userData?.email || "ثبت نشده"}
+                      {userData?.email || "ثبت نشده."}
                     </p>
                   )}
                 </div>
@@ -1431,7 +1464,7 @@ const Dashboard = () => {
                     <p className={styles.formValue}>
                       {userData?.birth_date
                         ? formatToPersianDate(userData.birth_date)
-                        : "ثبت نشده"}
+                        : "ثبت نشده."}
                     </p>
                   )}
                 </div>
@@ -1466,7 +1499,7 @@ const Dashboard = () => {
                         ? "خانم"
                         : userData?.gender === "other"
                         ? "سایر"
-                        : "ثبت نشده"}
+                        : "ثبت نشده."}
                     </p>
                   )}
                 </div>
@@ -1476,7 +1509,7 @@ const Dashboard = () => {
                   <p className={styles.formValue}>
                     {userData?.created_at
                       ? formatDate(userData.created_at)
-                      : "ثبت نشده"}
+                      : "ثبت نشده."}
                   </p>
                 </div>
               </form>
@@ -1592,7 +1625,7 @@ const Dashboard = () => {
                                 )
                               ) : (
                                 <span className={styles.noCondition}>
-                                  ندارد
+                                  ندارد.
                                 </span>
                               )}
                             </div>

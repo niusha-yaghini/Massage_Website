@@ -93,11 +93,19 @@ const Booking = ({
 
         // پیدا کردن اطلاعات available از API
         const availableInfo = availableDates.find((d) => d.date === dateStr);
+        const actualAvailableSlots = availableInfo?.available_slots || allSlots;
+
+        // برای امروز، ساعت‌های معتبر را فیلتر کن
+        let validSlots = actualAvailableSlots;
+        if (isToday) {
+          validSlots = actualAvailableSlots.filter((time) =>
+            isTimeValidForToday(time, dateStr)
+          );
+        }
 
         dates.push({
           date: dateStr,
           display: date.toLocaleDateString("fa-IR", {
-            // weekday: "long",
             month: "long",
             day: "numeric",
           }),
@@ -105,8 +113,8 @@ const Booking = ({
           dayNumber: date.getDate(),
           month: date.getMonth(),
           isToday: isToday,
-          isAvailable: availableInfo ? availableInfo.total_available > 0 : true,
-          availableSlots: availableInfo?.available_slots || allSlots,
+          isAvailable: validSlots.length > 0,
+          availableSlots: actualAvailableSlots,
         });
       }
 
@@ -136,12 +144,13 @@ const Booking = ({
     return false;
   };
 
-  // دریافت ساعت‌های available برای یک تاریخ خاص
   const getAvailableSlotsForDate = (dateStr) => {
     const dateInfo = availableDates.find((d) => d.date === dateStr);
     let slots = dateInfo?.available_slots || allSlots;
 
-    // اگر تاریخ امروز است، فقط ساعت‌های ۱ ساعت آینده به بعد را نمایش بده
+    console.log(`🔍 Date: ${dateStr}, DateInfo:`, dateInfo);
+    console.log(`🔍 Available slots for ${dateStr}:`, slots);
+
     const today = new Date().toISOString().split("T")[0];
     if (dateStr === today) {
       slots = slots.filter((time) => isTimeValidForToday(time, dateStr));
@@ -214,6 +223,24 @@ const Booking = ({
 
         console.log("📅 Creating new appointment:", appointmentData);
         await userService.bookAppointment(appointmentData);
+
+        // ✅ بعد از رزرو موفق، دوباره تاریخ‌های available را دریافت کن
+        const response = await userService.getAvailableSlots();
+        if (response.success) {
+          console.log(
+            "📅 Available dates after booking:",
+            response.available_dates
+          );
+          console.log("📅 All slots after booking:", response.all_slots);
+          setAvailableDates((prev) => {
+            console.log("Old availableDates:", prev);
+            console.log("New availableDates:", response.available_dates);
+            return response.available_dates || [];
+          });
+          setAllSlots(response.all_slots || []);
+          setCurrentWeekOffset(0);
+        }
+
         alert("نوبت با موفقیت رزرو شد!");
       }
 
@@ -248,11 +275,18 @@ const Booking = ({
 
     const availableSlots = getAvailableSlotsForDate(bookingData.selectedDate);
 
+    console.log(
+      "🔍 Available slots for",
+      bookingData.selectedDate,
+      ":",
+      availableSlots
+    );
+
     if (availableSlots.length === 0) {
       return (
         <div className={styles.timePlaceholder}>
           <FiInfo className={styles.infoIcon} />
-          <p>هیچ ساعت خالی برای این تاریخ وجود ندارد</p>
+          <p>هیچ ساعت خالی برای این تاریخ وجود ندارد.</p>
         </div>
       );
     }
@@ -260,7 +294,15 @@ const Booking = ({
     return (
       <div className={styles.timeGrid}>
         {allSlots.map((time) => {
-          const isAvailable = availableSlots.includes(time);
+          // بررسی دقیق‌تر برای today
+          let isAvailable = availableSlots.includes(time);
+
+          // اگر تاریخ امروز است، دوباره بررسی کن
+          const today = new Date().toISOString().split("T")[0];
+          if (bookingData.selectedDate === today) {
+            isAvailable = isAvailable && isTimeValidForToday(time, today);
+          }
+
           const isSelected = bookingData.selectedTime === time;
 
           return (
